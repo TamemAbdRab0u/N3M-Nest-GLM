@@ -58,10 +58,5 @@ namespace Game_Library_Management_BL.Repository.Repository
             return dbSet.AsQueryable();
         }
 
-        public void Save()
-        {
-            context.SaveChanges();
-        }
-
     }
 }

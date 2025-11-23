@@ -32,6 +32,11 @@ namespace Game_Library_Management_BL.UnitOfWork
             GameTags = new Repo<GameTag>(context);
             GamePlatforms = new Repo<GamePlatform>(context);
         }
+
+        public void Save()
+        {
+            context.SaveChanges();
+        }
     }
 }
 

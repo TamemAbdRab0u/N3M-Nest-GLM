@@ -18,5 +18,7 @@ namespace Game_Library_Management_BL.UnitOfWork
         public IRepo<UserGame> UserGames { get; }
         public IRepo<GameTag> GameTags { get; }
         public IRepo<GamePlatform> GamePlatforms { get; }
+
+        public void Save();
     }
 }
