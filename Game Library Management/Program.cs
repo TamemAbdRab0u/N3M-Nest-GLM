@@ -1,4 +1,7 @@
 
+using Game_Library_Management_DAL.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace Game_Library_Management
 {
     public class Program
@@ -7,12 +10,17 @@ namespace Game_Library_Management
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Registration //
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            // Registration //
 
             var app = builder.Build();
 
