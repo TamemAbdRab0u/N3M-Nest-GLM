@@ -8,9 +8,6 @@
 
   <ItemGroup>
     <Folder Include="DTO%27s\" />
-    <Folder Include="UnitOfWork\" />
-    <Folder Include="Repository\IRepo\" />
-    <Folder Include="Repository\Repo\" />
     <Folder Include="Services\IServices\" />
     <Folder Include="Services\Services\" />
   </ItemGroup>
@@ -25,6 +22,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GLM.DAL\Game Library Management_DAL.csproj" />
   </ItemGroup>
 
 </Project>
