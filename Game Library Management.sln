@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22 d17.14
+VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game Library Management-PL", "Game Library Management\Game Library Management-PL.csproj", "{D65B02B8-32B2-436B-8F27-E9CC280C0D03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game Library Management_PL", "Game Library Management\Game Library Management_PL.csproj", "{D65B02B8-32B2-436B-8F27-E9CC280C0D03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game Library Management-DAL", "GLM.DAL\Game Library Management-DAL.csproj", "{70A69B9A-9A4E-4EE7-A1D0-CAA50C63DD17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game Library Management_DAL", "GLM.DAL\Game Library Management_DAL.csproj", "{70A69B9A-9A4E-4EE7-A1D0-CAA50C63DD17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game Library Management-BL", "GLM.BL\Game Library Management-BL.csproj", "{C8D1EE8F-8DE7-4A09-8B85-E3B2E8750674}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game Library Management_BL", "GLM.BL\Game Library Management_BL.csproj", "{C8D1EE8F-8DE7-4A09-8B85-E3B2E8750674}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

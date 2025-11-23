@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GLM.BL\Game Library Management-BL.csproj" />
-    <ProjectReference Include="..\GLM.DAL\Game Library Management-DAL.csproj" />
+    <ProjectReference Include="..\GLM.BL\Game Library Management_BL.csproj" />
+    <ProjectReference Include="..\GLM.DAL\Game Library Management_DAL.csproj" />
   </ItemGroup>
 
 </Project>
