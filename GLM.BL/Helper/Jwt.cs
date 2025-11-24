@@ -9,8 +9,8 @@ namespace Game_Library_Management_BL.Helper
     public class Jwt
     {
         public string Key { get; set; }
-        public string issuer { get; set; }
+        public string Issuer { get; set; }
         public string Audience { get; set; }
-        public string DurationInDays { get; set; }
+        public double DurationInDays { get; set; }
     }
 }
