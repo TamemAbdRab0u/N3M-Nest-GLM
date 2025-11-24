@@ -1,6 +1,13 @@
 
+using Game_Library_Management_BL.Helper;
+using Game_Library_Management_BL.Services.IServices;
+using Game_Library_Management_BL.Services.Services;
 using Game_Library_Management_DAL.Data;
+using Game_Library_Management_DAL.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Game_Library_Management
 {
@@ -14,13 +21,40 @@ namespace Game_Library_Management
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Registration //
+            #region Registration
+            builder.Services.Configure<Jwt>(builder.Configuration.GetSection("JWT"));
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
             builder.Services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("constr"));
             });
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
-            // Registration //
+            #endregion
+
+            #region JWT Authentication
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(o =>
+            {
+                o.RequireHttpsMetadata = false;
+                o.SaveToken = false;
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = builder.Configuration["JWT:Issuer"],
+                    ValidAudience = builder.Configuration["JWT:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                };
+            });
+ 
+            #endregion
 
             var app = builder.Build();
 
@@ -32,6 +66,7 @@ namespace Game_Library_Management
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
