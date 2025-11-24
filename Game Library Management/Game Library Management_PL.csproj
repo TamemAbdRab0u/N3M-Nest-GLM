@@ -25,10 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\GLM.BL\Game Library Management_BL.csproj" />
     <ProjectReference Include="..\GLM.DAL\Game Library Management_DAL.csproj" />
   </ItemGroup>

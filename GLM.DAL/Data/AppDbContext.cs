@@ -1,5 +1,6 @@
 ﻿using Game_Library_Management_DAL.Models;
 using Game_Library_Management_PL.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -42,6 +43,21 @@ namespace Game_Library_Management_DAL.Data
             modelBuilder.Entity<GamePlatform>().HasKey(x => new{x.GameId, x.PlatformId });
             modelBuilder.Entity<GamePlatform>().HasOne(x => x.Game).WithMany(x => x.GamePlatforms).HasForeignKey(x => x.GameId);
             modelBuilder.Entity<GamePlatform>().HasOne(x => x.Platform).WithMany(x => x.GamePlatforms).HasForeignKey(x => x.PlatformId);
+
+            modelBuilder.Entity<IdentityRole>().HasData(
+               new IdentityRole
+               {
+                   Id = Guid.NewGuid().ToString(),
+                   Name = "Admin",
+                   NormalizedName = "Admin"
+               },
+               new IdentityRole
+               {
+                   Id = Guid.NewGuid().ToString(),
+                   Name = "User",
+                   NormalizedName = "User"
+               }
+   );
         }
     }
 }

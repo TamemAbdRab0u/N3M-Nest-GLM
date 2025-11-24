@@ -1,5 +1,7 @@
 
 using Game_Library_Management_BL.Helper;
+using Game_Library_Management_BL.Services.IServices;
+using Game_Library_Management_BL.Services.Services;
 using Game_Library_Management_DAL.Data;
 using Game_Library_Management_DAL.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,6 +28,7 @@ namespace Game_Library_Management
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("constr"));
             });
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
             #endregion
 
