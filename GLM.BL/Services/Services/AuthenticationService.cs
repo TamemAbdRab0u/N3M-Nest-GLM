@@ -115,6 +115,31 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
+        public async Task<string> AddToRoleAsync(AddRoleDto model)
+        {
+            var user = await usermanager.FindByIdAsync(model.UserId);
+            if(user is null || !await rolemanager.RoleExistsAsync(model.RoleName))
+            {
+                return "Invalid UserId Or Role";
+            }
+
+            if(await usermanager.IsInRoleAsync(user, model.RoleName))
+            {
+                return $"{user.UserName} Already Assigned To This Role";
+            }
+
+            var result = await usermanager.AddToRoleAsync(user, model.RoleName);
+
+            if(result.Succeeded)
+            {
+                return $"'{user.UserName}' Added To Role {model.RoleName} Successfully";
+            }
+            else
+            {
+                return "Failed To Add To Role";
+            }
+        }
+
         private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
         {
             var UserClaims = await usermanager.GetClaimsAsync(user);
@@ -148,5 +173,7 @@ namespace Game_Library_Management_BL.Services.Services
 
             return jwtSecurityToken;
         }
+
+        
     }
 }
