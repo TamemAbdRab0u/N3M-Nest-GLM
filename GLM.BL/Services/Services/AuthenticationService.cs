@@ -88,6 +88,33 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
+        public async Task<AuthResponseDto> LoginAsync(LoginDto model)
+        {
+            var user = await usermanager.FindByEmailAsync(model.Email);
+            if(user is null || !await usermanager.CheckPasswordAsync(user, model.Password))
+            {
+                return new AuthResponseDto
+                {
+                    Message = "Email Or Password Is Incorrect",
+                    IsAuthenticated = false
+                };
+            }
+
+            var jwtSecurityToken = await CreateJwtToken(user);
+            var Roles = await usermanager.GetRolesAsync(user);
+
+            return new AuthResponseDto
+            {
+                Message = "- Login Successfull -",
+                UserName = user.UserName,
+                Email = user.Email,
+                IsAuthenticated = true,
+                UserRoles = Roles.ToList(),
+                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                ExpiresOn = jwtSecurityToken.ValidTo
+            };
+        }
+
         private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
         {
             var UserClaims = await usermanager.GetClaimsAsync(user);
