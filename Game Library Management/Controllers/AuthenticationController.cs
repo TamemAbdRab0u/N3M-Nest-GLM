@@ -28,5 +28,19 @@ namespace Game_Library_Management.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> LoginAsync([FromBody] LoginDto model)
+        {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await authenticationService.LoginAsync(model);
+
+            if(!result.IsAuthenticated)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
     }
 }
