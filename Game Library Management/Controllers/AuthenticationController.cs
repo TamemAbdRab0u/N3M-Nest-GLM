@@ -16,6 +16,10 @@ namespace Game_Library_Management.Controllers
             this.authenticationService = authenticationService;
         }
 
+        /// <summary>
+        /// Register a new user.
+        /// </summary>
+        /// <param name="model">The Registration Information</param>
         [HttpPost("Register")]
         public async Task<IActionResult> RegisterAsync([FromBody]RegisterDto model)
         {
@@ -32,6 +36,10 @@ namespace Game_Library_Management.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Login An Existing user.
+        /// </summary>
+        /// <param name="model">The Login Information</param>
         [HttpPost("Login")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginDto model)
         {
@@ -51,6 +59,10 @@ namespace Game_Library_Management.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Assign Role to an Existing User.
+        /// </summary>
+        /// <param name="model">The User Information</param>
         [HttpPost("AddToRole")]
         public async Task<IActionResult> AddToRoleAsync([FromBody]AddRoleDto model)
         {
@@ -65,6 +77,9 @@ namespace Game_Library_Management.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Generatet New Refresh Token.
+        /// </summary>
         [HttpGet("NewRefreshToken")]
         public async Task<IActionResult> NewRefreshTokenAsync()
         {
@@ -78,6 +93,9 @@ namespace Game_Library_Management.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Revoke Refresh Token.
+        /// </summary>
         [HttpGet("Revoke")]
         public async Task<IActionResult> RevokeRefreshTokenAsync()
         {
@@ -89,7 +107,7 @@ namespace Game_Library_Management.Controllers
             return Ok("Token Revoked Successfully");
         }
 
-        [HttpGet]
+        
         private void AssignRefreshTokenAsCookie(string refreshToken, DateTime expire)
         {
             var cookieOptions = new CookieOptions
