@@ -1,5 +1,6 @@
 ﻿using Game_Library_Management_BL.DTO_s.Authentication;
 using Game_Library_Management_BL.Services.IServices;
+using Game_Library_Management_DAL.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,6 +41,11 @@ namespace Game_Library_Management.Controllers
             if(!result.IsAuthenticated)
                 return BadRequest(result);
 
+            if (!string.IsNullOrEmpty(result.RefreshToken))
+            {
+                AssignRefreshTokenAsCookie(result.RefreshToken, result.RefershTokenExpiration);
+            }
+
             return Ok(result);
         }
 
@@ -55,6 +61,18 @@ namespace Game_Library_Management.Controllers
                 return BadRequest(result);
 
             return Ok(result);
+        }
+
+        [HttpGet]
+        private void AssignRefreshTokenAsCookie(string refreshToken, DateTime expire)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = expire.ToLocalTime()
+            };
+
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
     }
 }
