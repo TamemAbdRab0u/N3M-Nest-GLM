@@ -27,6 +27,8 @@ namespace Game_Library_Management.Controllers
             if (!result.IsAuthenticated)
                 return BadRequest(result);
 
+            AssignRefreshTokenAsCookie(result.RefreshToken, result.RefershTokenExpiration);
+
             return Ok(result);
         }
 
@@ -74,6 +76,17 @@ namespace Game_Library_Management.Controllers
 
             AssignRefreshTokenAsCookie(result.RefreshToken, result.RefershTokenExpiration);
             return Ok(result);
+        }
+
+        [HttpGet("Revoke")]
+        public async Task<IActionResult> RevokeRefreshTokenAsync()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            var result = await authenticationService.RevokeRefreshTokenAsync(refreshToken);
+            if (!result)
+                return BadRequest("Token Revocation failed.");
+
+            return Ok("Token Revoked Successfully");
         }
 
         [HttpGet]

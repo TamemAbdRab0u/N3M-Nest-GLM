@@ -13,5 +13,6 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<AuthResponseDto> LoginAsync(LoginDto model);
         Task<string> AddToRoleAsync(AddRoleDto model);
         Task<AuthResponseDto> NewRefreshTokenAsyc(string refreshtoken);
+        Task<bool> RevokeRefreshTokenAsync(string refreshtoken);
     }
 }

@@ -249,6 +249,19 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
-        
+        public async Task<bool> RevokeRefreshTokenAsync(string refreshtoken)
+        {
+            var user = await usermanager.Users.SingleOrDefaultAsync(x => x.RefreshTokens.Any(x => x.Token == refreshtoken));
+            if(user is null)
+                return false;
+
+            var refreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshtoken);
+            if (!refreshToken.IsActive)
+                return false;
+
+            refreshToken.RevokedOn = DateTime.UtcNow;
+            await usermanager.UpdateAsync(user);
+            return true;
+        }
     }
 }
