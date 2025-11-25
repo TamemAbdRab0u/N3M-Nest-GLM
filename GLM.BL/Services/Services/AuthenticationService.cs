@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
+using NuGet.Common;
 
 namespace Game_Library_Management_BL.Services.Services
 {
@@ -84,7 +87,7 @@ namespace Game_Library_Management_BL.Services.Services
                 IsAuthenticated = true,
                 UserRoles = new List<string> { "User" },
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                ExpiresOn = jwtSecurityToken.ValidTo
+                //ExpiresOn = jwtSecurityToken.ValidTo
             };
         }
 
@@ -103,7 +106,7 @@ namespace Game_Library_Management_BL.Services.Services
             var jwtSecurityToken = await CreateJwtToken(user);
             var Roles = await usermanager.GetRolesAsync(user);
 
-            return new AuthResponseDto
+            var response = new AuthResponseDto
             {
                 Message = "- Login Successfull -",
                 UserName = user.UserName,
@@ -111,8 +114,24 @@ namespace Game_Library_Management_BL.Services.Services
                 IsAuthenticated = true,
                 UserRoles = Roles.ToList(),
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                ExpiresOn = jwtSecurityToken.ValidTo
             };
+
+            if (user.RefreshTokens.Any(x => x.IsActive))
+            {
+                var ActiveToken = user.RefreshTokens.FirstOrDefault(x => x.IsActive);
+                response.RefreshToken = ActiveToken.Token;
+                response.RefershTokenExpiration = ActiveToken.ExpiresOn;
+            }
+            else
+            {
+                var refreshToken = await GetRefreshToken();
+                response.RefreshToken = refreshToken.Token;
+                response.RefershTokenExpiration = refreshToken.ExpiresOn;
+                user.RefreshTokens.Add(refreshToken);
+                await usermanager.UpdateAsync(user);
+            }
+
+            return response;
         }
 
         public async Task<string> AddToRoleAsync(AddRoleDto model)
@@ -138,6 +157,48 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 return "Failed To Add To Role";
             }
+        }
+
+        public async Task<AuthResponseDto> NewRefreshTokenAsyc(string refreshtoken)
+        {
+            var user = await usermanager.Users.SingleOrDefaultAsync(x => x.RefreshTokens.Any(x => x.Token == refreshtoken));
+            if(user is null)
+            {
+                return new AuthResponseDto
+                {
+                    Message = "Invalid Refresh Token",
+                    IsAuthenticated = false
+                };
+            }
+
+            var refreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshtoken);
+            if(!refreshToken.IsActive)
+            {
+                return new AuthResponseDto
+                {
+                    Message = "InActive Refresh Token",
+                    IsAuthenticated = false
+                };
+            }
+
+            refreshToken.RevokedOn = DateTime.UtcNow;
+            var NewRefreshToken = await GetRefreshToken();
+            user.RefreshTokens.Add(NewRefreshToken);
+            await usermanager.UpdateAsync(user);
+
+            var jwtSecurityToken = await CreateJwtToken(user);
+
+            return new AuthResponseDto
+            {
+                Message = "New Token Generated Successfully",
+                UserName = user.UserName,
+                Email = user.Email,
+                IsAuthenticated = true,
+                UserRoles = await usermanager.GetRolesAsync(user) as List<string>,
+                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                RefreshToken = NewRefreshToken.Token,
+                RefershTokenExpiration = NewRefreshToken.ExpiresOn
+            };
         }
 
         private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
@@ -168,12 +229,39 @@ namespace Game_Library_Management_BL.Services.Services
                 audience: jwt.Audience,
                 claims: Claims,           
                 signingCredentials: SigningCredentials,
-                expires: DateTime.Now.AddDays(jwt.DurationInDays)
+                expires: DateTime.Now.AddMinutes(jwt.DurationInMinutes)
             );
 
             return jwtSecurityToken;
         }
 
-        
+        private async Task<RefreshToken> GetRefreshToken()
+        {
+            var RandomNumber = new byte[32];
+            using var Generator = new RNGCryptoServiceProvider();
+            Generator.GetBytes(RandomNumber);
+
+            return new RefreshToken
+            {
+                Token = Convert.ToBase64String(RandomNumber),
+                CreatedOn = DateTime.UtcNow,
+                ExpiresOn = DateTime.UtcNow.AddDays(7) 
+            };
+        }
+
+        public async Task<bool> RevokeRefreshTokenAsync(string refreshtoken)
+        {
+            var user = await usermanager.Users.SingleOrDefaultAsync(x => x.RefreshTokens.Any(x => x.Token == refreshtoken));
+            if(user is null)
+                return false;
+
+            var refreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshtoken);
+            if (!refreshToken.IsActive)
+                return false;
+
+            refreshToken.RevokedOn = DateTime.UtcNow;
+            await usermanager.UpdateAsync(user);
+            return true;
+        }
     }
 }
