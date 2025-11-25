@@ -15,5 +15,7 @@ namespace Game_Library_Management_DAL.Models
 
         [Required]
         public string LastName { get; set; }
+
+        public List<RefreshToken>? RefreshTokens { get; set; }
     }
 }
