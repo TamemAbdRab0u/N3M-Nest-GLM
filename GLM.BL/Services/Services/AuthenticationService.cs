@@ -13,6 +13,8 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
+using NuGet.Common;
 
 namespace Game_Library_Management_BL.Services.Services
 {
@@ -155,6 +157,48 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 return "Failed To Add To Role";
             }
+        }
+
+        public async Task<AuthResponseDto> NewRefreshTokenAsyc(string refreshtoken)
+        {
+            var user = await usermanager.Users.SingleOrDefaultAsync(x => x.RefreshTokens.Any(x => x.Token == refreshtoken));
+            if(user is null)
+            {
+                return new AuthResponseDto
+                {
+                    Message = "Invalid Refresh Token",
+                    IsAuthenticated = false
+                };
+            }
+
+            var refreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshtoken);
+            if(!refreshToken.IsActive)
+            {
+                return new AuthResponseDto
+                {
+                    Message = "InActive Refresh Token",
+                    IsAuthenticated = false
+                };
+            }
+
+            refreshToken.RevokedOn = DateTime.UtcNow;
+            var NewRefreshToken = await GetRefreshToken();
+            user.RefreshTokens.Add(NewRefreshToken);
+            await usermanager.UpdateAsync(user);
+
+            var jwtSecurityToken = await CreateJwtToken(user);
+
+            return new AuthResponseDto
+            {
+                Message = "New Token Generated Successfully",
+                UserName = user.UserName,
+                Email = user.Email,
+                IsAuthenticated = true,
+                UserRoles = await usermanager.GetRolesAsync(user) as List<string>,
+                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                RefreshToken = NewRefreshToken.Token,
+                RefershTokenExpiration = NewRefreshToken.ExpiresOn
+            };
         }
 
         private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)

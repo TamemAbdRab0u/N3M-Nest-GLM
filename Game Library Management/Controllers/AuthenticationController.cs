@@ -63,6 +63,19 @@ namespace Game_Library_Management.Controllers
             return Ok(result);
         }
 
+        [HttpGet("NewRefreshToken")]
+        public async Task<IActionResult> NewRefreshTokenAsync()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            var result = await authenticationService.NewRefreshTokenAsyc(refreshToken);
+
+            if(!result.IsAuthenticated)
+                return BadRequest(result);
+
+            AssignRefreshTokenAsCookie(result.RefreshToken, result.RefershTokenExpiration);
+            return Ok(result);
+        }
+
         [HttpGet]
         private void AssignRefreshTokenAsCookie(string refreshToken, DateTime expire)
         {
