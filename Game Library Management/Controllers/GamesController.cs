@@ -18,6 +18,10 @@ namespace Game_Library_Management.Controllers
             this.gameservices = gameservices;
         }
 
+
+        /// <summary>
+        /// Return All Games.
+        /// </summary>
         [HttpGet("GetAllGames")]
         public async Task<IActionResult> GetAllGames()
         {
@@ -25,6 +29,9 @@ namespace Game_Library_Management.Controllers
             return Ok(Games);
         }
 
+        /// <summary>
+        /// Return a Single Game.
+        /// </summary>
         [HttpGet("GetGameById")]
         public async Task<IActionResult> GetGameById(int Id)
         {
@@ -34,6 +41,10 @@ namespace Game_Library_Management.Controllers
             return Ok(game);
         }
 
+        /// <summary>
+        /// Create New Game.
+        /// </summary>
+        /// <param name="model">The Game Details</param>
         [HttpPost("CreateGame")]
         public async Task<IActionResult> CreateGame([FromForm] GameCreateDto game)
         {
@@ -41,6 +52,10 @@ namespace Game_Library_Management.Controllers
             return CreatedAtAction(nameof(GetGameById), new {id = CreatedGame.Id}, CreatedGame);
         }
 
+        /// <summary>
+        /// Update and Existing Game.
+        /// </summary>
+        /// <param name="model">The Game Details</param>
         [HttpPut("UpdateGame")]
         public async Task<IActionResult> UpdateGame(int Id, [FromForm] GameUpdateDto game)
         {
@@ -51,6 +66,10 @@ namespace Game_Library_Management.Controllers
             return Ok(UpdatedGame);
         }
 
+        /// <summary>
+        /// Update an Existing Game Partially.
+        /// </summary>
+        /// <param name="model">The Game Details</param>
         [HttpPatch("{id}")]
         public async Task<ActionResult<GameResponseDto>> PatchGame(int id, [FromForm] GameUpdateDto game)
         {
@@ -61,6 +80,9 @@ namespace Game_Library_Management.Controllers
             return Ok(UpdatedGame);
         }
 
+        /// <summary>
+        /// Remove a Game.
+        /// </summary>
         [HttpDelete]
         public async Task<IActionResult> DeleteGame(int Id)
         {
