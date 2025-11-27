@@ -31,6 +31,7 @@ namespace Game_Library_Management_BL.UnitOfWork
             UserGames = new Repo<UserGame>(context);
             GameTags = new Repo<GameTag>(context);
             GamePlatforms = new Repo<GamePlatform>(context);
+            this.context = context;
         }
 
         public void Save()
