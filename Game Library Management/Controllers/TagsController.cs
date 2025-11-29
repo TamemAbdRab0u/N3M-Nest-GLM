@@ -15,6 +15,9 @@ namespace Game_Library_Management.Controllers
             this.tagservices = tagservices;
         }
 
+        /// <summary>
+        /// Return All Tags.
+        /// </summary>
         [HttpGet("GetAllTags")]
         public async Task<IActionResult> GetAllTags()
         {
@@ -25,6 +28,11 @@ namespace Game_Library_Management.Controllers
             return Ok(Tags.Select(x => new { x.Name, x.Description }));
         }
 
+
+        /// <summary>
+        /// Return a Single Tag.
+        /// </summary>
+        /// <param name="Id">Tag Id</param>
         [HttpGet("GetTagById")]
         public async Task<IActionResult> GetTagById(int Id)
         {
@@ -35,6 +43,11 @@ namespace Game_Library_Management.Controllers
             return Ok(new {tag.Name, tag.Description});
         }
 
+
+        /// <summary>
+        /// Create New Tag.
+        /// </summary>
+        /// <param name="tagDto">Tag Information</param>
         [HttpPost("CreateTag")]
         public async Task<IActionResult> CreateTag([FromBody]TagCreateDto tagDto)
         {
@@ -45,6 +58,12 @@ namespace Game_Library_Management.Controllers
             return CreatedAtAction(nameof(GetTagById), new { id = CreatedTag.Id }, new {CreatedTag.Name, CreatedTag.Description});
         }
 
+
+        /// <summary>
+        /// Update an Existing Tag Partially.
+        /// </summary>
+        /// <param name="Id">Tag Id</param>
+        /// <param name="tagDto">Tag Infromation</param>
         [HttpPatch("UpdateTag")]
         public async Task<IActionResult> UpdateTag(int Id, [FromBody]TagUpdateDto tagDto)
         {
@@ -55,6 +74,11 @@ namespace Game_Library_Management.Controllers
             return Ok(new {UpdatedTag.Name, UpdatedTag.Description});
         }
 
+
+        /// <summary>
+        /// Remove a Tag.
+        /// </summary>
+        /// <param name="Id">Tag Id</param>
         [HttpDelete("DeleteTag")]
         public async Task<IActionResult> DeleteTag(int Id)
         {
