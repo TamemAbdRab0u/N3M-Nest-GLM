@@ -14,6 +14,10 @@ namespace Game_Library_Management.Controllers
             this.platformservices = platformservices;
         }
 
+
+        /// <summary>
+        /// Return All Platforms.
+        /// </summary>
         [HttpGet("GetAllPlatforms")]
         public async Task<IActionResult> GetAllPlatforms()
         {
@@ -24,6 +28,10 @@ namespace Game_Library_Management.Controllers
             return Ok(platforms.Select(x => new {x.Name}));
         }
 
+        /// <summary>
+        /// Return Single Platform.
+        /// </summary>
+        /// <param name="Id">Platform Id</param>
         [HttpGet("GetPlatfomrById")]
         public async Task<IActionResult> GetPlatformById(int Id)
         {
@@ -33,6 +41,10 @@ namespace Game_Library_Management.Controllers
             return Ok(new {platform.Name});
         }
 
+        /// <summary>
+        /// Create New Platform.
+        /// </summary>
+        /// <param name="platform">Platform Information</param>
         [HttpPost("CreatePlatform")]
         public async Task<IActionResult> CreatePlatform([FromBody] Game_Library_Management_BL.DTO_s.PlatformsDto.PlatformCreateDto platform)
         {
@@ -43,6 +55,10 @@ namespace Game_Library_Management.Controllers
             return CreatedAtAction(nameof(GetPlatformById), new { id = createdPlatform.Id }, new { createdPlatform.Name });
         }
 
+        /// <summary>
+        /// Remove a Platform.
+        /// </summary>
+        /// <param name="Id">Platform Id</param>
         [HttpDelete]
         public async Task<IActionResult> DeletePlatform(int Id)
         {
