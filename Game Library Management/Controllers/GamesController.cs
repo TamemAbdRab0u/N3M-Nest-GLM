@@ -32,6 +32,7 @@ namespace Game_Library_Management.Controllers
         /// <summary>
         /// Return a Single Game.
         /// </summary>
+        /// <param name="Id">Game Id</param>
         [HttpGet("GetGameById")]
         public async Task<IActionResult> GetGameById(int Id)
         {
@@ -44,7 +45,7 @@ namespace Game_Library_Management.Controllers
         /// <summary>
         /// Create New Game.
         /// </summary>
-        /// <param name="model">The Game Details</param>
+        /// <param name="game">The Game Details</param>
         [HttpPost("CreateGame")]
         public async Task<IActionResult> CreateGame([FromForm] GameCreateDto game)
         {
@@ -55,7 +56,8 @@ namespace Game_Library_Management.Controllers
         /// <summary>
         /// Update and Existing Game.
         /// </summary>
-        /// <param name="model">The Game Details</param>
+        /// <param name="Id">Game Id</param>
+        /// <param name="game">The Game Details</param>
         [HttpPut("UpdateGame")]
         public async Task<IActionResult> UpdateGame(int Id, [FromForm] GameUpdateDto game)
         {
@@ -69,7 +71,8 @@ namespace Game_Library_Management.Controllers
         /// <summary>
         /// Update an Existing Game Partially.
         /// </summary>
-        /// <param name="model">The Game Details</param>
+        /// <param name="Id">Game Id</param>
+        /// <param name="game">The Game Details</param>
         [HttpPatch("{id}")]
         public async Task<ActionResult<GameResponseDto>> PatchGame(int id, [FromForm] GameUpdateDto game)
         {
@@ -83,6 +86,7 @@ namespace Game_Library_Management.Controllers
         /// <summary>
         /// Remove a Game.
         /// </summary>
+        /// <param name="Id">Game Id</param>
         [HttpDelete]
         public async Task<IActionResult> DeleteGame(int Id)
         {

@@ -41,6 +41,7 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<UploadHandler>();
             builder.Services.AddScoped<IGameServices, GameService>();
+            builder.Services.AddScoped<ITagServices, TagServices>();
 
             #endregion
 
