@@ -4,6 +4,7 @@ using Game_Library_Management_DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Game_Library_Management_DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251203092255_deletingUSerTables")]
+    partial class deletingUSerTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,55 +177,6 @@ namespace Game_Library_Management_DAL.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("Game_Library_Management_DAL.Models.User", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Game_Library_Management_DAL.Models.UserGame", b =>
-                {
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Gamestatus")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Review")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("GameId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserGames");
-                });
-
             modelBuilder.Entity("Game_Library_Management_PL.Models.Platform", b =>
                 {
                     b.Property<int>("Id")
@@ -265,6 +219,20 @@ namespace Game_Library_Management_DAL.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "4598c661-a26c-487a-aa32-608bb2acdc99",
+                            Name = "Admin",
+                            NormalizedName = "Admin"
+                        },
+                        new
+                        {
+                            Id = "651409d5-83a5-44af-b7cd-0f5880801f0d",
+                            Name = "User",
+                            NormalizedName = "User"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -448,25 +416,6 @@ namespace Game_Library_Management_DAL.Migrations
                     b.Navigation("Tag");
                 });
 
-            modelBuilder.Entity("Game_Library_Management_DAL.Models.UserGame", b =>
-                {
-                    b.HasOne("Game_Library_Management_DAL.Models.Game", "Game")
-                        .WithMany("UserGames")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Game_Library_Management_DAL.Models.User", "User")
-                        .WithMany("UserGames")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Game");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -523,18 +472,11 @@ namespace Game_Library_Management_DAL.Migrations
                     b.Navigation("GamePlatforms");
 
                     b.Navigation("GameTags");
-
-                    b.Navigation("UserGames");
                 });
 
             modelBuilder.Entity("Game_Library_Management_DAL.Models.Tag", b =>
                 {
                     b.Navigation("GameTags");
-                });
-
-            modelBuilder.Entity("Game_Library_Management_DAL.Models.User", b =>
-                {
-                    b.Navigation("UserGames");
                 });
 
             modelBuilder.Entity("Game_Library_Management_PL.Models.Platform", b =>
