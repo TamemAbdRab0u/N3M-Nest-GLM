@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Common;
+using Game_Library_Management_BL.UnitOfWork;
 
 namespace Game_Library_Management_BL.Services.Services
 {
@@ -23,12 +24,14 @@ namespace Game_Library_Management_BL.Services.Services
         private readonly UserManager<ApplicationUser> usermanager;
         private readonly RoleManager<IdentityRole> rolemanager;
         private readonly Jwt jwt;
+        private readonly IUnitOfWork unitofwork;
 
-        public AuthenticationService(UserManager<ApplicationUser> usermanager, RoleManager<IdentityRole> rolemanager, IOptions<Jwt> jwt)
+        public AuthenticationService(UserManager<ApplicationUser> usermanager, RoleManager<IdentityRole> rolemanager, IOptions<Jwt> jwt, IUnitOfWork unitofwork)
         {
             this.usermanager = usermanager;
             this.rolemanager = rolemanager;
             this.jwt = jwt.Value;
+            this.unitofwork = unitofwork;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto model)
@@ -77,6 +80,17 @@ namespace Game_Library_Management_BL.Services.Services
 
             await usermanager.AddToRoleAsync(user, "User");
 
+            var appUer = new User
+            {
+                Id = user.Id,
+                Username = user.UserName,
+                Email = user.Email,
+                Password = user.PasswordHash
+            };
+
+            await unitofwork.Users.Add(appUer);
+            unitofwork.Save();
+
             var jwtSecurityToken = await CreateJwtToken(user);
 
             return new AuthResponseDto
@@ -101,6 +115,20 @@ namespace Game_Library_Management_BL.Services.Services
                     Message = "Email Or Password Is Incorrect",
                     IsAuthenticated = false
                 };
+            }
+
+            var appUser = await unitofwork.Users.Query().FirstOrDefaultAsync(x => x.Id == user.Id);
+            if(appUser is null)
+            {
+               appUser = new User
+                {
+                    Id = user.Id,
+                    Username = user.UserName,
+                    Email = user.Email,
+                    Password = user.PasswordHash
+                };
+                await unitofwork.Users.Add(appUser);
+                unitofwork.Save();
             }
 
             var jwtSecurityToken = await CreateJwtToken(user);
