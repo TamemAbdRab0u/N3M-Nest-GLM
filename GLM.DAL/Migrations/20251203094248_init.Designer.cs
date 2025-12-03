@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Game_Library_Management_DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251125060411_addRefreshTokenTable")]
-    partial class addRefreshTokenTable
+    [Migration("20251203094248_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -165,6 +165,9 @@ namespace Game_Library_Management_DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -176,11 +179,8 @@ namespace Game_Library_Management_DAL.Migrations
 
             modelBuilder.Entity("Game_Library_Management_DAL.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -204,8 +204,8 @@ namespace Game_Library_Management_DAL.Migrations
                     b.Property<int>("GameId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
@@ -272,13 +272,13 @@ namespace Game_Library_Management_DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e6c42cb1-bf0f-437f-b89d-c8dbf44c193c",
+                            Id = "b0fee033-df0a-45b2-b703-07edff5264ac",
                             Name = "Admin",
                             NormalizedName = "Admin"
                         },
                         new
                         {
-                            Id = "45f77757-ffd5-432b-a605-633d4b93d8d9",
+                            Id = "793b40ae-add2-472a-b195-20f3da1c4a8f",
                             Name = "User",
                             NormalizedName = "User"
                         });
