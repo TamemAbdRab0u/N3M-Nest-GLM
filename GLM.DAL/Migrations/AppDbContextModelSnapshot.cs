@@ -176,11 +176,8 @@ namespace Game_Library_Management_DAL.Migrations
 
             modelBuilder.Entity("Game_Library_Management_DAL.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -204,8 +201,8 @@ namespace Game_Library_Management_DAL.Migrations
                     b.Property<int>("GameId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
@@ -272,13 +269,13 @@ namespace Game_Library_Management_DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "5ec46a43-3f17-46ef-96cc-8f7490be0611",
+                            Id = "b0fee033-df0a-45b2-b703-07edff5264ac",
                             Name = "Admin",
                             NormalizedName = "Admin"
                         },
                         new
                         {
-                            Id = "b0078a3b-708c-40aa-8fe8-973dc6b1150d",
+                            Id = "793b40ae-add2-472a-b195-20f3da1c4a8f",
                             Name = "User",
                             NormalizedName = "User"
                         });

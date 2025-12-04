@@ -31,7 +31,7 @@ namespace Game_Library_Management.Controllers
             if (!result.IsAuthenticated)
                 return BadRequest(result);
 
-            AssignRefreshTokenAsCookie(result.RefreshToken, result.RefershTokenExpiration);
+            //AssignRefreshTokenAsCookie(result.RefreshToken, result.RefershTokenExpiration);
 
             return Ok(result);
         }

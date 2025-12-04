@@ -52,6 +52,15 @@ namespace Game_Library_Management_BL.Repository.Repository
             }
             return false;
         }
+        public async Task<bool> DeleteAsync(T entity)
+        {
+            if (entity != null)
+            {
+                dbSet.Remove(entity);
+                return true;
+            }
+            return false;
+        }
 
         public IQueryable<T> Query()
         {
