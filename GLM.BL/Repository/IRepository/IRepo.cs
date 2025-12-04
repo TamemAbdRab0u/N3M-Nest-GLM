@@ -13,6 +13,7 @@ namespace Game_Library_Management_BL.Repository.IRepository
         public Task<T> Add(T entity);
         public Task<T> Update(T entity);
         public Task<bool> Delete(int id);
+        public Task<bool> DeleteAsync(T entity);
         public IQueryable<T> Query();
     }
 }
