@@ -1,4 +1,5 @@
 ﻿using Game_Library_Management_BL.DTO_s;
+using Game_Library_Management_BL.DTO_s.TagsDto;
 using Game_Library_Management_BL.Helper;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
@@ -25,7 +26,7 @@ namespace Game_Library_Management_BL.Services.Services
 
         public async Task<IEnumerable<GameResponseDto>> AllGamesAsync()
         {
-            var Games = await unitofwork.Games.Query().ToListAsync();
+            var Games = await unitofwork.Games.Query().Include(x => x.GameTags).ThenInclude(x => x.Tag).ToListAsync();
             return Games.Select(x => new GameResponseDto
             {
                 Id = x.Id,
@@ -33,13 +34,17 @@ namespace Game_Library_Management_BL.Services.Services
                 Description = x.Description,
                 ImgUrl = x.ImgUrl,
                 ReleaseDate = x.ReleaseDate,
-                Publisher = x.Publisher
+                Publisher = x.Publisher,
+                Tags = x.GameTags.Select(x => new TagDto
+                {
+                    Name = x.Tag.Name
+                }).ToList()
             });
         }
 
         public async Task<GameResponseDto> GameByIdAsync(int Id)
         {
-            var game = await unitofwork.Games.Query().FirstOrDefaultAsync(x => x.Id == Id);
+            var game = await unitofwork.Games.Query().Include(x => x.GameTags).ThenInclude(x => x.Tag).FirstOrDefaultAsync(x => x.Id == Id);
 
             if (game == null)
                 return null;
@@ -51,7 +56,11 @@ namespace Game_Library_Management_BL.Services.Services
                 Description = game.Description,
                 ImgUrl = game.ImgUrl,
                 ReleaseDate = game.ReleaseDate,
-                Publisher = game.Publisher
+                Publisher = game.Publisher,
+                Tags = game.GameTags.Select(x => new TagDto
+                {
+                    Name = x.Tag.Name
+                }).ToList()
             };
         }
 
@@ -170,6 +179,67 @@ namespace Game_Library_Management_BL.Services.Services
                 return false;
 
             return true;
-        }  
+        }
+
+        public async Task<bool> AddTagsToGameAsync(int gameId, List<int> tagIds)
+        {
+            var game = await unitofwork.Games.Query().Include(g => g.GameTags).FirstOrDefaultAsync(g => g.Id == gameId);
+            if (game == null)
+                return false;
+
+            foreach (var tagId in tagIds)
+            {
+                game.GameTags.Add(new GameTag
+                {
+                    GameId = gameId,
+                    TagId = tagId
+                });
+            }
+            await unitofwork.Games.Update(game);
+            unitofwork.Save();
+
+            return true;
+        }
+
+        public async Task<bool> ReplaceGameTagsAsync(int gameId, List<int> tagIds)
+        {
+            var game = await unitofwork.Games.Query().Include(g => g.GameTags).FirstOrDefaultAsync(g => g.Id == gameId);
+            if (game == null)
+                return false;
+
+            foreach (var gt in game.GameTags.ToList())
+            {
+                unitofwork.GameTags.DeleteAsync(gt);
+            }
+            unitofwork.Save();
+
+            foreach (var tagId in tagIds)
+            {
+                game.GameTags.Add(new GameTag
+                {
+                    GameId = gameId,
+                    TagId = tagId
+                });
+            }
+            await unitofwork.Games.Update(game);
+            unitofwork.Save();
+
+            return true;
+        }
+
+        public async Task<bool> RemoveTagFromGameAsync(int gameId)
+        {
+            var game = await unitofwork.Games.Query().Include(g => g.GameTags).FirstOrDefaultAsync(g => g.Id == gameId);
+            if (game == null)
+                return false;
+
+            foreach(var gt in game.GameTags.ToList())
+            {
+                await unitofwork.GameTags.DeleteAsync(gt);
+            }
+
+            unitofwork.Save();
+            return true;
+        }
     }
 }
