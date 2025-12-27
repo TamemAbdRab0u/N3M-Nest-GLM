@@ -16,5 +16,9 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<GameResponseDto> UpdateGameAsync(int Id, GameUpdateDto game);
         Task<GameResponseDto> PatchGameAsync(int Id, GameUpdateDto game);
         Task<bool> DeleteGameAsync(int Id);
+
+        Task<bool> AddTagsToGameAsync(int gameId, List<int> tagIds);
+        Task<bool> ReplaceGameTagsAsync(int gameId, List<int> tagIds);
+        Task<bool> RemoveTagFromGameAsync(int gameId);    
     }
 }
