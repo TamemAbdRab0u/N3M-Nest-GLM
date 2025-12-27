@@ -37,7 +37,7 @@ namespace Game_Library_Management.Controllers
         public async Task<IActionResult> GetGameById(int Id)
         {
             var game = await gameservices.GameByIdAsync(Id);
-            if(game == null)
+            if (game == null)
                 return NotFound();
             return Ok(game);
         }
@@ -50,7 +50,7 @@ namespace Game_Library_Management.Controllers
         public async Task<IActionResult> CreateGame([FromForm] GameCreateDto game)
         {
             var CreatedGame = await gameservices.CreateGameAsync(game);
-            return CreatedAtAction(nameof(GetGameById), new {id = CreatedGame.Id}, CreatedGame);
+            return CreatedAtAction(nameof(GetGameById), new { id = CreatedGame.Id }, CreatedGame);
         }
 
         /// <summary>
@@ -90,8 +90,35 @@ namespace Game_Library_Management.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteGame(int Id)
         {
-            var isDeleted =  await gameservices.DeleteGameAsync(Id);
-            if(!isDeleted)
+            var isDeleted = await gameservices.DeleteGameAsync(Id);
+            if (!isDeleted)
+                return NotFound();
+            return NoContent();
+        }
+
+        [HttpPost("AttachTags")]
+        public async Task<IActionResult> AttachTagsToGame(int gameId, [FromBody] List<int> tagIds)
+        {
+            var isSuccess = await gameservices.AddTagsToGameAsync(gameId, tagIds);
+            if (!isSuccess)
+                return NotFound();
+            return NoContent();
+        }
+
+        [HttpPost("ReplaceTags")]
+        public async Task<IActionResult> ReplaceTagsOfGame(int gameId, [FromBody] List<int> tagIds)
+        {
+            var isSuccess = await gameservices.ReplaceGameTagsAsync(gameId, tagIds);
+            if (!isSuccess)
+                return NotFound();
+            return NoContent();
+        }
+
+        [HttpDelete("RemoveTags")]
+        public async Task<IActionResult> RemoveTagsFromGame(int gameId)
+        {
+            var isSuccess = await gameservices.RemoveTagFromGameAsync(gameId);
+            if (!isSuccess)
                 return NotFound();
             return NoContent();
         }
