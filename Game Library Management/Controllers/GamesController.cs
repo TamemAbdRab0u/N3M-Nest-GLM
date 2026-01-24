@@ -122,5 +122,35 @@ namespace Game_Library_Management.Controllers
                 return NotFound();
             return NoContent();
         }
+
+        [HttpPost("AttachPlatforms")]
+        public async Task<IActionResult> AttachPlatformsToGame(int gameId, [FromBody] List<int> platformIds)
+        {
+            var isSuccess = await gameservices.AddPlatformsToGameAsync(gameId, platformIds);
+            if (!isSuccess)
+                return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpDelete("RemovePlatform")]
+        public async Task<IActionResult> RemovePlatformFromGame(int gameId, int platformId)
+        {
+            var isSuccess = await gameservices.RemovePlatformFromGameAsync(gameId, platformId);
+            if (!isSuccess)
+                return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpDelete("RemovePlatforms")]
+        public async Task<IActionResult> RemovePlatformsFromGame(int gameId)
+        {
+            var isSuccess = await gameservices.RemovePlatformsFromGameAsync(gameId);
+            if (!isSuccess)
+                return NotFound();
+
+            return NoContent();
+        }
     }
 }
