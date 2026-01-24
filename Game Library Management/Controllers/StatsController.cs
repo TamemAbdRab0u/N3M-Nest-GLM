@@ -18,6 +18,9 @@ namespace Game_Library_Management.Controllers
             this.statsservice = statsservice;
         }
 
+        /// <summary>
+        /// Return Completed Games.
+        /// </summary>
         [HttpGet("CompletedGames")]
         public async Task<IActionResult> GetComletedGamesAsync()
         {
@@ -35,6 +38,9 @@ namespace Game_Library_Management.Controllers
             return Ok(CompletedGames);
         }
 
+        /// <summary>
+        /// Return Currentlly Playing Games.
+        /// </summary>
         [HttpGet("PlayingGames")]
         public async Task<IActionResult> GetPlayingGamesAsync()
         {
@@ -52,6 +58,9 @@ namespace Game_Library_Management.Controllers
             return Ok(PlayingGames);
         }
 
+        /// <summary>
+        /// Return Whishlisted Games.
+        /// </summary>
         [HttpGet("WhishlistedGames")]
         public async Task<IActionResult> GetWhishlistedGamesAsync()
         {
@@ -69,6 +78,10 @@ namespace Game_Library_Management.Controllers
             return Ok(WhishlistedGames);
         }
 
+
+        /// <summary>
+        /// Return Dropped Games.
+        /// </summary>
         [HttpGet("DroppedGames")]
         public async Task<IActionResult> GetDroppedGamesAsync()
         {
