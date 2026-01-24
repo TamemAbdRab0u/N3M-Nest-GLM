@@ -26,7 +26,11 @@ namespace Game_Library_Management_BL.Services.Services
 
         public async Task<IEnumerable<GameResponseDto>> AllGamesAsync()
         {
-            var Games = await unitofwork.Games.Query().Include(x => x.GameTags).ThenInclude(x => x.Tag).ToListAsync();
+            var Games = await unitofwork.Games.Query()
+                .Include(x => x.GameTags).ThenInclude(x => x.Tag)
+                .Include(x => x.GamePlatforms).ThenInclude(x => x.Platform)
+                .ToListAsync();
+
             return Games.Select(x => new GameResponseDto
             {
                 Id = x.Id,
@@ -38,13 +42,21 @@ namespace Game_Library_Management_BL.Services.Services
                 Tags = x.GameTags.Select(x => new TagDto
                 {
                     Name = x.Tag.Name
+                }).ToList(),
+
+                Platforms = x.GamePlatforms.Select(x => new PlatformDto
+                {
+                    Name = x.Platform.Name
                 }).ToList()
             });
         }
 
         public async Task<GameResponseDto> GameByIdAsync(int Id)
         {
-            var game = await unitofwork.Games.Query().Include(x => x.GameTags).ThenInclude(x => x.Tag).FirstOrDefaultAsync(x => x.Id == Id);
+            var game = await unitofwork.Games.Query()
+                .Include(x => x.GameTags).ThenInclude(x => x.Tag)
+                .Include(x => x.GamePlatforms).ThenInclude(x => x.Platform)
+                .FirstOrDefaultAsync(x => x.Id == Id);
 
             if (game == null)
                 return null;
@@ -60,6 +72,11 @@ namespace Game_Library_Management_BL.Services.Services
                 Tags = game.GameTags.Select(x => new TagDto
                 {
                     Name = x.Tag.Name
+                }).ToList(),
+
+                Platforms = game.GamePlatforms.Select(x => new PlatformDto
+                {
+                    Name = x.Platform.Name
                 }).ToList()
             };
         }

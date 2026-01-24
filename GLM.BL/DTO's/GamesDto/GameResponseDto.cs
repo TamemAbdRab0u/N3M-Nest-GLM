@@ -16,6 +16,7 @@ namespace Game_Library_Management_BL.DTO_s
         public DateTime? ReleaseDate { get; set; }
         public string? Publisher { get; set; }
         public List<TagDto>? Tags { get; set; }
+        public List<PlatformDto>? Platforms { get; set; }
     }
 
     public class TagDto
