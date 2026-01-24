@@ -181,6 +181,7 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
+
         public async Task<bool> AddTagsToGameAsync(int gameId, List<int> tagIds)
         {
             var game = await unitofwork.Games.Query().Include(g => g.GameTags).FirstOrDefaultAsync(g => g.Id == gameId);
@@ -241,5 +242,55 @@ namespace Game_Library_Management_BL.Services.Services
             unitofwork.Save();
             return true;
         }
+
+
+        public async Task<bool> AddPlatformsToGameAsync(int gameId, List<int> platformIds)
+        {
+            var game = await unitofwork.Games.Query().Include(x => x.GamePlatforms).FirstOrDefaultAsync(x => x.Id == gameId);
+            if(game == null)
+                return false;
+
+            foreach(var plt in platformIds)
+            {
+                await unitofwork.GamePlatforms.Add(new GamePlatform
+                {
+                    GameId = gameId,
+                    PlatformId = plt
+                });
+            }
+
+            await unitofwork.Games.Update(game);
+            unitofwork.Save();
+
+            return true;
+        }
+
+        public async Task<bool> RemovePlatformFromGameAsync(int gameId, int platfromId)
+        {
+            var game = await unitofwork.GamePlatforms.Query().FirstOrDefaultAsync(x => x.GameId == gameId && x.PlatformId == platfromId);
+            if(game == null)
+                return false;
+
+            await unitofwork.GamePlatforms.DeleteAsync(game);
+            unitofwork.Save();
+
+            return true;
+        }
+
+        public async Task<bool> RemovePlatformsFromGameAsync(int gameId)
+        {
+            var game = await unitofwork.Games.Query().Include(x => x.GamePlatforms).FirstOrDefaultAsync(x => x.Id == gameId);
+            if(game == null)
+                return false;
+
+            foreach(var plt in game.GamePlatforms.ToList())
+            {
+                await unitofwork.GamePlatforms.DeleteAsync(plt);
+            }
+
+            unitofwork.Save();
+            return true;
+        }
+        
     }
 }

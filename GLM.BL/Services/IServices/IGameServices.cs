@@ -20,5 +20,9 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<bool> AddTagsToGameAsync(int gameId, List<int> tagIds);
         Task<bool> ReplaceGameTagsAsync(int gameId, List<int> tagIds);
         Task<bool> RemoveTagFromGameAsync(int gameId);    
+
+        Task<bool> AddPlatformsToGameAsync(int gameId, List<int> platformIds);
+        Task<bool> RemovePlatformFromGameAsync(int gameId, int platfromId);
+        Task<bool> RemovePlatformsFromGameAsync(int gameId);
     }
 }
