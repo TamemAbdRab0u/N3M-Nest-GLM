@@ -44,6 +44,7 @@ namespace Game_Library_Management
             builder.Services.AddScoped<ITagServices, TagServices>();
             builder.Services.AddScoped<IPlatformservices, PlatformServices>();
             builder.Services.AddScoped<IUserGamesServices, UserGamesServices>();
+            builder.Services.AddScoped<IStatsService, StatsService>();
 
             #endregion
 
