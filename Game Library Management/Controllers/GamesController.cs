@@ -96,6 +96,12 @@ namespace Game_Library_Management.Controllers
             return NoContent();
         }
 
+        // Tags Management //
+        /// <summary>
+        /// Attach New Tag To The Game.
+        /// </summary>
+        /// <param name="gameId">Enter Game Id</param>
+        /// <param name="tagIds">Enter Tags Id</param>
         [HttpPost("AttachTags")]
         public async Task<IActionResult> AttachTagsToGame(int gameId, [FromBody] List<int> tagIds)
         {
@@ -105,6 +111,11 @@ namespace Game_Library_Management.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Replace Tags of The Game.
+        /// </summary>
+        /// <param name="gameId">Enter Game Id</param>
+        /// <param name="tagIds">Enter Tags Id</param>
         [HttpPost("ReplaceTags")]
         public async Task<IActionResult> ReplaceTagsOfGame(int gameId, [FromBody] List<int> tagIds)
         {
@@ -114,6 +125,10 @@ namespace Game_Library_Management.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove All Tags From The Game.
+        /// </summary>
+        /// <param name="gameId">Enter Game Id</param>
         [HttpDelete("RemoveTags")]
         public async Task<IActionResult> RemoveTagsFromGame(int gameId)
         {
@@ -123,6 +138,12 @@ namespace Game_Library_Management.Controllers
             return NoContent();
         }
 
+        // Platforms Management //
+        /// <summary>
+        /// Attach New Platform For The Game.
+        /// </summary>
+        /// <param name="gameId">Enter Game Id</param>
+        /// <param name="platformIds">Enter Platforms Id</param>
         [HttpPost("AttachPlatforms")]
         public async Task<IActionResult> AttachPlatformsToGame(int gameId, [FromBody] List<int> platformIds)
         {
@@ -133,6 +154,12 @@ namespace Game_Library_Management.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove Single Platform From The Game.
+        /// </summary>
+        /// <param name="gameId">Enter Game Id</param>
+        /// <param name="platformId">Enter platform Id</param>
+        /// 
         [HttpDelete("RemovePlatform")]
         public async Task<IActionResult> RemovePlatformFromGame(int gameId, int platformId)
         {
@@ -143,6 +170,10 @@ namespace Game_Library_Management.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove All Platforms From The Game.
+        /// </summary>
+        /// <param name="gameId">Enter Game Id</param>
         [HttpDelete("RemovePlatforms")]
         public async Task<IActionResult> RemovePlatformsFromGame(int gameId)
         {
