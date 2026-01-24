@@ -96,6 +96,8 @@ namespace Game_Library_Management.Controllers
             return NoContent();
         }
 
+
+
         // Tags Management //
         /// <summary>
         /// Attach New Tag To The Game.
@@ -126,6 +128,20 @@ namespace Game_Library_Management.Controllers
         }
 
         /// <summary>
+        /// Remove Single Tag From The Game.
+        /// </summary>
+        /// <param name="gameId">Enter Game Id</param>
+        /// <param name="tagId">Enter Tag Id</param>
+        [HttpDelete("RemoveTag")]
+        public async Task<IActionResult> RemoveTagFromGame(int gameId, int tagId)
+        {
+            var isSuccess = await gameservices.RemoveTagFromGameAsync(gameId, tagId);
+            if (!isSuccess)
+                return NotFound();
+            return NoContent();
+        }
+
+        /// <summary>
         /// Remove All Tags From The Game.
         /// </summary>
         /// <param name="gameId">Enter Game Id</param>
@@ -137,6 +153,8 @@ namespace Game_Library_Management.Controllers
                 return NotFound();
             return NoContent();
         }
+
+
 
         // Platforms Management //
         /// <summary>

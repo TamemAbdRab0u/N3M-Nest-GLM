@@ -198,7 +198,7 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
-
+        // Tags Management //
         public async Task<bool> AddTagsToGameAsync(int gameId, List<int> tagIds)
         {
             var game = await unitofwork.Games.Query().Include(g => g.GameTags).FirstOrDefaultAsync(g => g.Id == gameId);
@@ -245,6 +245,18 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
+        public async Task<bool> RemoveTagFromGameAsync(int gameId, int tagId)
+        {
+            var game = await unitofwork.GameTags.Query().FirstOrDefaultAsync(x => x.GameId == gameId && x.TagId == tagId);
+            if(game == null)
+                return false;
+
+            await unitofwork.GameTags.DeleteAsync(game);
+            unitofwork.Save();
+
+            return true;
+        }
+
         public async Task<bool> RemoveTagFromGameAsync(int gameId)
         {
             var game = await unitofwork.Games.Query().Include(g => g.GameTags).FirstOrDefaultAsync(g => g.Id == gameId);
@@ -260,7 +272,7 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
-
+        // Platforms Management //
         public async Task<bool> AddPlatformsToGameAsync(int gameId, List<int> platformIds)
         {
             var game = await unitofwork.Games.Query().Include(x => x.GamePlatforms).FirstOrDefaultAsync(x => x.Id == gameId);
@@ -308,6 +320,7 @@ namespace Game_Library_Management_BL.Services.Services
             unitofwork.Save();
             return true;
         }
+
         
     }
 }
