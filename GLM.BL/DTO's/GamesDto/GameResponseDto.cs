@@ -22,4 +22,9 @@ namespace Game_Library_Management_BL.DTO_s
     {
         public string Name { get; set; }
     }
+
+    public class PlatformDto
+    {
+        public string Name { get; set; }
+    }
 }
