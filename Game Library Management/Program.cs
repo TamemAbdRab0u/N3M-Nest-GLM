@@ -45,6 +45,7 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IPlatformservices, PlatformServices>();
             builder.Services.AddScoped<IUserGamesServices, UserGamesServices>();
             builder.Services.AddScoped<IStatsService, StatsService>();
+            builder.Services.AddHttpClient<IRAWGService, RAWGService>();
 
             #endregion
 
