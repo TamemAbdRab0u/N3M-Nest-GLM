@@ -1,6 +1,8 @@
 ﻿using Game_Library_Management_BL.DTO_s.RAWGDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
+using Game_Library_Management_DAL.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -39,6 +41,29 @@ namespace Game_Library_Management_BL.Services.Services
                 Rating = g.Rating,
                 ReleaseDate = g.Released
             });
+        }
+
+        public async Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games)
+        {
+            foreach (var g in games)
+            {
+                var exists = await unitofwork.Games.Query().AnyAsync(x => x.ExternalId == g.ExternalId);
+
+                if (exists) continue;
+
+                var game = new Game
+                {
+                    ExternalId = g.ExternalId,
+                    Title = g.Title,
+                    ImgUrl = g.ImageUrl,
+                    ReleaseDate = DateTime.TryParse(g.ReleaseDate, out var d) ? d : null
+                };
+
+               await unitofwork.Games.Add(game);
+            }
+
+            unitofwork.Save();
+            return true;
         }
     }
 }
