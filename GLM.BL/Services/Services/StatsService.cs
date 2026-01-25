@@ -15,7 +15,7 @@ namespace Game_Library_Management_BL.Services.Services
     {
         private readonly IUnitOfWork unitofwork;
         public StatsService(IUnitOfWork unitofwork)
-        {
+        { 
             this.unitofwork = unitofwork;
         }
 
@@ -35,6 +35,7 @@ namespace Game_Library_Management_BL.Services.Services
                 Review = x.Review,
                 Rating = x.Rating,
                 Gamestatus = x.Gamestatus,
+                Count = games.Count()
             }).ToList();
 
             return completedGames;
@@ -56,6 +57,7 @@ namespace Game_Library_Management_BL.Services.Services
                 Review = x.Review,
                 Rating = x.Rating,
                 Gamestatus = x.Gamestatus,
+                Count = games.Count()
             }).ToList();
 
             return PlayingGames;
@@ -77,6 +79,7 @@ namespace Game_Library_Management_BL.Services.Services
                 Review = x.Review,
                 Rating = x.Rating,
                 Gamestatus = x.Gamestatus,
+                Count = games.Count()
             }).ToList();
 
             return WhishlistedGames;
@@ -98,9 +101,76 @@ namespace Game_Library_Management_BL.Services.Services
                 Review = x.Review,
                 Rating = x.Rating,
                 Gamestatus = x.Gamestatus,
+                Count = games.Count()
             }).ToList();
 
             return DroppedGames;
-        }       
+        }
+
+        public async Task<IEnumerable<GamesStatsDto>> BadGamesAsync(string userId)
+        {
+            var games = await unitofwork.UserGames.Query().Where(x => x.UserId == userId).Include(x => x.Game).Where(x => x.Rating < 5).ToListAsync();
+            if (!games.Any())
+            {
+                return Enumerable.Empty<GamesStatsDto>();
+            }
+
+            var BadGames = games.Select(x => new GamesStatsDto
+            {
+                GameTitle = x.Game.Title,
+                GameDescription = x.Game.Description,
+                GameImageUrl = x.Game.ImgUrl,
+                Gamestatus = x.Gamestatus,
+                Review = x.Review,
+                Rating = x.Rating,
+                Count = games.Count()
+            }).ToList();
+
+            return BadGames;
+        }
+
+        public async Task<IEnumerable<GamesStatsDto>> GoodGamesAsync(string userId)
+        {
+            var games = await unitofwork.UserGames.Query().Where(x => x.UserId == userId).Include(x => x.Game).Where(x => x.Rating >= 5 && x.Rating <= 8).ToListAsync();
+            if (!games.Any())
+            {
+                return Enumerable.Empty<GamesStatsDto>();
+            }
+
+            var GoodGames = games.Select(x => new GamesStatsDto
+            {
+                GameTitle = x.Game.Title,
+                GameDescription = x.Game.Description,
+                GameImageUrl = x.Game.ImgUrl,
+                Gamestatus = x.Gamestatus,
+                Review = x.Review,
+                Rating = x.Rating,
+                Count = games.Count()
+            }).ToList();
+
+            return GoodGames;
+        }
+
+        public async Task<IEnumerable<GamesStatsDto>> PerfectGamesAsync(string userId)
+        {
+            var games = await unitofwork.UserGames.Query().Where(x => x.UserId == userId).Include(x => x.Game).Where(x => x.Rating > 8).ToListAsync();
+            if (!games.Any())
+            {
+                return Enumerable.Empty<GamesStatsDto>();
+            }
+
+            var PerfectGames = games.Select(x => new GamesStatsDto
+            {
+                GameTitle = x.Game.Title,
+                GameDescription = x.Game.Description,
+                GameImageUrl = x.Game.ImgUrl,
+                Gamestatus = x.Gamestatus,
+                Review = x.Review,
+                Rating = x.Rating,
+                Count = games.Count()
+            }).ToList();
+
+            return PerfectGames;
+        }
     }
 }

@@ -98,5 +98,65 @@ namespace Game_Library_Management.Controllers
 
             return Ok(DroppedGames);
         }
+
+        /// <summary>
+        /// Return Games That The User Didn't Like (Raiting Less Than[5]).
+        /// </summary>
+        [HttpGet("BadGames")]
+        public async Task<IActionResult> GetBadGamesAsync()
+        {
+            var UserId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(UserId))
+                return Unauthorized();
+
+            var BadGames = await statsservice.BadGamesAsync(UserId);
+
+            if (!BadGames.Any())
+            {
+                return NotFound("No bad games found.");
+            }
+
+            return Ok(BadGames);
+        }
+
+        /// <summary>
+        /// Return Games The User Liked (Raiting Between [5-8]).
+        /// </summary>
+        [HttpGet("GoodGames")]
+        public async Task<IActionResult> GoodGames()
+        {
+            var UserId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(UserId))
+                return Unauthorized();
+
+            var GoodGames = await statsservice.GoodGamesAsync(UserId);
+
+            if(!GoodGames.Any())
+            {
+                return NotFound("No good games found.");
+            }
+
+            return Ok(GoodGames);
+        }
+
+        /// <summary>
+        /// Return Games Seems To Be The User's Favourite (Raiting Greater Than [8]).
+        /// </summary>
+        [HttpGet("PerfectGames")]
+        public async Task<IActionResult> PerfectGames()
+        {
+            var UserId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(UserId))
+                return Unauthorized();
+
+            var PerfectGames = await statsservice.PerfectGamesAsync(UserId);
+
+            if (!PerfectGames.Any())
+            {
+                return NotFound("No perfect games found.");
+            }
+
+            return Ok(PerfectGames);
+        }
     }
 }

@@ -15,5 +15,6 @@ namespace Game_Library_Management_BL.DTO_s.Stats
         public Gamestatus? Gamestatus { get; set; }
         public string? Review { get; set; }
         public int? Rating { get; set; }
+        public int Count { get; set; }
     }
 }
