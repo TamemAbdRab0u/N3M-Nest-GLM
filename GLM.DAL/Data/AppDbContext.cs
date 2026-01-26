@@ -18,6 +18,7 @@ namespace Game_Library_Management_DAL.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Platform> Platforms { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         // Many-to-Many relationship tables //
         public DbSet<UserGame> UserGames { get; set; }

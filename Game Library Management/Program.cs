@@ -1,4 +1,5 @@
 
+using Game_Library_Management.Hubs;
 using Game_Library_Management_BL.Helper;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.Services.Services;
@@ -47,6 +48,7 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IStatsService, StatsService>();
             builder.Services.AddHttpClient<IRAWGService, RAWGService>();
 
+            builder.Services.AddSignalR();
             #endregion
 
             #region JWT Authentication
@@ -89,6 +91,7 @@ namespace Game_Library_Management
 
 
             app.MapControllers();
+            app.MapHub<ChatHub>("/chat");
 
             app.Run();
         }
