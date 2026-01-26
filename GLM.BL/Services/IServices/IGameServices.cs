@@ -25,5 +25,7 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<bool> AddPlatformsToGameAsync(int gameId, List<int> platformIds);
         Task<bool> RemovePlatformFromGameAsync(int gameId, int platfromId);
         Task<bool> RemovePlatformsFromGameAsync(int gameId);
+
+        Task<IEnumerable<GameResponseDto>> SearchAsync(string Query);
     }
 }

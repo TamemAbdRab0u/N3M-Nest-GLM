@@ -321,6 +321,36 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
-        
+
+        public async Task<IEnumerable<GameResponseDto>> SearchAsync(string Query)
+        {
+            var QueriedGames = await unitofwork.Games.Query()
+                .Include(x => x.GameTags).ThenInclude(x => x.Tag)
+                .Include(x => x.GamePlatforms).ThenInclude(x => x.Platform)
+                .Where(x => x.Title.Contains(Query) || x.Description.Contains(Query))
+                .ToListAsync();
+
+            if (QueriedGames == null || !QueriedGames.Any())
+                return null;
+
+            var Results = QueriedGames.Select(x => new GameResponseDto
+            {
+                Title = x.Title,
+                Description = x.Description,
+                ImgUrl = x.ImgUrl,
+                ReleaseDate = x.ReleaseDate,
+                Publisher = x.Publisher,
+                Tags = x.GameTags.Select(x => new TagDto
+                {
+                    Name = x.Tag.Name
+                }).ToList(),
+                Platforms = x.GamePlatforms.Select(x => new PlatformDto
+                {
+                    Name = x.Platform.Name
+                }).ToList()
+            });
+
+            return Results;
+        }
     }
 }
