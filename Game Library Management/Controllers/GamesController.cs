@@ -201,5 +201,21 @@ namespace Game_Library_Management.Controllers
 
             return NoContent();
         }
+
+
+        /// <summary>
+        /// Search For a Game.
+        /// </summary>
+        /// <param name="Query">Enter Game Name</param>
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchForGame(string Query)
+        {
+            var Games = await gameservices.SearchAsync(Query);
+
+            if (Games == null || !Games.Any())
+                return NotFound();
+
+            return Ok(Games.Select(x => new { x.Title ,x.Description,x.ImgUrl ,x.Publisher, x.ReleaseDate, x.Tags, x.Platforms}));
+        }
     }
 }
