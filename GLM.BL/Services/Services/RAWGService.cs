@@ -26,6 +26,21 @@ namespace Game_Library_Management_BL.Services.Services
             this.unitofwork = unitofwork;
         }
 
+        public Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync()
+        {
+            var key = _config["RAWG:ApiKey"];
+            var url = $"https://api.rawg.io/api/games?key={key}&page_size=50";
+
+            var response = _http.GetFromJsonAsync<RAWGResponseDto>(url);
+            return response.ContinueWith(t => t.Result.Results.Select(g => new RAWGCatalogDto
+            {
+                ExternalId = g.Id,
+                Title = g.Name,
+                ImageUrl = g.Background_Image,
+                Rating = g.Rating,
+                ReleaseDate = g.Released
+            }));
+        }
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
         {
             var key = _config["RAWG:ApiKey"];
@@ -65,5 +80,7 @@ namespace Game_Library_Management_BL.Services.Services
             unitofwork.Save();
             return true;
         }
+
+        
     }
 }

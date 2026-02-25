@@ -15,6 +15,13 @@ namespace Game_Library_Management.Controllers
             _gameCatalogService = gameCatalogService;
         }
 
+        [HttpGet("catalog/GetAll")]
+        public async Task<IActionResult> GetAllGames()
+        {
+            var games = await _gameCatalogService.GetAllGamesAsync();
+            return Ok(games);
+        }
+
         [HttpGet("catalog/search")]
         public async Task<IActionResult> SearchCatalog(string query)
         {

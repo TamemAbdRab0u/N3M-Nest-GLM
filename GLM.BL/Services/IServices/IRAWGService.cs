@@ -9,6 +9,7 @@ namespace Game_Library_Management_BL.Services.IServices
 {
     public interface IRAWGService
     {
+        Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync();
         Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query);
         Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games);
     }
