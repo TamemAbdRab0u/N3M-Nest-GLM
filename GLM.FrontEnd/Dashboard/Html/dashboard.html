@@ -63,24 +63,28 @@
 
         <!-- Nav -->
         <nav class="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
-            <a href="#" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-lg bg-primary/10 text-primary transition-colors group">
+            <a href="javascript:void(0)" onclick="selectView('catalog')" id="nav-catalog" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-lg bg-primary/10 text-primary transition-colors group">
                 <span class="material-symbols-outlined">dashboard</span>
                 <span class="hidden lg:block font-medium">Dashboard</span>
             </a>
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+            <a href="javascript:void(0)" onclick="selectView('library')" id="nav-library" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
                 <span class="material-symbols-outlined">stadia_controller</span>
-                <span class="hidden lg:block font-medium">My Games</span>
+                <span class="hidden lg:block font-medium">My Library</span>
             </a>
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+            <a href="javascript:void(0)" onclick="selectView('favorites')" id="nav-favorites" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">favorite</span>
+                <span class="hidden lg:block font-medium">Favorites</span>
+            </a>
+            <a href="javascript:void(0)" onclick="selectView('discover')" id="nav-discover" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
                 <span class="material-symbols-outlined">explore</span>
                 <span class="hidden lg:block font-medium">Discover</span>
             </a>
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+            <a href="javascript:void(0)" onclick="selectView('community')" id="nav-community" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
                 <span class="material-symbols-outlined">group</span>
                 <span class="hidden lg:block font-medium">Community</span>
             </a>
              <div class="my-2 border-t border-[#1e293b]"></div>
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+            <a href="javascript:void(0)" onclick="selectView('settings')" id="nav-settings" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
                 <span class="material-symbols-outlined">settings</span>
                 <span class="hidden lg:block font-medium">Settings</span>
             </a>

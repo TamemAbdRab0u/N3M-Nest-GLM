@@ -3,6 +3,7 @@ using Game_Library_Management_BL.DTO_s.UserGamesDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
+using Game_Library_Management_PL.Models; // Added this namespace
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,9 @@ namespace Game_Library_Management_BL.Services.Services
                 .Query()
                 .Where(x => x.UserId == UserId)
                 .Include(x => x.Game)
+                    .ThenInclude(g => g.GameTags).ThenInclude(gt => gt.Tag)
+                .Include(x => x.Game)
+                    .ThenInclude(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
                 .Include(x => x.User)
                 .ToListAsync();
 
@@ -38,10 +42,14 @@ namespace Game_Library_Management_BL.Services.Services
             return UserGames.Select(x => new UserGamesResponseDto
             {
                 UserName = x.User.Username,
+                ExternalId = x.Game.ExternalId,
+                IsFavorite = x.IsFavorite,
                 GameTitle = x.Game.Title,
                 GameDescription = x.Game.Description,
                 GameImageUrl = x.Game.ImgUrl,
                 ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
+                Genres = x.Game.GameTags.Select(gt => gt.Tag.Name).ToList(),
+                Platforms = x.Game.GamePlatforms.Select(gp => gp.Platform.Name).ToList(),
                 Gamestatus = x.Gamestatus,
                 Review = x.Review,
                 Rating = x.Rating,

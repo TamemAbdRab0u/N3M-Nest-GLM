@@ -36,5 +36,25 @@ namespace Game_Library_Management.Controllers
             await _gameCatalogService.ImportGamesAsync(games);
             return Ok("Games imported successfully");
         }
+
+        [HttpPost("catalog/favorite/{externalId}")]
+        public async Task<IActionResult> ToggleFavorite(int externalId)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _gameCatalogService.ToggleFavoriteAsync(userId, externalId);
+            return Ok(new { IsFavorite = result });
+        }
+
+        [HttpPost("catalog/library/{externalId}")]
+        public async Task<IActionResult> AddToLibrary(int externalId)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _gameCatalogService.AddToLibraryAsync(userId, externalId);
+            return Ok(new { Added = result });
+        }
     }
 }

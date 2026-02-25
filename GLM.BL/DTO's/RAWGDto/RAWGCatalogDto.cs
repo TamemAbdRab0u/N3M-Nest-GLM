@@ -15,5 +15,7 @@ namespace Game_Library_Management_BL.DTO_s.RAWGDto
         public string ReleaseDate { get; set; }
         public List<string> Genres { get; set; }
         public List<string> Platforms { get; set; }
+        public bool IsFavorite { get; set; }
+        public bool IsInLibrary { get; set; }
     }
 }
