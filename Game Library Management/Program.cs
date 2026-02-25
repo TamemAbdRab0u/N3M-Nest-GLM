@@ -51,6 +51,19 @@ namespace Game_Library_Management
             builder.Services.AddSignalR();
             #endregion
 
+            #region CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.SetIsOriginAllowed(origin => true) // Allow any origin for development
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+            });
+            #endregion
+
             #region JWT Authentication
 
             builder.Services.AddAuthentication(options =>
@@ -84,7 +97,10 @@ namespace Game_Library_Management
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            // Comment out HTTPS redirection for development
+            // app.UseHttpsRedirection();
+
+            app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
             app.UseAuthorization();

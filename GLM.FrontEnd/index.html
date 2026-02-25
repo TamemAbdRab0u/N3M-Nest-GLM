@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Library Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Game Library Management</h1>
+            <p class="subtitle">Test Frontend - API Connection</p>
+        </header>
+
+        <div class="status-card">
+            <h2>API Status</h2>
+            <div id="api-status" class="status pending">Checking...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test API Endpoints</h2>
+            
+            <div class="endpoint-test">
+                <h3>Get Games</h3>
+                <button onclick="testGetGames()" class="btn">Test Games Endpoint</button>
+                <div id="games-result" class="result"></div>
+            </div>
+
+            <div class="endpoint-test">
+                <h3>Get Platforms</h3>
+                <button onclick="testGetPlatforms()" class="btn">Test Platforms Endpoint</button>
+                <div id="platforms-result" class="result"></div>
+            </div>
+
+            <div class="endpoint-test">
+                <h3>Get Tags</h3>
+                <button onclick="testGetTags()" class="btn">Test Tags Endpoint</button>
+                <div id="tags-result" class="result"></div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>ℹ️ How to Use</h3>
+            <ol>
+                <li>Make sure your API is running on <code>http://localhost:5268</code></li>
+                <li>Enable CORS in your API to allow frontend requests</li>
+                <li>Click the buttons above to test your API endpoints</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

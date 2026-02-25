@@ -101,7 +101,7 @@ namespace Game_Library_Management_BL.Services.Services
                 IsAuthenticated = true,
                 UserRoles = new List<string> { "User" },
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                //ExpiresOn = jwtSecurityToken.ValidTo
+                ExpiresOn = jwtSecurityToken.ValidTo
             };
         }
 
@@ -142,6 +142,7 @@ namespace Game_Library_Management_BL.Services.Services
                 IsAuthenticated = true,
                 UserRoles = Roles.ToList(),
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                ExpiresOn = jwtSecurityToken.ValidTo
             };
 
             if (user.RefreshTokens.Any(x => x.IsActive))
