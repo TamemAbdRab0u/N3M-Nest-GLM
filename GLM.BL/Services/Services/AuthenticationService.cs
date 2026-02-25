@@ -274,7 +274,7 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 Token = Convert.ToBase64String(RandomNumber),
                 CreatedOn = DateTime.UtcNow,
-                ExpiresOn = DateTime.UtcNow.AddDays(7) 
+                ExpiresOn = DateTime.UtcNow.AddDays(30)
             };
         }
 

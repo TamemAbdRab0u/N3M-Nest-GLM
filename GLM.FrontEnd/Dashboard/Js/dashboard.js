@@ -1,7 +1,8 @@
 // Pagination state
 let currentPage = 1;
-let gamesPerPage = 10;
-let allGames = [];
+let currentQuery = ''; // Store current search query
+let gamesPerPage = 20; // Updated to match backend
+let allGames = []; // Will store just the current page of games now
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,9 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display user info
     displayUserInfo();
     
-    loadAllGames();
+    loadGames(currentPage); // Initial load
     initializeNavigation();
     initializePagination();
+    initializeSearch();
 });
 
 // Display user information
@@ -29,13 +31,30 @@ function displayUserInfo() {
     });
 }
 
-// Load all games from API
-async function loadAllGames() {
+// Load games from API (handles both catalog and search)
+async function loadGames(page = 1, query = '') {
     const container = document.getElementById('library-games');
     const totalGamesElement = document.getElementById('total-games');
+    const loadingHtml = `
+        <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p>Loading games...</p>
+        </div>
+    `;
+    
+    container.innerHTML = loadingHtml;
     
     try {
-        const response = await apiRequest('/api/RAWG/catalog/GetAll', {
+        let endpoint;
+        const container = document.getElementById('library-games');
+        
+        if (query) {
+             endpoint = `/api/RAWG/catalog/search?query=${encodeURIComponent(query)}`;
+        } else {
+             endpoint = `/api/RAWG/catalog/GetAll?page=${page}`;
+        }
+        
+        const response = await apiRequest(endpoint, {
             method: 'GET'
         });
         
@@ -43,23 +62,33 @@ async function loadAllGames() {
             throw new Error('Failed to load games');
         }
         
-        allGames = await response.json();
+        const gamesData = await response.json();
+        allGames = gamesData; // Store current batch
         
         if (allGames && allGames.length > 0) {
-            totalGamesElement.textContent = `${allGames.length} Game${allGames.length !== 1 ? 's' : ''}`;
-            displayGamesPage(1);
+            
+            if (query) {
+                 totalGamesElement.textContent = `Search Results`;
+            } else {
+                 totalGamesElement.textContent = `Page ${page}`;
+            }
+           
+            displayGames(allGames);
         } else {
             container.innerHTML = `
                 <div class="game-card" style="grid-column: 1/-1;">
                     <div class="game-info">
                         <p style="color: var(--text-secondary); text-align: center; padding: 40px;">
-                            No games found in the catalog.
+                            No games found.
                         </p>
                     </div>
                 </div>
             `;
             totalGamesElement.textContent = '0 Games';
         }
+        
+        updatePaginationControls(page, query);
+
     } catch (error) {
         console.error('Error loading games:', error);
         container.innerHTML = `
@@ -71,38 +100,43 @@ async function loadAllGames() {
                 </div>
             </div>
         `;
-        totalGamesElement.textContent = '0 Games';
+        totalGamesElement.textContent = 'Error';
     }
 }
 
-// Display games for current page
-function displayGamesPage(page) {
+// Display games (no slicing needed as we fetch per page)
+function displayGames(games) {
     const container = document.getElementById('library-games');
-    const startIndex = (page - 1) * gamesPerPage;
-    const endIndex = startIndex + gamesPerPage;
-    const gamesToDisplay = allGames.slice(startIndex, endIndex);
-    
     container.innerHTML = '';
     
-    gamesToDisplay.forEach(game => {
+    games.forEach(game => {
         container.appendChild(createGameCard(game, 'owned'));
     });
-    
-    currentPage = page;
-    updatePaginationControls();
 }
 
 // Update pagination controls
-function updatePaginationControls() {
-    const totalPages = Math.ceil(allGames.length / gamesPerPage);
+function updatePaginationControls(page, query) {
     const pageInfo = document.getElementById('page-info');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    // Simplistic pagination for infinite scroll style API
+    pageInfo.textContent = `Page ${page}`;
     
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+    prevBtn.disabled = page === 1;
+    
+    // Disable next if we have fewer results than page size (likely end of list)
+    // If searching, we disabled next for now as search endpoint is single page in this implementation
+    if (query) {
+        nextBtn.disabled = true; 
+        pageInfo.textContent = 'Search Results';
+    } else {
+        nextBtn.disabled = allGames.length < gamesPerPage;
+    }
+    
+    // Store current page state
+    currentPage = page;
+    currentQuery = query;
 }
 
 // Initialize pagination buttons
@@ -112,17 +146,32 @@ function initializePagination() {
     
     prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {
-            displayGamesPage(currentPage - 1);
+            loadGames(currentPage - 1, currentQuery);
             scrollToTop();
         }
     });
     
     nextBtn.addEventListener('click', () => {
-        const totalPages = Math.ceil(allGames.length / gamesPerPage);
-        if (currentPage < totalPages) {
-            displayGamesPage(currentPage + 1);
-            scrollToTop();
-        }
+        loadGames(currentPage + 1, currentQuery);
+        scrollToTop();
+    });
+}
+
+// Initialize search
+function initializeSearch() {
+    const searchInput = document.querySelector('.search-bar input');
+    if (!searchInput) return;
+
+    let debounceTimer;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+        
+        debounceTimer = setTimeout(() => {
+            currentPage = 1; // Reset to page 1 on new search
+            loadGames(1, query);
+        }, 500); // 500ms debounce
     });
 }
 
@@ -150,10 +199,15 @@ function createGameCard(game, tag = 'new') {
 
     // Get genre/category from tags if available
     let category = 'Action • RPG';
-    if (game.tags && Array.isArray(game.tags) && game.tags.length > 0) {
+    if (game.genres && Array.isArray(game.genres) && game.genres.length > 0) {
+        // Handle both string arrays (RAWGCatalogDto) and object arrays (if any)
+        if (typeof game.genres[0] === 'string') {
+            category = game.genres.slice(0, 3).join(' • ');
+        } else if (game.genres[0].name) {
+            category = game.genres.map(g => g.name).slice(0, 2).join(' • ');
+        }
+    } else if (game.tags && Array.isArray(game.tags) && game.tags.length > 0) {
         category = game.tags.map(t => t.name).slice(0, 2).join(' • ');
-    } else if (game.genres && Array.isArray(game.genres) && game.genres.length > 0) {
-         category = game.genres.map(g => g.name).slice(0, 2).join(' • ');
     }
     
     // Rating badge if available
@@ -162,17 +216,62 @@ function createGameCard(game, tag = 'new') {
            <span class="text-yellow-400">★</span> ${game.rating}
          </span>` : '';
 
+    // Format Release Date
+    let releaseYear = '';
+    if (game.releaseDate) {
+        const date = new Date(game.releaseDate);
+        if (!isNaN(date.getFullYear())) {
+            releaseYear = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">${date.getFullYear()}</span>`;
+        }
+    }
+
+    // Generate Platform Icons
+    let platformIconsHtml = ''; // renamed to avoid conflict/confusion
+    if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
+        const uniqueIcons = new Set();
+        const icons = game.platforms.map(slug => {
+            let iconClass = '';
+            // Map slugs to FontAwesome brands
+            switch(slug.toLowerCase()) {
+                case 'pc': iconClass = 'fa-windows'; break;
+                case 'playstation': iconClass = 'fa-playstation'; break;
+                case 'xbox': iconClass = 'fa-xbox'; break;
+                case 'nintendo': iconClass = 'fa-nintendo-switch'; break; 
+                case 'mac': iconClass = 'fa-apple'; break;
+                case 'linux': iconClass = 'fa-linux'; break;
+                case 'android': iconClass = 'fa-android'; break;
+                case 'ios': iconClass = 'fa-app-store-ios'; break; 
+                case 'web': iconClass = 'fa-chrome'; break;
+                default: return ''; 
+            }
+            if (uniqueIcons.has(iconClass)) return ''; // Avoid duplicates
+            uniqueIcons.add(iconClass);
+            return `<i class="fab ${iconClass} text-xs"></i>`;
+        }).filter(icon => icon !== '').join('');
+
+        if (icons) {
+            platformIconsHtml = `
+                <div class="absolute bottom-2 left-2 flex gap-2 text-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 bg-black/60 px-2 py-1 rounded-md backdrop-blur-sm pointer-events-none">
+                    ${icons}
+                </div>
+            `;
+        }
+    }
+
     card.innerHTML = `
         <div class="aspect-[16/9] overflow-hidden relative">
             <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='../../Assets/Images/logo.png'">
             <div class="absolute inset-0 bg-gradient-to-t from-[#1e292b] to-transparent opacity-60"></div>
             ${ratingBadge}
+            ${platformIconsHtml}
         </div>
         <div class="p-4">
-            <h4 class="font-bold text-white truncate mb-1" title="${title}">${title}</h4>
+            <div class="flex justify-between items-start mb-1 gap-2">
+                <h4 class="font-bold text-white truncate flex-1" title="${title}">${title}</h4>
+                ${releaseYear}
+            </div>
             <div class="flex items-center justify-between text-xs text-slate-400">
-                <span class="truncate max-w-[100px]">${category}</span>
-                <span class="material-symbols-outlined text-[16px] text-slate-500 group-hover:text-primary transition-colors">videogame_asset</span>
+                <span class="truncate max-w-[180px]">${category}</span>
             </div>
         </div>
     `;
@@ -214,11 +313,20 @@ function initializeNavigation() {
 }
 
 // Search functionality
-const searchInput = document.querySelector('.search-bar input');
-if (searchInput) {
+function initializeSearch() {
+    const searchInput = document.querySelector('.search-bar input');
+    if (!searchInput) return;
+
+    let debounceTimer;
+
     searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        console.log('Searching for:', query);
-        // Implement search functionality
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+        
+        debounceTimer = setTimeout(() => {
+            // Reset to page 1 for new search
+            currentPage = 1;
+            loadGames(1, query);
+        }, 500); // 500ms debounce
     });
 }

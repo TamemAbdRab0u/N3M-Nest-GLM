@@ -26,10 +26,10 @@ namespace Game_Library_Management_BL.Services.Services
             this.unitofwork = unitofwork;
         }
 
-        public Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync()
+        public Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync(int page = 1)
         {
             var key = _config["RAWG:ApiKey"];
-            var url = $"https://api.rawg.io/api/games?key={key}&page_size=50";
+            var url = $"https://api.rawg.io/api/games?key={key}&page={page}&page_size=20";
 
             var response = _http.GetFromJsonAsync<RAWGResponseDto>(url);
             return response.ContinueWith(t => t.Result.Results.Select(g => new RAWGCatalogDto
@@ -38,7 +38,9 @@ namespace Game_Library_Management_BL.Services.Services
                 Title = g.Name,
                 ImageUrl = g.Background_Image,
                 Rating = g.Rating,
-                ReleaseDate = g.Released
+                ReleaseDate = g.Released,
+                Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
             }));
         }
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
@@ -54,7 +56,9 @@ namespace Game_Library_Management_BL.Services.Services
                 Title = g.Name,
                 ImageUrl = g.Background_Image,
                 Rating = g.Rating,
-                ReleaseDate = g.Released
+                ReleaseDate = g.Released,
+                Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
             });
         }
 

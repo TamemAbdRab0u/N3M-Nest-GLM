@@ -16,9 +16,9 @@ namespace Game_Library_Management.Controllers
         }
 
         [HttpGet("catalog/GetAll")]
-        public async Task<IActionResult> GetAllGames()
+        public async Task<IActionResult> GetAllGames([FromQuery] int page = 1)
         {
-            var games = await _gameCatalogService.GetAllGamesAsync();
+            var games = await _gameCatalogService.GetAllGamesAsync(page);
             return Ok(games);
         }
 
