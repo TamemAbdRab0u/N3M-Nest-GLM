@@ -34,6 +34,123 @@
         }
     </script>
     <style>
+        @font-face {
+            font-family: 'Xirod';
+            src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+        }
+
+        .animate-pop {
+            animation: pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+        
+        /* High-End Neon Brand Text (CSS-Tricks Inspired) */
+        .neon-text-cyan {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 4px #fff,
+                0 0 11px #fff,
+                0 0 19px #fff,
+                0 0 40px #4a7dff,
+                0 0 80px #4a7dff,
+                0 0 90px #4a7dff,
+                0 0 100px #4a7dff,
+                0 0 150px #4a7dff;
+            font-weight: 900;
+        }
+        .neon-divider {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 7px #fff,
+                0 0 10px #fff,
+                0 0 21px #fff,
+                0 0 42px #4a7dff,
+                0 0 82px #4a7dff;
+            opacity: 1;
+            animation: flicker 1.5s infinite alternate;
+        }
+        .neon-text-white {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 4px #fff,
+                0 0 11px #fff,
+                0 0 19px #fff,
+                0 0 40px #00d2ff,
+                0 0 80px #00d2ff;
+            font-weight: 200;
+            letter-spacing: 0.1em;
+        }
+        .neon-username {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #4a7dff,
+                0 0 40px #4a7dff;
+            font-weight: 800;
+        }
+        .xirod-font {
+            font-family: 'Xirod', sans-serif;
+        }
+
+        /* Subtle Flicker Effect */
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow:
+                    0 0 4px #fff,
+                    0 0 11px #fff,
+                    0 0 19px #fff,
+                    0 0 40px #4a7dff,
+                    0 0 80px #4a7dff;
+            }
+            20%, 24%, 55% {        
+                text-shadow: none;
+                opacity: 0.5;
+            }
+        }
+
+        /* Toast Animations */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(110%); opacity: 0; }
+        }
+        .toast-slide-in {
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .toast-slide-out {
+            animation: slideOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Status Badge Glows */
+        .status-badge-fav {
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .status-badge-lib {
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+            background: rgba(34, 197, 94, 0.1);
+        }
+        
+        @keyframes badgeEntrance {
+            from { transform: scale(0) rotate(-45deg); opacity: 0; }
+            to { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        .animate-badge {
+            animation: badgeEntrance 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -102,7 +219,9 @@
             <div class="h-8 w-8 relative">
                 <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain">
             </div>
-            <span class="hidden lg:block ml-3 font-bold text-lg tracking-wide">N3M<span class="text-primary text-xl mx-0.5">|</span>Nest</span>
+            <span class="hidden lg:block ml-3 font-bold text-lg tracking-wide">
+                <span class="neon-text-cyan">N3M</span><span class="neon-divider text-xl mx-0.5">|</span><span class="neon-text-white">Nest</span>
+            </span>
         </div>
 
         <!-- Nav -->
@@ -141,7 +260,7 @@
                     <span id="display-avatar">U</span>
                 </div>
                 <div class="hidden lg:block overflow-hidden">
-                    <p id="display-username" class="text-sm font-semibold text-white truncate">User</p>
+                    <p id="display-username" class="text-xs xirod-font text-white truncate">User</p>
                     <p class="text-xs text-slate-400 truncate">Online</p>
                 </div>
                 <button onclick="logout()" class="ml-auto text-slate-400 hover:text-error transition-colors lg:block hidden" title="Logout">
@@ -166,16 +285,10 @@
         <!-- Top Bar -->
         <header class="h-16 flex items-center justify-between px-6 border-b border-[#1e293b] bg-[#0a1618]/80 backdrop-blur-md sticky top-0 z-20">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                Welcome back, <span id="welcome-username" class="text-primary">Gamer</span>
+                Welcome back, <span id="welcome-username" class="neon-username">Gamer</span>
             </h2>
             
-            <div class="flex items-center gap-4 search-bar">
-                <div class="relative hidden sm:block">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                        <span class="material-symbols-outlined text-[20px]">search</span>
-                    </span>
-                    <input type="text" placeholder="Search library..." class="h-10 w-64 rounded-full bg-[#1e292b] border-none pl-10 pr-4 text-sm text-white focus:ring-1 focus:ring-primary placeholder-slate-500">
-                </div>
+            <div class="flex items-center gap-4">
                 <button class="p-2 text-slate-400 hover:text-white transition-colors relative">
                     <span class="material-symbols-outlined">notifications</span>
                     <span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border border-[#0a1618]"></span>
@@ -186,62 +299,26 @@
         <!-- Scrollable Content -->
         <div class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
             
-            <!-- Stats Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <!-- Total Games -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">videogame_asset</span>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Catalog Games</p>
-                        <p id="total-games" class="text-xl font-bold text-white">0 Games</p>
-                    </div>
-                </div>
-                
-                <!-- Hours Played -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">schedule</span>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Hours Played</p>
-                        <p class="text-xl font-bold text-white">124.5h</p> <!-- Static for now per previous content -->
-                    </div>
-                </div>
+            <!-- Centered Header Section -->
+            <div class="mb-10 flex flex-col items-center justify-center text-center">
+                <h3 class="header-title text-4xl font-black text-white mb-2 tracking-tight">Catalog Games</h3>
+                <p id="total-games" class="text-slate-500 font-medium mb-8">0 Games</p>
 
-                <!-- Achievements -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">emoji_events</span>
+                <div class="flex flex-col md:flex-row items-center gap-4 w-full max-w-3xl">
+                    <!-- Centered Search -->
+                    <div class="relative flex-1 search-bar w-full">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                            <span class="material-symbols-outlined text-[22px]">search</span>
+                        </span>
+                        <input type="text" placeholder="Search your library..." class="h-12 w-full rounded-2xl bg-[#1e292b]/60 backdrop-blur-md border border-[#2e616b]/30 pl-12 pr-4 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:bg-[#1e292b] transition-all placeholder-slate-500 shadow-xl">
                     </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Achievements</p>
-                        <p class="text-xl font-bold text-white">342</p> <!-- Static -->
-                    </div>
-                </div>
 
-                <!-- Completed -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-green-500/20 text-green-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">check_circle</span>
+                    <!-- Filters -->
+                    <div class="flex gap-1 p-1.5 bg-[#1e292b]/60 backdrop-blur-md border border-[#2e616b]/30 rounded-2xl shadow-xl shrink-0">
+                        <button class="px-6 py-2 rounded-xl bg-primary text-white font-semibold shadow-md transition-all active-filter">All</button>
+                        <button class="px-6 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#2d3b3e] transition-all font-medium">Favorites</button>
+                        <button class="px-6 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#2d3b3e] transition-all font-medium">Installed</button>
                     </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Completed</p>
-                        <p class="text-xl font-bold text-white">12</p> <!-- Static -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Library Section -->
-            <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h3 class="text-2xl font-bold text-white">Games Library</h3>
-                
-                <!-- Filters -->
-                <div class="flex gap-2 text-sm bg-[#1e292b]/80 p-1 rounded-lg self-start sm:self-auto">
-                    <button class="px-4 py-1.5 rounded-md bg-primary text-white font-medium shadow-sm transition-all">All</button>
-                    <button class="px-4 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-[#2d3b3e] transition-all">Favorites</button>
-                    <button class="px-4 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-[#2d3b3e] transition-all">Installed</button>
                 </div>
             </div>
 

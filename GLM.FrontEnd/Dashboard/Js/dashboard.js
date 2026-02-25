@@ -5,6 +5,10 @@ let gamesPerPage = 20; // Updated to match backend
 let allGames = []; // Will store just the current page of games now
 let currentView = 'catalog'; // 'catalog', 'library', 'favorites'
 
+// Toast Notification State
+let activeToast = null;
+let toastTimeout = null;
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
     // Check authentication
@@ -102,10 +106,15 @@ async function loadGames(page = 1, query = '') {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load games');
+            // Handle 404 as empty collection (optional since we fixed backend, but good for safety)
+            if (response.status === 404) {
+                result = []; 
+            } else {
+                throw new Error('Failed to load games');
+            }
+        } else {
+            result = await response.json();
         }
-        
-        let result = await response.json();
 
         // Transform UserGames DTO if needed and filter
         if (currentView !== 'catalog') {
@@ -158,18 +167,42 @@ async function loadGames(page = 1, query = '') {
                     totalGamesElement.textContent = `Search Results`;
                 } else if (currentView === 'catalog') {
                     totalGamesElement.textContent = `Page ${page}`;
+                } else if (currentView === 'library') {
+                    totalGamesElement.textContent = `${allGames.length} in Library`;
+                } else if (currentView === 'favorites') {
+                    totalGamesElement.textContent = `${allGames.length} Favorites`;
                 } else {
                     totalGamesElement.textContent = `${allGames.length} Games`;
                 }
             }
             displayGames(allGames);
         } else {
+            let emptyMessage = "No games found.";
+            let icon = "videogame_asset_off";
+
+            if (query) {
+                emptyMessage = `No results found for "${query}"`;
+                icon = "search_off";
+            } else if (currentView === 'library') {
+                emptyMessage = "Your library is currently empty. Start adding games from the catalog!";
+                icon = "library_add";
+            } else if (currentView === 'favorites') {
+                emptyMessage = "You haven't favorited any games yet. Explore the catalog to find your favorites!";
+                icon = "heart_plus";
+            }
+
             if (container) container.innerHTML = `
-                <div class="col-span-full text-center py-20 text-slate-500">
-                    <p>No games found.</p>
+                <div class="col-span-full flex flex-col items-center justify-center py-24 text-slate-500 opacity-60">
+                    <span class="material-symbols-outlined text-7xl mb-4">${icon}</span>
+                    <p class="text-lg font-medium">${emptyMessage}</p>
+                    ${currentView !== 'catalog' ? `
+                        <button onclick="selectView('catalog')" class="mt-6 px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-full hover:bg-primary hover:text-white transition-all">
+                            Browse Catalog
+                        </button>
+                    ` : ''}
                 </div>
             `;
-            if (totalGamesElement) totalGamesElement.textContent = '0 Games';
+            if (totalGamesElement) totalGamesElement.textContent = 'None';
         }
         
         updatePaginationControls(page, query);
@@ -177,11 +210,16 @@ async function loadGames(page = 1, query = '') {
     } catch (error) {
         console.error('Error loading games:', error);
         if (container) container.innerHTML = `
-            <div class="col-span-full text-center py-20 text-red-500">
-                <p>Unable to load games. Make sure the API is running.</p>
+            <div class="col-span-full flex flex-col items-center justify-center py-24 text-red-500/80">
+                <span class="material-symbols-outlined text-7xl mb-4">cloud_off</span>
+                <p class="text-lg font-medium">Unable to connect to the server.</p>
+                <p class="text-sm mt-2 opacity-70">Please check your internet connection or try refreshing the page.</p>
+                <button onclick="window.location.reload()" class="mt-6 px-6 py-2 bg-red-500/10 border border-red-500/30 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                    Retry Connection
+                </button>
             </div>
         `;
-        if (totalGamesElement) totalGamesElement.textContent = 'Error';
+        if (totalGamesElement) totalGamesElement.textContent = 'Connection Error';
     }
 }
 
@@ -271,6 +309,20 @@ function createGameCard(game) {
         }
     }
 
+    // Status Indicators (Small icons under year)
+    const statusIndicators = `
+        <div data-status-for="${gameId}" class="flex justify-end gap-2 mt-2 transition-all duration-500">
+            ${game.isFavorite ? `
+                <div class="status-badge-fav h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm animate-badge transition-all hover:scale-110" title="Favorited">
+                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
+                </div>` : ''}
+            ${game.isInLibrary ? `
+                <div class="status-badge-lib h-7 w-7 rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm animate-badge transition-all hover:scale-110" title="In Library">
+                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon">check_circle</span>
+                </div>` : ''}
+        </div>
+    `;
+
     // Favorite/Library Button State logic
     const favTitle = game.isFavorite ? 'Remove from Favorites' : 'Add to Favorites';
     const libTitle = game.isInLibrary ? 'Remove from Library' : 'Add to Library';
@@ -309,11 +361,14 @@ function createGameCard(game) {
         <!-- Info Section -->
         <div class="p-6">
             <div class="flex items-start justify-between mb-2 gap-3">
-                <div class="overflow-hidden">
+                <div class="overflow-hidden flex-1">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">${category}</p>
                 </div>
-                ${releaseYearBadge}
+                <div class="flex flex-col items-end">
+                    ${releaseYearBadge}
+                    ${statusIndicators}
+                </div>
             </div>
         </div>
     `;
@@ -410,13 +465,8 @@ async function addToFavorites(gameIdOrObj) {
             const isFavorite = result.isFavorite; // Backend result property name
             
             // Notification toast
-            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game Dictionary";
-            const msg = document.createElement('div');
-            msg.className = `fixed bottom-4 right-4 ${isFavorite ? 'bg-red-500/90' : 'bg-slate-700/90'} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2 backdrop-blur-md`;
-            msg.innerHTML = `<span class="material-symbols-outlined">${isFavorite ? 'favorite' : 'heart_broken'}</span> <span>"${gameTitle}" ${isFavorite ? 'added to' : 'removed from'} favorites!</span>`;
-            
-            document.body.appendChild(msg);
-            setTimeout(() => msg.remove(), 2500);
+            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
+            showToast(`"${gameTitle}" ${isFavorite ? 'added to' : 'removed from'} favorites!`, isFavorite ? 'favorite' : 'unfavorite');
 
             updateFavoriteUI(gameId, isFavorite);
         }
@@ -466,7 +516,26 @@ function updateFavoriteUI(gameId, isFavorite) {
 
     // Update local data cache
      const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
-     if (cachedGame) cachedGame.isFavorite = isFavorite;
+     if (cachedGame) {
+        cachedGame.isFavorite = isFavorite;
+        updateStatusIndicators(gameId, cachedGame);
+     }
+}
+
+function updateStatusIndicators(gameId, game) {
+    const containers = document.querySelectorAll(`[data-status-for="${gameId}"]`);
+    containers.forEach(container => {
+        container.innerHTML = `
+            ${game.isFavorite ? `
+                <div class="status-badge-fav h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm animate-badge transform transition-all hover:scale-110" title="Favorited">
+                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
+                </div>` : ''}
+            ${game.isInLibrary ? `
+                <div class="status-badge-lib h-7 w-7 rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm animate-badge transition-all hover:scale-110" title="In Library">
+                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon">check_circle</span>
+                </div>` : ''}
+        `;
+    });
 }
 
 // Add to Library
@@ -483,19 +552,8 @@ async function addToLibrary(gameIdOrObj) {
             const isInLibrary = result.added; // Use 'added' from backend response
             
             // Show toast message
-            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game Dictionary";
-            const msg = document.createElement('div');
-            
-            if (isInLibrary) {
-                msg.className = 'fixed bottom-4 right-4 bg-green-500/90 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2 backdrop-blur-md';
-                msg.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>"${gameTitle}" added to library!</span>`;
-            } else {
-                msg.className = 'fixed bottom-4 right-4 bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2 backdrop-blur-md';
-                msg.innerHTML = `<span class="material-symbols-outlined">delete</span> <span>"${gameTitle}" removed from library.</span>`;
-            }
-            
-            document.body.appendChild(msg);
-            setTimeout(() => msg.remove(), 3000);
+            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
+            showToast(`"${gameTitle}" ${isInLibrary ? 'added to' : 'removed from'} library!`, isInLibrary ? 'success' : 'error');
 
             // Update Button UI
              updateLibraryUI(gameId, isInLibrary);
@@ -570,7 +628,10 @@ function updateLibraryUI(gameId, isInLibrary) {
 
     // Update local state
      const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
-     if (cachedGame) cachedGame.isInLibrary = isInLibrary;
+     if (cachedGame) {
+         cachedGame.isInLibrary = isInLibrary;
+         updateStatusIndicators(gameId, cachedGame);
+     }
 }
 
 // Show game details
@@ -582,4 +643,54 @@ function showGameDetails(game) {
 function initializeNavigation() {
     // Already handled by onclick in HTML primarily, but for sidebar active states:
     // ...
+}
+
+/**
+ * Shows a slide-in notification toast
+ * @param {string} message - Text to display
+ * @param {string} type - 'success', 'error', or 'favorite'
+ */
+function showToast(message, type = 'success') {
+    if (activeToast) {
+        clearTimeout(toastTimeout);
+        const oldToast = activeToast;
+        oldToast.classList.remove('toast-slide-in');
+        oldToast.classList.add('toast-slide-out');
+        setTimeout(() => oldToast.remove(), 400);
+    }
+
+    const toast = document.createElement('div');
+    let bgColor = 'bg-primary/90';
+    let icon = 'info';
+    
+    if (type === 'success') {
+        bgColor = 'bg-green-500/95';
+        icon = 'check_circle';
+    } else if (type === 'error') {
+        bgColor = 'bg-red-500/95';
+        icon = 'delete';
+    } else if (type === 'favorite') {
+        bgColor = 'bg-pink-500/95';
+        icon = 'favorite';
+    } else if (type === 'unfavorite') {
+        bgColor = 'bg-slate-700/95';
+        icon = 'heart_broken';
+    }
+
+    toast.className = 'fixed bottom-8 right-8 ' + bgColor + ' text-white px-6 py-4 rounded-xl shadow-2xl z-[100] toast-slide-in flex items-center gap-3 backdrop-blur-md border border-white/10';
+    toast.innerHTML = '<span class=\"material-symbols-outlined\">' + icon + '</span> <span class=\"font-medium\">' + message + '</span>';
+
+    document.body.appendChild(toast);
+    activeToast = toast;
+
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('toast-slide-in');
+        toast.classList.add('toast-slide-out');
+        setTimeout(() => {
+            if (activeToast === toast) {
+                toast.remove();
+                activeToast = null;
+            }
+        }, 400);
+    }, 3000);
 }
