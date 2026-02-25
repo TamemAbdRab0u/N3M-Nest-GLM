@@ -16,10 +16,24 @@ namespace Game_Library_Management.Controllers
         }
 
         [HttpGet("catalog/GetAll")]
-        public async Task<IActionResult> GetAllGames([FromQuery] int page = 1)
+        public async Task<IActionResult> GetAllGames([FromQuery] int page = 1, [FromQuery] string? genre = null, [FromQuery] string? platforms = null, [FromQuery] string? ordering = null, [FromQuery] string? dates = null)
         {
-            var games = await _gameCatalogService.GetAllGamesAsync(page);
+            var games = await _gameCatalogService.GetAllGamesAsync(page, genre, platforms, ordering, dates);
             return Ok(games);
+        }
+
+        [HttpGet("catalog/genres")]
+        public async Task<IActionResult> GetAllGenres()
+        {
+            var genres = await _gameCatalogService.GetAllGenresAsync();
+            return Ok(genres);
+        }
+
+        [HttpGet("catalog/platforms")]
+        public async Task<IActionResult> GetAllPlatforms()
+        {
+            var platforms = await _gameCatalogService.GetAllPlatformsAsync();
+            return Ok(platforms);
         }
 
         [HttpGet("catalog/search")]
@@ -54,6 +68,16 @@ namespace Game_Library_Management.Controllers
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             var result = await _gameCatalogService.AddToLibraryAsync(userId, externalId);
+            return Ok(new { Added = result });
+        }
+
+        [HttpPost("catalog/wishlist/{externalId}")]
+        public async Task<IActionResult> ToggleWishlist(int externalId)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _gameCatalogService.ToggleWishlistAsync(userId, externalId);
             return Ok(new { Added = result });
         }
     }
