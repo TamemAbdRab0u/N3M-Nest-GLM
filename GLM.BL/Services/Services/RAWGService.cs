@@ -118,6 +118,38 @@ namespace Game_Library_Management_BL.Services.Services
             return games;
         }
 
+        public async Task<IEnumerable<RAWGCatalogDto>> GetGamesByExternalIdsAsync(List<int> externalIds)
+        {
+            if (externalIds == null || externalIds.Count == 0)
+                return Enumerable.Empty<RAWGCatalogDto>();
+
+            var key = _config["RAWG:ApiKey"];
+            var idsString = string.Join(",", externalIds);
+            var url = $"https://api.rawg.io/api/games?key={key}&ids={idsString}";
+
+            try
+            {
+                var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
+                if (response == null || response.Results == null)
+                    return Enumerable.Empty<RAWGCatalogDto>();
+
+                return response.Results.Select(g => new RAWGCatalogDto
+                {
+                    ExternalId = g.Id,
+                    Title = g.Name,
+                    ImageUrl = g.Background_Image,
+                    Rating = g.Rating,
+                    ReleaseDate = g.Released,
+                    Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                    Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
+                }).ToList();
+            }
+            catch
+            {
+                return Enumerable.Empty<RAWGCatalogDto>();
+            }
+        }
+
         public async Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games)
         {
             foreach (var g in games)

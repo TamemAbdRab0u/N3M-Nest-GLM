@@ -16,9 +16,12 @@ namespace Game_Library_Management_BL.Services.Services
     public class UserGamesServices : IUserGamesServices
     {
         private readonly IUnitOfWork unitofwork;
-        public UserGamesServices(IUnitOfWork unitofwork)
+        private readonly IRAWGService _rawgService;
+
+        public UserGamesServices(IUnitOfWork unitofwork, IRAWGService rawgService)
         {
             this.unitofwork = unitofwork;
+            _rawgService = rawgService;
         }
 
         public async Task<IEnumerable<UserGamesResponseDto>> AllUserGamesAsync(string UserId)
@@ -30,30 +33,34 @@ namespace Game_Library_Management_BL.Services.Services
                 .Query()
                 .Where(x => x.UserId == UserId)
                 .Include(x => x.Game)
-                    .ThenInclude(g => g.GameTags).ThenInclude(gt => gt.Tag)
-                .Include(x => x.Game)
-                    .ThenInclude(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
                 .Include(x => x.User)
                 .ToListAsync();
 
             if(UserGames == null || !UserGames.Any())
                 return Enumerable.Empty<UserGamesResponseDto>();
 
-            return UserGames.Select(x => new UserGamesResponseDto
-            {
-                UserName = x.User.Username,
-                ExternalId = x.Game.ExternalId,
-                IsFavorite = x.IsFavorite,
-                GameTitle = x.Game.Title,
-                GameDescription = x.Game.Description,
-                GameImageUrl = x.Game.ImgUrl,
-                ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
-                Genres = x.Game.GameTags.Select(gt => gt.Tag.Name).ToList(),
-                Platforms = x.Game.GamePlatforms.Select(gp => gp.Platform.Name).ToList(),
-                Gamestatus = x.Gamestatus,
-                Review = x.Review,
-                Rating = x.Rating,
-                CompletedAt = x.CompletedAt
+            var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
+            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(externalIds);
+
+            return UserGames.Select(x => {
+                var rg = rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId);
+                return new UserGamesResponseDto
+                {
+                    UserName = x.User.Username,
+                    ExternalId = x.Game.ExternalId,
+                    IsFavorite = x.IsFavorite,
+                    GameTitle = rg?.Title ?? x.Game.Title,
+                    GameDescription = x.Game.Description,
+                    GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
+                    ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
+                    Genres = rg?.Genres ?? new List<string>(),
+                    Platforms = rg?.Platforms ?? new List<string>(),
+                    Gamestatus = x.Gamestatus,
+                    Review = x.Review,
+                    Rating = rg?.Rating ?? 0,
+                    UserRating = x.Rating,
+                    CompletedAt = x.CompletedAt
+                };
             });
         }
 
@@ -75,16 +82,22 @@ namespace Game_Library_Management_BL.Services.Services
             if (UserGame == null)
                 return null;
 
+            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(new List<int> { UserGame.Game.ExternalId });
+            var rg = rawgGames.FirstOrDefault();
+
             return new UserGamesResponseDto
             {
                 UserName = UserGame.User.Username,
-                GameTitle = UserGame.Game.Title,
+                GameTitle = rg?.Title ?? UserGame.Game.Title,
                 GameDescription = UserGame.Game.Description,
-                GameImageUrl = UserGame.Game.ImgUrl,
+                GameImageUrl = rg?.ImageUrl ?? UserGame.Game.ImgUrl,
                 ReleaseDate = UserGame.Game.ReleaseDate ?? DateTime.MinValue,
+                Genres = rg?.Genres ?? new List<string>(),
+                Platforms = rg?.Platforms ?? new List<string>(),
                 Gamestatus = UserGame.Gamestatus,
                 Review = UserGame.Review,
-                Rating = UserGame.Rating,
+                Rating = rg?.Rating ?? 0,
+                UserRating = UserGame.Rating,
                 CompletedAt = UserGame.CompletedAt
             };
         }
@@ -126,16 +139,23 @@ namespace Game_Library_Management_BL.Services.Services
             await unitofwork.UserGames.Add(userGame);
             unitofwork.Save();
 
+            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(new List<int> { game.ExternalId });
+            var rg = rawgGames.FirstOrDefault();
+
             return new UserGamesResponseDto
             {
                 UserName = user.Username,
-                GameTitle = game.Title,
+                ExternalId = game.ExternalId,
+                GameTitle = rg?.Title ?? game.Title,
                 GameDescription = game.Description,
-                GameImageUrl = game.ImgUrl,
+                GameImageUrl = rg?.ImageUrl ?? game.ImgUrl,
                 ReleaseDate = game.ReleaseDate ?? DateTime.MinValue,
+                Genres = rg?.Genres ?? new List<string>(),
+                Platforms = rg?.Platforms ?? new List<string>(),
                 Gamestatus = createDto.Gamestatus,
                 Review = createDto.Review,
-                Rating = createDto.Rating,
+                UserRating = createDto.Rating,
+                Rating = rg?.Rating ?? 0,
                 CompletedAt = createDto.CompletedAt
             };
         }
@@ -157,16 +177,24 @@ namespace Game_Library_Management_BL.Services.Services
             await unitofwork.UserGames.Update(ExistedUserGame);
             unitofwork.Save();
 
+            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(new List<int> { ExistedUserGame.Game.ExternalId });
+            var rg = rawgGames.FirstOrDefault();
+
             return new UserGamesResponseDto
             {
                 UserName = ExistedUserGame.User.Username,
-                GameTitle = ExistedUserGame.Game.Title,
+                ExternalId = ExistedUserGame.Game.ExternalId,
+                IsFavorite = ExistedUserGame.IsFavorite,
+                GameTitle = rg?.Title ?? ExistedUserGame.Game.Title,
                 GameDescription = ExistedUserGame.Game.Description,
-                GameImageUrl = ExistedUserGame.Game.ImgUrl,
+                GameImageUrl = rg?.ImageUrl ?? ExistedUserGame.Game.ImgUrl,
                 ReleaseDate = ExistedUserGame.Game.ReleaseDate ?? DateTime.MinValue,
+                Genres = rg?.Genres ?? new List<string>(),
+                Platforms = rg?.Platforms ?? new List<string>(),
                 Gamestatus = ExistedUserGame.Gamestatus,
                 Review = ExistedUserGame.Review,
-                Rating = ExistedUserGame.Rating,
+                UserRating = ExistedUserGame.Rating,
+                Rating = rg?.Rating ?? 0,
                 CompletedAt = ExistedUserGame.CompletedAt
             };
         }
