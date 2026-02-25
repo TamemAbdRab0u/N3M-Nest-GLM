@@ -110,19 +110,30 @@ async function loadGames(page = 1, query = '') {
         // Transform UserGames DTO if needed and filter
         if (currentView !== 'catalog') {
             // Map UserGamesResponseDto to display format
-            gamesData = result.map(ug => ({
-                externalId: ug.externalId, // Check DTO prop name
-                id: ug.externalId,
-                title: ug.gameTitle,
-                imageUrl: ug.gameImageUrl,
-                releaseDate: ug.releaseDate,
-                rating: ug.rating,
-                genres: ug.genres, 
-                platforms: ug.platforms,
-                isFavorite: ug.isFavorite,
-                isInLibrary: true,
-                gamestatus: ug.gamestatus
-            }));
+            gamesData = result.map(ug => {
+                // Determine if in library based on status
+                // Backend returns enum as string "whishlist" or int 2
+                const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
+                
+                return {
+                    externalId: ug.externalId, 
+                    id: ug.externalId,
+                    title: ug.gameTitle,
+                    imageUrl: ug.gameImageUrl,
+                    releaseDate: ug.releaseDate,
+                    rating: ug.rating,
+                    genres: ug.genres, 
+                    platforms: ug.platforms,
+                    isFavorite: ug.isFavorite,
+                    isInLibrary: inLibrary,
+                    gamestatus: ug.gamestatus
+                };
+            });
+
+            // Filter for Library view (exclude wishlist-only games)
+            if (currentView === 'library') {
+                gamesData = gamesData.filter(g => g.isInLibrary);
+            }
 
             // Filter Favorites
             if (currentView === 'favorites') {
@@ -212,106 +223,101 @@ function createGameCard(game) {
         }
     }
 
-    // Rating
+    // Rating Badge (Top Left - Floating)
     const ratingBadge = game.rating ? 
-        `<span class="absolute top-2 right-2 px-2 py-1 bg-black/70 backdrop-blur-sm rounded text-[10px] font-bold text-white uppercase tracking-wide flex items-center gap-1">
-           <span class="text-yellow-400">★</span> ${game.rating}
-         </span>` : '';
+        `<div class="absolute top-4 left-4 glass-panel px-3 py-1.5 rounded-full flex items-center gap-1.5 z-10 transition-opacity group-hover:opacity-0">
+           <span class="material-symbols-outlined text-yellow-400 text-[18px] fill-icon">star</span>
+           <span class="text-white text-xs font-bold">${game.rating}</span>
+         </div>` : '';
 
-    // Release Year
-    let releaseYear = '';
+    // Release Year Badge
+    let releaseYearBadge = '';
     if (game.releaseDate) {
         const date = new Date(game.releaseDate);
         if (!isNaN(date.getFullYear())) {
-            releaseYear = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">${date.getFullYear()}</span>`;
+            releaseYearBadge = `<span class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider h-fit mt-1">
+                ${date.getFullYear()}
+            </span>`;
         }
     }
 
-    // Platform Icons
-    let platformIconsHtml = ''; 
+    // Platform Icons (Bottom Left)
+    let platformIconsPanel = ''; 
     if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
         const uniqueIcons = new Set();
         const icons = game.platforms.map(slug => {
-            let iconClass = '';
-            // Handle both string slugs and object slugs if any
+            let svgIcon = '';
             const s = (typeof slug === 'string' ? slug : slug.slug || slug.name || '').toLowerCase();
             
-            if (s.includes('pc') || s.includes('windows')) iconClass = 'fa-windows';
-            else if (s.includes('playstation') || s.includes('ps')) iconClass = 'fa-playstation';
-            else if (s.includes('xbox')) iconClass = 'fa-xbox';
-            else if (s.includes('nintendo') || s.includes('switch')) iconClass = 'fa-nintendo-switch'; 
-            else if (s.includes('mac') || s.includes('macos')) iconClass = 'fa-apple';
-            else if (s.includes('linux')) iconClass = 'fa-linux';
-            else if (s.includes('android')) iconClass = 'fa-android';
-            else if (s.includes('ios') || s.includes('iphone')) iconClass = 'fa-app-store-ios'; 
-            else if (s.includes('web')) iconClass = 'fa-chrome';
+            if (s.includes('pc') || s.includes('windows')) svgIcon = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"></path></svg>`;
+            else if (s.includes('playstation') || s.includes('ps')) svgIcon = `<i class="fab fa-playstation text-sm"></i>`;
+            else if (s.includes('xbox')) svgIcon = `<i class="fab fa-xbox text-sm"></i>`;
+            else if (s.includes('nintendo') || s.includes('switch')) svgIcon = `<i class="bi bi-nintendo-switch text-sm" style="font-size: 1.1rem;"></i>`; 
+            else if (s.includes('mac') || s.includes('macos') || s.includes('apple')) svgIcon = `<i class="fab fa-apple text-sm"></i>`;
+            else if (s.includes('android')) svgIcon = `<i class="fab fa-android text-sm"></i>`;
             else return ''; 
 
-            if (uniqueIcons.has(iconClass)) return ''; 
-            uniqueIcons.add(iconClass);
-            return `<i class="fab ${iconClass} text-xs"></i>`;
+            if (uniqueIcons.has(s)) return ''; 
+            uniqueIcons.add(s);
+            return svgIcon;
         }).filter(icon => icon !== '').join('');
 
         if (icons) {
-            platformIconsHtml = `
-                <div class="absolute bottom-2 left-2 flex gap-2 text-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 bg-black/60 px-2 py-1 rounded-md backdrop-blur-sm pointer-events-none">
+            platformIconsPanel = `
+                <div class="absolute bottom-4 left-4 glass-panel px-4 py-2 rounded-full flex items-center gap-4 text-gray-200 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0 z-10 pointer-events-none">
                     ${icons}
                 </div>
             `;
         }
     }
 
-    // Interactive States
-    const favClass = game.isFavorite ? 'text-red-500 opacity-100' : 'text-white/70 opacity-0 group-hover:opacity-100';
+    // Favorite/Library Button State logic
     const favTitle = game.isFavorite ? 'Remove from Favorites' : 'Add to Favorites';
+    const libTitle = game.isInLibrary ? 'Remove from Library' : 'Add to Library';
+    const libIcon = game.isInLibrary ? 'check_circle' : 'add';
+    const libClass = game.isInLibrary ? 'text-green-500 fill-icon' : 'hover:text-primary';
+    const favBtnClass = game.isFavorite ? 'text-red-500 fill-icon' : 'hover:text-red-400';
 
-    let libraryBtnHtml = '';
-    if (game.isInLibrary) {
-        libraryBtnHtml = `
-            <button class="w-full py-2 rounded-lg bg-green-500/20 text-green-500 border border-green-500/30 hover:bg-red-500/20 hover:text-red-500 hover:border-red-500/30 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm font-medium group/lib-btn"
-                    onclick="event.stopPropagation(); addToLibrary('${gameId}')" title="Click to remove from library">
-                <span class="material-symbols-outlined text-[18px] group-hover/lib-btn:hidden">check</span>
-                <span class="material-symbols-outlined text-[18px] hidden group-hover/lib-btn:inline">delete</span>
-                <span class="group-hover/lib-btn:hidden">In Library</span>
-                <span class="hidden group-hover/lib-btn:inline">Remove</span>
-            </button>`;
-    } else {
-        libraryBtnHtml = `
-            <button class="w-full py-2 rounded-lg bg-[#2e616b]/30 hover:bg-primary hover:text-white border border-[#2e616b] hover:border-primary text-primary text-sm font-medium transition-all flex items-center justify-center gap-2 group/btn"
-                    onclick="event.stopPropagation(); addToLibrary('${gameId}')">
-                <span class="material-symbols-outlined text-[18px] group-hover/btn:animate-bounce">add</span>
-                Add to Library
-            </button>`;
-    }
+    // Disable logic based on current view
+    const isFavDisabled = currentView === 'library';
+    const isLibDisabled = currentView === 'favorites';
 
     card.innerHTML = `
-        <div class="aspect-[16/9] overflow-hidden relative">
-            <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='../../Assets/Images/logo.png'">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#1e292b] to-transparent opacity-60"></div>
+        <!-- Image & Actions -->
+        <div class="relative h-72 overflow-hidden">
+            <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='../../Assets/Images/logo.png'">
             
-            <!-- Favorite Button -->
-             <button class="absolute top-2 left-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-full ${favClass} hover:text-red-500 hover:bg-black/80 transition-all translate-y-[-10px] group-hover:translate-y-0 z-20 shadow-lg" 
-                    title="${favTitle}" onclick="event.stopPropagation(); addToFavorites('${gameId}')">
-                <span class="material-symbols-outlined text-[20px] leading-none">favorite</span>
-            </button>
-
             ${ratingBadge}
-            ${platformIconsHtml}
+
+            <!-- Action Buttons (Top Right) -->
+            <div class="absolute top-4 right-4 flex flex-col gap-3 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
+                <button class="w-11 h-11 glass-neon-btn text-white ${favBtnClass} group/heart ${isFavDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
+                        title="${isFavDisabled ? 'Management disabled in library view' : favTitle}" 
+                        ${isFavDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToFavorites('${gameId}')"`}>
+                    <span class="material-symbols-outlined text-[24px] ${!isFavDisabled ? 'group-hover/heart:scale-110' : ''} transition-transform ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
+                </button>
+                <button class="w-11 h-11 glass-neon-btn text-white ${libClass} group/add ${isLibDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
+                        title="${isLibDisabled ? 'Management disabled in favorites view' : libTitle}" 
+                        ${isLibDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToLibrary('${gameId}')"`}>
+                    <span class="material-symbols-outlined text-[24px] ${!isLibDisabled ? 'group-hover/add:scale-110' : ''} transition-transform ${game.isInLibrary ? 'fill-icon' : ''}">${libIcon}</span>
+                </button>
+            </div>
+
+            ${platformIconsPanel}
         </div>
-        <div class="p-4">
-            <div class="flex justify-between items-start mb-1 gap-2">
-                <h4 class="font-bold text-white truncate flex-1" title="${title}">${title}</h4>
-                ${releaseYear}
+
+        <!-- Info Section -->
+        <div class="p-6">
+            <div class="flex items-start justify-between mb-2 gap-3">
+                <div class="overflow-hidden">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">${category}</p>
+                </div>
+                ${releaseYearBadge}
             </div>
-            <div class="mb-3 flex items-center justify-between text-xs text-slate-400">
-                <span class="truncate max-w-[180px]">${category}</span>
-            </div>
-            
-            <!-- Library Button -->
-            ${libraryBtnHtml}
         </div>
     `;
-    
+
     card.addEventListener('click', () => {
         showGameDetails(game);
     });
@@ -401,7 +407,18 @@ async function addToFavorites(gameIdOrObj) {
         
         if (response.ok) {
             const result = await response.json();
-            updateFavoriteUI(gameId, result.isFavorite);
+            const isFavorite = result.isFavorite; // Backend result property name
+            
+            // Notification toast
+            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game Dictionary";
+            const msg = document.createElement('div');
+            msg.className = `fixed bottom-4 right-4 ${isFavorite ? 'bg-red-500/90' : 'bg-slate-700/90'} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2 backdrop-blur-md`;
+            msg.innerHTML = `<span class="material-symbols-outlined">${isFavorite ? 'favorite' : 'heart_broken'}</span> <span>"${gameTitle}" ${isFavorite ? 'added to' : 'removed from'} favorites!</span>`;
+            
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 2500);
+
+            updateFavoriteUI(gameId, isFavorite);
         }
     } catch (error) {
         console.error('Error toggling favorite:', error);
@@ -409,21 +426,43 @@ async function addToFavorites(gameIdOrObj) {
 }
 
 function updateFavoriteUI(gameId, isFavorite) {
-    // Update all buttons for this game
+    // Update all buttons for this game on the page
     const buttons = document.querySelectorAll(`button[onclick*="'${gameId}'"]`);
     buttons.forEach(btn => {
-        if (btn.querySelector('span')?.textContent === 'favorite' || btn.title.includes('Favorites')) {
+        const iconSpan = btn.querySelector('.material-symbols-outlined');
+        if (iconSpan && iconSpan.textContent === 'favorite') {
              if (isFavorite) {
-                 btn.classList.add('text-red-500', 'opacity-100');
-                 btn.classList.remove('text-white/70', 'opacity-0');
+                 btn.classList.add('text-red-500', 'fill-icon');
+                 btn.classList.remove('hover:text-red-400');
+                 iconSpan.classList.add('fill-icon', 'animate-pop');
                  btn.title = 'Remove from Favorites';
+
+                 // Remove animation class after completion to allow re-trigger
+                 setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
              } else {
-                 btn.classList.remove('text-red-500', 'opacity-100');
-                 btn.classList.add('text-white/70', 'opacity-0'); 
+                 btn.classList.remove('text-red-500', 'fill-icon');
+                 btn.classList.add('hover:text-red-400');
+                 iconSpan.classList.remove('fill-icon', 'animate-pop');
                  btn.title = 'Add to Favorites';
              }
         }
     });
+
+    // Handle view-specific item removal
+    if (currentView === 'favorites' && !isFavorite) {
+        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        if (cardToRemove) {
+            cardToRemove.classList.add('opacity-0', 'scale-90');
+            setTimeout(() => {
+                cardToRemove.remove();
+                // Check if last game removed
+                const container = document.getElementById('library-games');
+                if (container && container.children.length === 0) {
+                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No favorite games found.</p></div>';
+                }
+            }, 300);
+        }
+    }
 
     // Update local data cache
      const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
@@ -448,26 +487,25 @@ async function addToLibrary(gameIdOrObj) {
             const msg = document.createElement('div');
             
             if (isInLibrary) {
-                msg.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2';
+                msg.className = 'fixed bottom-4 right-4 bg-green-500/90 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2 backdrop-blur-md';
                 msg.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>"${gameTitle}" added to library!</span>`;
             } else {
-                msg.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2';
+                msg.className = 'fixed bottom-4 right-4 bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2 backdrop-blur-md';
                 msg.innerHTML = `<span class="material-symbols-outlined">delete</span> <span>"${gameTitle}" removed from library.</span>`;
             }
             
             document.body.appendChild(msg);
             setTimeout(() => msg.remove(), 3000);
 
+            // Update Button UI
+             updateLibraryUI(gameId, isInLibrary);
+
             // Update local state
              const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
              if (cachedGame) cachedGame.isInLibrary = isInLibrary;
-             
-             // Update Button UI
-             updateLibraryUI(gameId, isInLibrary);
         }
     } catch (error) {
         console.error('Error toggling library status:', error);
-        alert('Failed to update library status.');
     }
 }
 
@@ -475,31 +513,64 @@ function updateLibraryUI(gameId, isInLibrary) {
      const buttons = document.querySelectorAll(`button[onclick*="'${gameId}'"]`);
      
      buttons.forEach(btn => {
-         // Identify library button vs favorite button
-         if (!btn.title.includes('Favorite')) {
+         const iconSpan = btn.querySelector('.material-symbols-outlined');
+         if (iconSpan && (iconSpan.textContent === 'add' || iconSpan.textContent === 'check_circle')) {
+            // Clean up any existing transition
+            iconSpan.style.transition = 'none';
+            
+            // Set start position:
+            // Adding: start at -180deg (+ looks upright), end at 0deg (Checkmark Upright)
+            // Removing: start at 0deg (Checkmark), end at 180deg (+ Upright)
             if (isInLibrary) {
-                 // Change to "In Library" state (Remove on hover)
-                 btn.className = "w-full py-2 rounded-lg bg-green-500/20 text-green-500 border border-green-500/30 hover:bg-red-500/20 hover:text-red-500 hover:border-red-500/30 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm font-medium group/lib-btn";
-                 btn.title = "Click to remove from library";
-                 btn.innerHTML = `
-                    <span class="material-symbols-outlined text-[18px] group-hover/lib-btn:hidden">check</span>
-                    <span class="material-symbols-outlined text-[18px] hidden group-hover/lib-btn:inline">delete</span>
-                    <span class="group-hover/lib-btn:hidden">In Library</span>
-                    <span class="hidden group-hover/lib-btn:inline">Remove</span>
-                 `;
-                 btn.disabled = false; 
+                iconSpan.style.transform = 'rotate(-180deg)';
             } else {
-                 // Change back to "Add to Library"
-                 btn.className = "w-full py-2 rounded-lg bg-[#2e616b]/30 hover:bg-primary hover:text-white border border-[#2e616b] hover:border-primary text-primary text-sm font-medium transition-all flex items-center justify-center gap-2 group/btn";
-                 btn.title = "";
-                 btn.innerHTML = `
-                    <span class="material-symbols-outlined text-[18px] group-hover/btn:animate-bounce">add</span>
-                    Add to Library
-                 `;
-                 btn.disabled = false;
+                iconSpan.style.transform = 'rotate(0deg)';
             }
+            
+            // Force browser to apply the start position immediately
+            iconSpan.offsetHeight; 
+
+            // Start the 180 degree smooth spin
+            iconSpan.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'; // Slight bounce for "perfection"
+            iconSpan.style.transform = isInLibrary ? 'rotate(0deg)' : 'rotate(180deg)';
+            
+            // Swap icon content exactly mid-way (90deg)
+            setTimeout(() => {
+                if (isInLibrary) {
+                     btn.classList.add('text-green-500', 'fill-icon');
+                     btn.classList.remove('hover:text-primary');
+                     iconSpan.textContent = 'check_circle';
+                     iconSpan.classList.add('fill-icon');
+                     btn.title = 'Remove from Library';
+                } else {
+                     btn.classList.remove('text-green-500', 'fill-icon');
+                     btn.classList.add('hover:text-primary');
+                     iconSpan.textContent = 'add';
+                     iconSpan.classList.remove('fill-icon');
+                     btn.title = 'Add to Library';
+                }
+            }, 300);
          }
      });
+
+    // Handle view-specific item removal
+    if (currentView === 'library' && !isInLibrary) {
+        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        if (cardToRemove) {
+            cardToRemove.classList.add('opacity-0', 'scale-90');
+            setTimeout(() => {
+                cardToRemove.remove();
+                const container = document.getElementById('library-games');
+                if (container && container.children.length === 0) {
+                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No games in library.</p></div>';
+                }
+            }, 300);
+        }
+    }
+
+    // Update local state
+     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+     if (cachedGame) cachedGame.isInLibrary = isInLibrary;
 }
 
 // Show game details

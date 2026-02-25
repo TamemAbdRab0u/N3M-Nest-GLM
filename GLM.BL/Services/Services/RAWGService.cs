@@ -196,7 +196,7 @@ namespace Game_Library_Management_BL.Services.Services
             else
             {
                 userGame.IsFavorite = !userGame.IsFavorite;
-                unitofwork.UserGames.Update(userGame);
+                await unitofwork.UserGames.Update(userGame);
             }
 
             unitofwork.Save();
@@ -227,14 +227,14 @@ namespace Game_Library_Management_BL.Services.Services
                     {
                         // Downgrade to just favorite (wishlist)
                         userGame.Gamestatus = Gamestatus.whishlist;
-                        unitofwork.UserGames.Update(userGame);
+                        await unitofwork.UserGames.Update(userGame);
                         unitofwork.Save();
                         return false; // Result: Not in library
                     }
                     else
                     {
                         // Not favorite, so just delete
-                        unitofwork.UserGames.DeleteAsync(userGame);
+                        await unitofwork.UserGames.DeleteAsync(userGame);
                         unitofwork.Save();
                         return false; // Result: Not in library
                     }
@@ -243,7 +243,7 @@ namespace Game_Library_Management_BL.Services.Services
                 {
                     // Currently wishlist (favorite only), so upgrade to library
                     userGame.Gamestatus = Gamestatus.playing;
-                    unitofwork.UserGames.Update(userGame);
+                    await unitofwork.UserGames.Update(userGame);
                     unitofwork.Save();
                     return true; // Result: In library
                 }

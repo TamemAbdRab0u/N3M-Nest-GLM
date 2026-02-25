@@ -28,10 +28,8 @@ namespace Game_Library_Management.Controllers
                 return Unauthorized();
 
             var result = await usergameService.AllUserGamesAsync(userId);
-            if (result == null || !result.Any())
-                return NotFound();
-
-            return Ok(result);
+            // Return empty list instead of NotFound() so the frontend doesn't show "Error"
+            return Ok(result ?? new List<UserGamesResponseDto>());
         }
 
         /// <summary>
