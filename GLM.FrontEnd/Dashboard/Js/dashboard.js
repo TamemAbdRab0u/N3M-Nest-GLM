@@ -456,6 +456,20 @@ function createGameCard(game) {
            <span class="text-white text-xs font-bold">${game.rating}</span>
          </div>` : '';
 
+    // Metacritic Badge (Top Right - Floating)
+    let metacriticBadge = '';
+    if (game.metacritic) {
+        const mc = game.metacritic;
+        // Dynamic colors: Green for 75+, Yellow for 50+, Red for others
+        const colors = mc >= 75 ? 'text-[#6cc331] border-[#6cc331]/80' : 
+                      (mc >= 50 ? 'text-[#fbc131] border-[#fbc131]/80' : 'text-[#ff0033] border-[#ff0033]/80');
+        
+        metacriticBadge = `
+            <div class="absolute top-4 right-4 w-9 h-9 bg-black/60 backdrop-blur-md border ${colors} rounded-lg flex items-center justify-center z-10 transition-all duration-300 group-hover:opacity-0 group-hover:scale-110 select-none shadow-2xl" title="Metacritic: ${mc}">
+                <span class="text-[13px] font-black leading-none">${mc}</span>
+            </div>`;
+    }
+
     // Release Year Badge
     let releaseYearBadge = '';
     if (game.releaseDate) {
@@ -601,6 +615,7 @@ function createGameCard(game) {
             <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='../../Assets/Images/logo.png'">
             
             ${ratingBadge}
+            ${metacriticBadge}
 
             <!-- Action Buttons (Top Right) -->
             <div class="absolute top-4 right-4 flex flex-col gap-3 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
@@ -1185,7 +1200,9 @@ function updateStatusIndicators(gameId, game) {
             btn.title = 'Remove from Wishlist';
             if (icon) {
                 icon.textContent = 'bookmark';
-                icon.classList.add('fill-icon');
+                icon.classList.add('fill-icon', 'animate-pop');
+                // Remove pop animation after it completes
+                setTimeout(() => icon.classList.remove('animate-pop'), 450);
             }
         } else {
             btn.classList.add('text-white/70');
@@ -1331,86 +1348,29 @@ function updateWishlistUI(gameId, isInWishlist) {
     if (cachedGame) {
         cachedGame.isInWishlist = isInWishlist;
         // If on wishlist, it cannot be favorite
-        if (isInWishlist) cachedGame.isFavorite = false;
+        if (isInWishlist) {
+            cachedGame.isFavorite = false;
+            cachedGame.gamestatus = 'whishlist'; // Ensure the blue badge appears
+        } else {
+            // Only clear status if it was wishlist (don't clear if it was in library)
+            if (cachedGame.gamestatus === 'whishlist' || cachedGame.gamestatus === 2) {
+                cachedGame.gamestatus = null;
+            }
+        }
         
         updateStatusIndicators(gameId, cachedGame);
     }
 
-    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
-    wishButtons.forEach(btn => {
-        const iconSpan = btn.querySelector('.material-symbols-outlined');
-        if (iconSpan) {
-            if (isInWishlist) {
-                btn.classList.add('text-blue-400');
-                btn.classList.remove('text-white/70', 'hover:text-blue-400');
-                iconSpan.textContent = 'bookmark';
-                iconSpan.classList.add('fill-icon', 'animate-pop');
-                btn.title = 'Remove from Wishlist';
-                setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
-            } else {
-                btn.classList.remove('text-blue-400');
-                btn.classList.add('text-white/70', 'hover:text-blue-400');
-                iconSpan.textContent = 'bookmark';
-                iconSpan.classList.remove('fill-icon');
-                btn.title = 'Add to Wishlist';
-            }
-        }
-    });
-
-    // Handle mutual exclusivity in UI (disable/enable corresponding fav & lib buttons)
-    const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
-    const libButtons = document.querySelectorAll(`[data-lib-btn-for="${gameId}"]`);
-
-    favButtons.forEach(btn => {
-        if (isInWishlist) {
-            btn.disabled = true;
-            btn.classList.add('opacity-40', 'cursor-not-allowed');
-            btn.title = 'Cannot favorite wishlisted games';
-            btn.classList.remove('text-red-500');
-            btn.classList.add('text-white/70');
-            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
-        } else {
-            const isFavDisabledByView = currentView === 'library' || currentView === 'wishlist';
-            btn.disabled = isFavDisabledByView;
-            if (!isFavDisabledByView) {
-                btn.classList.remove('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Add to Favorites';
-            } else {
-                btn.title = 'Management disabled in this view';
-            }
-        }
-    });
-
-    libButtons.forEach(btn => {
-        if (isInWishlist) {
-            btn.disabled = true;
-            btn.classList.add('opacity-40', 'cursor-not-allowed');
-            btn.title = 'Cannot add wishlisted games to library';
-            btn.classList.remove('text-green-500');
-            btn.classList.add('text-white/70');
-            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
-        } else {
-            const isLibDisabledByView = currentView === 'favorites' || currentView === 'wishlist';
-            btn.disabled = isLibDisabledByView;
-            if (!isLibDisabledByView) {
-                btn.classList.remove('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Add to Library';
-            } else {
-                btn.title = 'Management disabled in this view';
-            }
-        }
-    });
-
-    // Handle view-specific item removal
+    // Handle view-specific item removal (if on wishlist page)
     if (currentView === 'wishlist' && !isInWishlist) {
-        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        const cardToRemove = document.querySelector(`[data-wish-btn-for="${gameId}"]`).closest('.group');
         if (cardToRemove) {
             cardToRemove.classList.add('opacity-0', 'scale-90');
             setTimeout(() => {
                 cardToRemove.remove();
                 const container = document.getElementById('library-games');
                 if (container && container.children.length === 0) {
-                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>Your wishlist is empty.</p></div>';
+                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No games in wishlist.</p></div>';
                 }
             }, 300);
         }

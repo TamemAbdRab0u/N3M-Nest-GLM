@@ -65,6 +65,7 @@ namespace Game_Library_Management_BL.Services.Services
                 Title = g.Name,
                 ImageUrl = g.Background_Image,
                 Rating = g.Rating,
+                Metacritic = g.Metacritic,
                 ReleaseDate = g.Released,
                 Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
                 Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
@@ -141,20 +142,46 @@ namespace Game_Library_Management_BL.Services.Services
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
         {
             var key = _config["RAWG:ApiKey"];
-            var url = $"https://api.rawg.io/api/games?key={key}&search={query}&page_size=12";
+            // Request more than we need to allow for filtering and better ranking
+            var url = $"https://api.rawg.io/api/games?key={key}&search={query}&page_size=40";
 
             var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
 
-            var games = response.Results.Select(g => new RAWGCatalogDto
-            {
-                ExternalId = g.Id,
-                Title = g.Name,
-                ImageUrl = g.Background_Image,
-                Rating = g.Rating,
-                ReleaseDate = g.Released,
-                Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
-                Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
-            }).ToList();
+            if (response?.Results == null) return Enumerable.Empty<RAWGCatalogDto>();
+
+            // Filter out results that are likely irrelevant "junk":
+            // - No background image AND
+            // - Has no ratings AND
+            // - Has very few people who "added" it (popularity metric)
+            // BUT: We keep them if the title is an exact match for the query (case insensitive)
+            var filteredResults = response.Results.Where(g => 
+                !string.IsNullOrEmpty(g.Background_Image) || 
+                g.Rating > 0 || 
+                g.Added > 10 || 
+                g.Metacritic.HasValue ||
+                g.Name.Equals(query, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+            // If we filtered too much, fallback to original results (safety first)
+            var resultsToUse = filteredResults.Count > 0 ? filteredResults : response.Results;
+
+            // Sort by popularity (Added count) to bring important releases/DLCs to the top
+            // while preserving the relevancy (since they are already from a search query)
+            var games = resultsToUse
+                .OrderByDescending(g => g.Added)
+                .ThenByDescending(g => g.Rating)
+                .Take(15) // Return slightly more than 12 for better user experience
+                .Select(g => new RAWGCatalogDto
+                {
+                    ExternalId = g.Id,
+                    Title = g.Name,
+                    ImageUrl = g.Background_Image,
+                    Rating = g.Rating,
+                    Metacritic = g.Metacritic,
+                    ReleaseDate = g.Released,
+                    Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                    Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
+                }).ToList();
 
             var userId = GetCurrentUserId();
             if (!string.IsNullOrEmpty(userId))
@@ -208,6 +235,7 @@ namespace Game_Library_Management_BL.Services.Services
                             Title = g.Name,
                             ImageUrl = g.Background_Image,
                             Rating = g.Rating,
+                            Metacritic = g.Metacritic,
                             ReleaseDate = g.Released,
                             Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
                             Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
