@@ -389,6 +389,35 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="relative group hidden" id="status-filter-container">
+                            <button id="status-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
+                                <span id="current-status">Status</span> <span class="material-symbols-outlined text-sm">expand_more</span>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="status-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] overflow-hidden">
+                                <div class="p-2 space-y-1" id="status-filter-list">
+                                    <button onclick="setStatusFilter('', 'Status')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium">
+                                        All Statuses
+                                    </button>
+                                    <button onclick="setStatusFilter('6', 'Pending')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-slate-400">schedule</span> Pending
+                                    </button>
+                                    <button onclick="setStatusFilter('1', 'Playing')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-primary">play_circle</span> Playing
+                                    </button>
+                                    <button onclick="setStatusFilter('3', 'Completed')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-green-500">task_alt</span> Completed
+                                    </button>
+                                    <button onclick="setStatusFilter('4', 'Dropped')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-red-400">do_not_disturb_on</span> Dropped
+                                    </button>
+                                    <button onclick="setStatusFilter('5', 'On Hold')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-yellow-500">pause_circle</span> On Hold
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         
                         <div class="hidden md:block h-6 w-px bg-slate-700 mx-2 opacity-50"></div>
 
@@ -400,7 +429,7 @@
             </div>
 
             <!-- Games Grid -->
-            <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <!-- Game Cards will be injected here by dashboard.js -->
                  <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
                     <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>

@@ -64,6 +64,46 @@ namespace Game_Library_Management_BL.Services.Services
             });
         }
 
+        public async Task<IEnumerable<UserGamesResponseDto>> GetUserGamesByStatusAsync(string UserId, Gamestatus status)
+        {
+            if (string.IsNullOrEmpty(UserId))
+                return Enumerable.Empty<UserGamesResponseDto>();
+
+            var UserGames = await unitofwork.UserGames
+                .Query()
+                .Where(x => x.UserId == UserId && x.Gamestatus == status)
+                .Include(x => x.Game)
+                .Include(x => x.User)
+                .ToListAsync();
+
+            if (UserGames == null || !UserGames.Any())
+                return Enumerable.Empty<UserGamesResponseDto>();
+
+            var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
+            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(externalIds);
+
+            return UserGames.Select(x => {
+                var rg = rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId);
+                return new UserGamesResponseDto
+                {
+                    UserName = x.User.Username,
+                    ExternalId = x.Game.ExternalId,
+                    IsFavorite = x.IsFavorite,
+                    GameTitle = rg?.Title ?? x.Game.Title,
+                    GameDescription = x.Game.Description,
+                    GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
+                    ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
+                    Genres = rg?.Genres ?? new List<string>(),
+                    Platforms = rg?.Platforms ?? new List<string>(),
+                    Gamestatus = x.Gamestatus,
+                    Review = x.Review,
+                    Rating = rg?.Rating ?? 0,
+                    UserRating = x.Rating,
+                    CompletedAt = x.CompletedAt
+                };
+            });
+        }
+
         public async Task<UserGamesResponseDto> UserGameByIdAsync(string UserId, int GameId)
         {
             if(string.IsNullOrEmpty(UserId))
@@ -74,7 +114,7 @@ namespace Game_Library_Management_BL.Services.Services
 
             var UserGame = await unitofwork.UserGames
                 .Query()
-                .Where(x => x.UserId == UserId && x.GameId == GameId)
+                .Where(x => x.UserId == UserId && (x.GameId == GameId || x.Game.ExternalId == GameId))
                 .Include(x => x.Game)
                 .Include(x => x.User)
                 .FirstOrDefaultAsync();
@@ -164,7 +204,7 @@ namespace Game_Library_Management_BL.Services.Services
         {
             var ExistedUserGame = await unitofwork.UserGames
                 .Query()
-                .Where(x => x.UserId == UserId && x.GameId == GameId)
+                .Where(x => x.UserId == UserId && (x.GameId == GameId || x.Game.ExternalId == GameId))
                 .Include(x => x.Game)
                 .Include(x => x.User)
                 .FirstOrDefaultAsync();
@@ -225,7 +265,7 @@ namespace Game_Library_Management_BL.Services.Services
 
             var ExistedUserGame = await unitofwork.UserGames
                 .Query()
-                .Where(x => x.UserId == UserId && x.GameId == GameId)
+                .Where(x => x.UserId == UserId && (x.GameId == GameId || x.Game.ExternalId == GameId))
                 .FirstOrDefaultAsync();
 
             var IsDeleted = await unitofwork.UserGames.DeleteAsync(ExistedUserGame);

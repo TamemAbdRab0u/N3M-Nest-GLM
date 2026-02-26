@@ -40,7 +40,7 @@ namespace Game_Library_Management_BL.Services.Services
         public async Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync(int page = 1, string? genre = null, string? platforms = null, string? ordering = null, string? dates = null)
         {
             var key = _config["RAWG:ApiKey"];
-            var url = $"https://api.rawg.io/api/games?key={key}&page={page}&page_size=20";
+            var url = $"https://api.rawg.io/api/games?key={key}&page={page}&page_size=12";
             if (!string.IsNullOrEmpty(genre))
             {
                 url += $"&genres={genre.ToLower()}";
@@ -141,7 +141,7 @@ namespace Game_Library_Management_BL.Services.Services
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
         {
             var key = _config["RAWG:ApiKey"];
-            var url = $"https://api.rawg.io/api/games?key={key}&search={query}&page_size=20";
+            var url = $"https://api.rawg.io/api/games?key={key}&search={query}&page_size=12";
 
             var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
 
@@ -187,30 +187,42 @@ namespace Game_Library_Management_BL.Services.Services
                 return Enumerable.Empty<RAWGCatalogDto>();
 
             var key = _config["RAWG:ApiKey"];
-            var idsString = string.Join(",", externalIds);
-            var url = $"https://api.rawg.io/api/games?key={key}&ids={idsString}";
+            var allResults = new List<RAWGCatalogDto>();
 
-            try
+            // RAWG has a maximum page_size limit (usually 40), so we chunk requests for safety
+            const int CHUNK_SIZE = 40;
+            for (int i = 0; i < externalIds.Count; i += CHUNK_SIZE)
             {
-                var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
-                if (response == null || response.Results == null)
-                    return Enumerable.Empty<RAWGCatalogDto>();
+                var chunk = externalIds.Skip(i).Take(CHUNK_SIZE).ToList();
+                var idsString = string.Join(",", chunk);
+                var url = $"https://api.rawg.io/api/games?key={key}&ids={idsString}&page_size={CHUNK_SIZE}";
 
-                return response.Results.Select(g => new RAWGCatalogDto
+                try
                 {
-                    ExternalId = g.Id,
-                    Title = g.Name,
-                    ImageUrl = g.Background_Image,
-                    Rating = g.Rating,
-                    ReleaseDate = g.Released,
-                    Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
-                    Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
-                }).ToList();
+                    var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
+                    if (response != null && response.Results != null)
+                    {
+                        var games = response.Results.Select(g => new RAWGCatalogDto
+                        {
+                            ExternalId = g.Id,
+                            Title = g.Name,
+                            ImageUrl = g.Background_Image,
+                            Rating = g.Rating,
+                            ReleaseDate = g.Released,
+                            Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                            Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
+                        });
+                        allResults.AddRange(games);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error fetching chunk of RAWG IDs: {ex.Message}");
+                    // Continue to next chunk instead of returning empty
+                }
             }
-            catch
-            {
-                return Enumerable.Empty<RAWGCatalogDto>();
-            }
+
+            return allResults;
         }
 
         public async Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games)
@@ -305,7 +317,7 @@ namespace Game_Library_Management_BL.Services.Services
                 else
                 {
                     // Currently wishlist (favorite only), so upgrade to library
-                    userGame.Gamestatus = Gamestatus.playing;
+                    userGame.Gamestatus = Gamestatus.Pending;
                     await unitofwork.UserGames.Update(userGame);
                     unitofwork.Save();
                     return true; // Result: In library
@@ -318,7 +330,7 @@ namespace Game_Library_Management_BL.Services.Services
                 UserId = userId,
                 GameId = game.Id,
                 IsFavorite = false,
-                Gamestatus = Gamestatus.playing,
+                Gamestatus = Gamestatus.Pending,
                 Rating = 0
             };
 

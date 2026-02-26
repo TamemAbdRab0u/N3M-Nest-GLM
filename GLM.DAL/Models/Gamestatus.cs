@@ -14,6 +14,7 @@ namespace Game_Library_Management_DAL.Models
         whishlist = 2,
         completed = 3,
         Dropped = 4,
-        OnHold = 5
+        OnHold = 5,
+        Pending = 6
     }
 }
