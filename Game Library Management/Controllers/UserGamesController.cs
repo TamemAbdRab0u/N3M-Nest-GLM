@@ -2,6 +2,7 @@
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.Services.Services;
 using Game_Library_Management_BL.UnitOfWork;
+using Game_Library_Management_DAL.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,10 +29,22 @@ namespace Game_Library_Management.Controllers
                 return Unauthorized();
 
             var result = await usergameService.AllUserGamesAsync(userId);
-            if (result == null || !result.Any())
-                return NotFound();
+            return Ok(result ?? new List<UserGamesResponseDto>());
+        }
 
-            return Ok(result);
+        /// <summary>
+        /// Get user games by status.
+        /// </summary>
+        /// <param name="status">Gamestatus enum value</param>
+        [HttpGet("GetByStatus/{status}")]
+        public async Task<IActionResult> GetByStatus([FromRoute] Gamestatus status)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await usergameService.GetUserGamesByStatusAsync(userId, status);
+            return Ok(result ?? new List<UserGamesResponseDto>());
         }
 
         /// <summary>

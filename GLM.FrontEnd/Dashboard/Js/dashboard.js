@@ -1,9 +1,18 @@
 // Pagination state
 let currentPage = 1;
 let currentQuery = ''; // Store current search query
-let gamesPerPage = 20; // Updated to match backend
+let currentGenre = ''; // Store current genre filter
+let currentPlatform = ''; // Store current platform filter
+let currentOrdering = ''; // Store current sorting/ordering
+let currentRelease = ''; // Store current release year filter
+let currentStatus = ''; // Store current game status filter
+let gamesPerPage = 12; // Updated to 12 games per page
 let allGames = []; // Will store just the current page of games now
 let currentView = 'catalog'; // 'catalog', 'library', 'favorites'
+
+// Toast Notification State
+let activeToast = null;
+let toastTimeout = null;
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,6 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeNavigation();
     initializePagination();
     initializeSearch();
+    initializeCategories();
+    initializePlatforms();
+    initializeReleaseYears();
 });
 
 // Display user information
@@ -38,7 +50,48 @@ function selectView(view) {
     currentView = view;
     currentPage = 1;
     currentQuery = '';
+    currentGenre = ''; // Reset genre filter
+    currentPlatform = ''; // Reset platform filter
+    currentOrdering = ''; // Reset ordering filter
+    currentRelease = ''; // Reset release filter
+    currentStatus = ''; // Reset status filter
     
+    // Reset dropdown UI
+    const currentCatDisplay = document.getElementById('current-category');
+    const catBtn = document.getElementById('category-filter-btn');
+    if (currentCatDisplay) currentCatDisplay.textContent = 'Category';
+    if (catBtn) catBtn.classList.remove('active-filter-btn');
+
+    const currentPlatDisplay = document.getElementById('current-platform');
+    const platBtn = document.getElementById('platform-filter-btn');
+    if (currentPlatDisplay) currentPlatDisplay.textContent = 'Platforms';
+    if (platBtn) platBtn.classList.remove('active-filter-btn');
+
+    const currentRatingDisplay = document.getElementById('current-rating');
+    const ratingBtn = document.getElementById('rating-filter-btn');
+    if (currentRatingDisplay) currentRatingDisplay.textContent = 'Rating';
+    if (ratingBtn) ratingBtn.classList.remove('active-filter-btn');
+
+    const currentReleaseDisplay = document.getElementById('current-release');
+    const releaseBtn = document.getElementById('release-filter-btn');
+    if (currentReleaseDisplay) currentReleaseDisplay.textContent = 'Release';
+    if (releaseBtn) releaseBtn.classList.remove('active-filter-btn');
+
+    const currentStatusDisplay = document.getElementById('current-status');
+    const statusBtn = document.getElementById('status-filter-btn');
+    const statusFilterContainer = document.getElementById('status-filter-container');
+    if (currentStatusDisplay) currentStatusDisplay.textContent = 'Status';
+    if (statusBtn) statusBtn.classList.remove('active-filter-btn');
+
+    // Only show status filter for My Library and Favorites
+    if (statusFilterContainer) {
+        if (view === 'library' || view === 'favorites') {
+            statusFilterContainer.classList.remove('hidden');
+        } else {
+            statusFilterContainer.classList.add('hidden');
+        }
+    }
+
     // Update Nav UI
     document.querySelectorAll('.nav-item').forEach(el => {
         el.classList.remove('active', 'bg-primary/10', 'text-primary');
@@ -57,15 +110,15 @@ function selectView(view) {
         if (view === 'catalog') headerTitle.textContent = 'Catalog Games';
         else if (view === 'library') headerTitle.textContent = 'My Library';
         else if (view === 'favorites') headerTitle.textContent = 'Favorites';
-        else if (view === 'discover') headerTitle.textContent = 'Discover';
+        else if (view === 'wishlist') headerTitle.textContent = 'Wishlist';
         else if (view === 'community') headerTitle.textContent = 'Community';
     }
 
-    loadGames(1, '');
+    loadGames(1, '', '', '', '', '', '');
 }
 
 // Load games from API (handles both catalog and search)
-async function loadGames(page = 1, query = '') {
+async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '', status = '') {
     const container = document.getElementById('library-games');
     const totalGamesElement = document.getElementById('total-games');
     // Ensure element exists before setting textContent
@@ -85,16 +138,25 @@ async function loadGames(page = 1, query = '') {
     try {
         let endpoint;
         let gamesData = [];
+        let result;
 
-        if (currentView === 'catalog') {
+        if (currentView === 'catalog' && !status) {
             if (query) {
                  endpoint = `/api/RAWG/catalog/search?query=${encodeURIComponent(query)}`;
             } else {
                  endpoint = `/api/RAWG/catalog/GetAll?page=${page}`;
+                 if (genre) endpoint += `&genre=${encodeURIComponent(genre)}`;
+                 if (platform) endpoint += `&platforms=${encodeURIComponent(platform)}`;
+                 if (ordering) endpoint += `&ordering=${encodeURIComponent(ordering)}`;
+                 if (release) endpoint += `&dates=${encodeURIComponent(release)}`;
             }
         } else {
-            // Fetch all user games for Library/Favorites
-             endpoint = `/api/UserGames/GetAllUserGames`;
+            // Fetch user games for Library/Favorites/Wishlist OR when filtering catalog by status
+            if (status) {
+                endpoint = `/api/UserGames/GetByStatus/${status}`;
+            } else {
+                endpoint = `/api/UserGames/GetAllUserGames`;
+            }
         }
         
         const response = await apiRequest(endpoint, {
@@ -102,76 +164,251 @@ async function loadGames(page = 1, query = '') {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load games');
+            // Handle 404 as empty collection (optional since we fixed backend, but good for safety)
+            if (response.status === 404) {
+                result = []; 
+            } else {
+                throw new Error('Failed to load games');
+            }
+        } else {
+            result = await response.json();
         }
-        
-        let result = await response.json();
 
         // Transform UserGames DTO if needed and filter
-        if (currentView !== 'catalog') {
+        if (currentView !== 'catalog' || status) {
             // Map UserGamesResponseDto to display format
-            gamesData = result.map(ug => ({
-                externalId: ug.externalId, // Check DTO prop name
-                id: ug.externalId,
-                title: ug.gameTitle,
-                imageUrl: ug.gameImageUrl,
-                releaseDate: ug.releaseDate,
-                rating: ug.rating,
-                genres: ug.genres, 
-                platforms: ug.platforms,
-                isFavorite: ug.isFavorite,
-                isInLibrary: true,
-                gamestatus: ug.gamestatus
-            }));
+            gamesData = result.map(ug => {
+                // Determine if in library based on status
+                // Backend returns enum as string "whishlist" or int 2
+                const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
+                const inWishlist = ug.gamestatus === 'whishlist' || ug.gamestatus === 2;
+                
+                return {
+                    externalId: ug.externalId, 
+                    id: ug.externalId,
+                    title: ug.gameTitle,
+                    imageUrl: ug.gameImageUrl,
+                    releaseDate: ug.releaseDate,
+                    rating: ug.rating,
+                    genres: ug.genres, 
+                    platforms: ug.platforms,
+                    isFavorite: ug.isFavorite,
+                    isInLibrary: inLibrary,
+                    isInWishlist: inWishlist,
+                    gamestatus: ug.gamestatus
+                };
+            });
+
+            // Filter for Library view (exclude wishlist-only games)
+            if (currentView === 'library') {
+                gamesData = gamesData.filter(g => g.isInLibrary);
+            }
+
+            // Filter Wishlist
+            if (currentView === 'wishlist') {
+                gamesData = gamesData.filter(g => g.isInWishlist);
+            }
 
             // Filter Favorites
             if (currentView === 'favorites') {
                 gamesData = gamesData.filter(g => g.isFavorite);
             }
 
-            // Client-side search
+            // Client-side search and filters
             if (query) {
                 const lowerQ = query.toLowerCase();
                 gamesData = gamesData.filter(g => g.title.toLowerCase().includes(lowerQ));
             }
 
-        } else {
-            gamesData = result; // Already in RAWG format
-        }
+            // Apply filters locally for user collections
+            if (genre) {
+                // genre is a slug (e.g., 'action' or 'role-playing-games-rpg'); g.genres are names (e.g., 'RPG')
+                // Using inclusion instead of equality to handle cases like 'RPG' vs 'role-playing-games-rpg'
+                gamesData = gamesData.filter(g => 
+                    g.genres.some(name => {
+                        const lowerName = name.toLowerCase();
+                        const lowerGenre = genre.toLowerCase();
+                        return lowerName === lowerGenre || 
+                               lowerGenre.includes(lowerName) || 
+                               lowerName.includes(lowerGenre);
+                    })
+                );
+            }
 
-        allGames = gamesData; // Store current batch/list
-        
-        if (allGames && allGames.length > 0) {
-            if (totalGamesElement) {
-                if (query) {
-                    totalGamesElement.textContent = `Search Results`;
-                } else if (currentView === 'catalog') {
-                    totalGamesElement.textContent = `Page ${page}`;
-                } else {
-                    totalGamesElement.textContent = `${allGames.length} Games`;
+            if (platform) {
+                // platform is a RAWG parent platform ID (1=pc, 2=playstation, etc.)
+                // g.platforms are parent platform slugs
+                const platformMap = {
+                    '1': 'pc', '2': 'playstation', '3': 'xbox', '4': 'ios',
+                    '5': 'mac', '6': 'linux', '7': 'nintendo', '8': 'android'
+                };
+                const targetSlug = platformMap[platform];
+                if (targetSlug) {
+                    gamesData = gamesData.filter(g => 
+                        g.platforms.some(slug => slug.toLowerCase() === targetSlug)
+                    );
                 }
             }
-            displayGames(allGames);
+
+            if (release) {
+                // release is "YYYY-MM-DD,YYYY-MM-DD"
+                const [start, end] = release.split(',').map(d => new Date(d));
+                gamesData = gamesData.filter(g => {
+                    const gameDate = new Date(g.releaseDate);
+                    return gameDate >= start && gameDate <= end;
+                });
+            }
+
+            if (status) {
+                // status could be numeric ID or name string
+                const statusMap = {
+                    '1': 'playing', '2': 'whishlist', '3': 'completed',
+                    '4': 'dropped', '5': 'onhold', '6': 'pending'
+                };
+                const targetValue = String(status).toLowerCase();
+                const targetName = statusMap[targetValue] || targetValue;
+
+                gamesData = gamesData.filter(g => {
+                    const s = String(g.gamestatus).toLowerCase();
+                    // Match either numeric ID or name string
+                    return s === targetValue || s === targetName;
+                });
+            }
+
+            if (ordering) {
+                if (ordering === 'rating') {
+                    gamesData.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+                } else if (ordering === '-rating') {
+                    gamesData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                } else if (ordering === 'released') {
+                    gamesData.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+                } else if (ordering === '-released') {
+                    gamesData.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+                }
+            }
+
         } else {
-            if (container) container.innerHTML = `
-                <div class="col-span-full text-center py-20 text-slate-500">
-                    <p>No games found.</p>
-                </div>
-            `;
-            if (totalGamesElement) totalGamesElement.textContent = '0 Games';
+            gamesData = result; // Already in RAWG format
+            
+            // Annotate catalog games with user status
+            try {
+                const userGamesResp = await apiRequest('/api/UserGames/GetAllUserGames', { method: 'GET' });
+                if (userGamesResp.ok) {
+                    const userGames = await userGamesResp.json();
+                    const userGamesMap = new Map();
+                    userGames.forEach(ug => {
+                        if (ug.externalId) userGamesMap.set(String(ug.externalId), ug);
+                    });
+
+                    gamesData = gamesData.map(game => {
+                        const gameId = String(game.externalId || game.id);
+                        const ug = userGamesMap.get(gameId);
+                        if (ug) {
+                            return {
+                                ...game,
+                                isFavorite: ug.isFavorite,
+                                isInLibrary: ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2,
+                                isInWishlist: ug.gamestatus === 'whishlist' || ug.gamestatus === 2,
+                                gamestatus: ug.gamestatus
+                            };
+                        }
+                        return game;
+                    });
+                }
+            } catch (error) {
+                console.error('Error annotating catalog games:', error);
+            }
         }
-        
-        updatePaginationControls(page, query);
+
+        // --- NEW PAGINATION LOGIC FOR USER COLLECTIONS ---
+        if (currentView !== 'catalog') {
+            const totalItems = gamesData.length;
+            const totalPages = Math.ceil(totalItems / gamesPerPage);
+            
+            // Slice the relevant page
+            const startIndex = (page - 1) * gamesPerPage;
+            allGames = gamesData.slice(startIndex, startIndex + gamesPerPage);
+            
+            if (allGames && allGames.length > 0) {
+                if (totalGamesElement) {
+                    const from = startIndex + 1;
+                    const to = startIndex + allGames.length;
+                    totalGamesElement.textContent = `${totalItems} total • Showing ${from}-${to}`;
+                }
+                displayGames(allGames);
+            } else {
+                handleEmptyState(container, totalGamesElement, query);
+            }
+            
+            updatePaginationControls(page, query, genre, platform, ordering, release, status, {
+                total: totalItems,
+                count: allGames.length,
+                isCatalog: false
+            });
+        } else {
+            allGames = gamesData;
+            if (allGames && allGames.length > 0) {
+                if (totalGamesElement) {
+                    totalGamesElement.textContent = (query) ? `Search Results` : `Page ${page}`;
+                }
+                displayGames(allGames);
+            } else {
+                handleEmptyState(container, totalGamesElement, query);
+            }
+            
+            updatePaginationControls(page, query, genre, platform, ordering, release, '', {
+                count: allGames.length,
+                isCatalog: true
+            });
+        }
 
     } catch (error) {
         console.error('Error loading games:', error);
         if (container) container.innerHTML = `
-            <div class="col-span-full text-center py-20 text-red-500">
-                <p>Unable to load games. Make sure the API is running.</p>
+            <div class="col-span-full flex flex-col items-center justify-center py-24 text-red-500/80">
+                <span class="material-symbols-outlined text-7xl mb-4">cloud_off</span>
+                <p class="text-lg font-medium">Unable to connect to the server.</p>
+                <p class="text-sm mt-2 opacity-70">Please check your internet connection or try refreshing the page.</p>
+                <button onclick="window.location.reload()" class="mt-6 px-6 py-2 bg-red-500/10 border border-red-500/30 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                    Retry Connection
+                </button>
             </div>
         `;
-        if (totalGamesElement) totalGamesElement.textContent = 'Error';
+        if (totalGamesElement) totalGamesElement.textContent = 'Connection Error';
     }
+}
+
+
+function handleEmptyState(container, totalGamesElement, query) {
+    let emptyMessage = "No games found.";
+    let icon = "videogame_asset_off";
+
+    if (query) {
+        emptyMessage = `No results found for "${query}"`;
+        icon = "search_off";
+    } else if (currentView === 'library') {
+        emptyMessage = "Your library is currently empty. Start adding games from the catalog!";
+        icon = "library_add";
+    } else if (currentView === 'favorites') {
+        emptyMessage = "You haven't favorited any games yet. Explore the catalog to find your favorites!";
+        icon = "heart_plus";
+    } else if (currentView === 'wishlist') {
+        emptyMessage = "Your wishlist is empty. Discover games you want to play!";
+        icon = "bookmark_add";
+    }
+
+    if (container) container.innerHTML = `
+        <div class="col-span-full flex flex-col items-center justify-center py-24 text-slate-500 opacity-60">
+            <span class="material-symbols-outlined text-7xl mb-4">${icon}</span>
+            <p class="text-lg font-medium">${emptyMessage}</p>
+            ${currentView !== 'catalog' ? `
+                <button onclick="selectView('catalog')" class="mt-6 px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-full hover:bg-primary hover:text-white transition-all">
+                    Browse Catalog
+                </button>
+            ` : ''}
+        </div>
+    `;
+    if (totalGamesElement) totalGamesElement.textContent = 'None';
 }
 
 
@@ -206,112 +443,204 @@ function createGameCard(game) {
     let category = 'Action • RPG';
     if (game.genres && Array.isArray(game.genres) && game.genres.length > 0) {
         if (typeof game.genres[0] === 'string') {
-            category = game.genres.slice(0, 3).join(' • ');
+            category = game.genres.join(' • ');
         } else if (game.genres[0].name) {
-            category = game.genres.map(g => g.name).slice(0, 2).join(' • ');
+            category = game.genres.map(g => g.name).join(' • ');
         }
     }
 
-    // Rating
+    // Rating Badge (Top Left - Floating)
     const ratingBadge = game.rating ? 
-        `<span class="absolute top-2 right-2 px-2 py-1 bg-black/70 backdrop-blur-sm rounded text-[10px] font-bold text-white uppercase tracking-wide flex items-center gap-1">
-           <span class="text-yellow-400">★</span> ${game.rating}
-         </span>` : '';
+        `<div class="absolute top-4 left-4 glass-panel px-3 py-1.5 rounded-full flex items-center gap-1.5 z-10 transition-opacity group-hover:opacity-0">
+           <span class="material-symbols-outlined text-yellow-400 text-[18px] fill-icon">star</span>
+           <span class="text-white text-xs font-bold">${game.rating}</span>
+         </div>` : '';
 
-    // Release Year
-    let releaseYear = '';
+    // Release Year Badge
+    let releaseYearBadge = '';
     if (game.releaseDate) {
         const date = new Date(game.releaseDate);
         if (!isNaN(date.getFullYear())) {
-            releaseYear = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">${date.getFullYear()}</span>`;
+            releaseYearBadge = `<span class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider h-fit mt-1">
+                ${date.getFullYear()}
+            </span>`;
         }
     }
 
-    // Platform Icons
-    let platformIconsHtml = ''; 
+    // Platform Icons (Bottom Left)
+    let platformIconsPanel = ''; 
     if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
         const uniqueIcons = new Set();
         const icons = game.platforms.map(slug => {
-            let iconClass = '';
-            // Handle both string slugs and object slugs if any
+            let svgIcon = '';
             const s = (typeof slug === 'string' ? slug : slug.slug || slug.name || '').toLowerCase();
             
-            if (s.includes('pc') || s.includes('windows')) iconClass = 'fa-windows';
-            else if (s.includes('playstation') || s.includes('ps')) iconClass = 'fa-playstation';
-            else if (s.includes('xbox')) iconClass = 'fa-xbox';
-            else if (s.includes('nintendo') || s.includes('switch')) iconClass = 'fa-nintendo-switch'; 
-            else if (s.includes('mac') || s.includes('macos')) iconClass = 'fa-apple';
-            else if (s.includes('linux')) iconClass = 'fa-linux';
-            else if (s.includes('android')) iconClass = 'fa-android';
-            else if (s.includes('ios') || s.includes('iphone')) iconClass = 'fa-app-store-ios'; 
-            else if (s.includes('web')) iconClass = 'fa-chrome';
+    // Map common slugs to icons (using even smaller sizes for compact view)
+            if (s.includes('pc') || s.includes('windows')) svgIcon = `<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"></path></svg>`;
+            else if (s.includes('playstation') || s.includes('ps5')) svgIcon = `<i class="fab fa-playstation text-[10px]"></i>`;
+            else if (s.includes('ps4') || s.includes('ps3')) svgIcon = `<i class="fab fa-playstation text-[10px]"></i>`;
+            else if (s.includes('xbox')) svgIcon = `<i class="fab fa-xbox text-[10px]"></i>`;
+            else if (s.includes('nintendo') || s.includes('switch')) svgIcon = `<i class="bi bi-nintendo-switch text-[11px]"></i>`; 
+            else if (s.includes('mac') || s.includes('macos') || s.includes('apple')) svgIcon = `<i class="fab fa-apple text-[11px]"></i>`;
+            else if (s.includes('linux')) svgIcon = `<i class="fab fa-linux text-[11px]"></i>`;
+            else if (s.includes('android')) svgIcon = `<i class="fab fa-android text-[11px]"></i>`;
+            else if (s.includes('ios') || s.includes('iphone')) svgIcon = `<i class="bi bi-phone text-[11px]"></i>`;
             else return ''; 
 
-            if (uniqueIcons.has(iconClass)) return ''; 
-            uniqueIcons.add(iconClass);
-            return `<i class="fab ${iconClass} text-xs"></i>`;
+            if (uniqueIcons.has(svgIcon)) return ''; 
+            uniqueIcons.add(svgIcon);
+            return svgIcon;
         }).filter(icon => icon !== '').join('');
 
         if (icons) {
-            platformIconsHtml = `
-                <div class="absolute bottom-2 left-2 flex gap-2 text-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 bg-black/60 px-2 py-1 rounded-md backdrop-blur-sm pointer-events-none">
+            platformIconsPanel = `
+                <div class="absolute bottom-3 left-3 glass-panel px-2.5 py-1 rounded-full flex items-center gap-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-10 pointer-events-none">
                     ${icons}
                 </div>
             `;
         }
     }
 
-    // Interactive States
-    const favClass = game.isFavorite ? 'text-red-500 opacity-100' : 'text-white/70 opacity-0 group-hover:opacity-100';
-    const favTitle = game.isFavorite ? 'Remove from Favorites' : 'Add to Favorites';
+    // Status Indicators (Small icons grouped)
+    const getStatusIcon = (status) => {
+        // Handle both string and numeric values from backend
+        const s = String(status).toLowerCase();
+        if (s === 'playing' || s === '1') return { icon: 'play_circle', color: 'text-primary', label: 'Playing' };
+        if (s === 'whishlist' || s === '2') return { icon: 'bookmark', color: 'text-blue-400', label: 'Wishlist' };
+        if (s === 'completed' || s === '3') return { icon: 'task_alt', color: 'text-green-500', label: 'Completed' };
+        if (s === 'dropped' || s === '4') return { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' };
+        if (s === 'onhold' || s === '5') return { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' };
+        if (s === 'pending' || s === '6') return { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
+        return null;
+    };
 
-    let libraryBtnHtml = '';
-    if (game.isInLibrary) {
-        libraryBtnHtml = `
-            <button class="w-full py-2 rounded-lg bg-green-500/20 text-green-500 border border-green-500/30 hover:bg-red-500/20 hover:text-red-500 hover:border-red-500/30 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm font-medium group/lib-btn"
-                    onclick="event.stopPropagation(); addToLibrary('${gameId}')" title="Click to remove from library">
-                <span class="material-symbols-outlined text-[18px] group-hover/lib-btn:hidden">check</span>
-                <span class="material-symbols-outlined text-[18px] hidden group-hover/lib-btn:inline">delete</span>
-                <span class="group-hover/lib-btn:hidden">In Library</span>
-                <span class="hidden group-hover/lib-btn:inline">Remove</span>
-            </button>`;
-    } else {
-        libraryBtnHtml = `
-            <button class="w-full py-2 rounded-lg bg-[#2e616b]/30 hover:bg-primary hover:text-white border border-[#2e616b] hover:border-primary text-primary text-sm font-medium transition-all flex items-center justify-center gap-2 group/btn"
-                    onclick="event.stopPropagation(); addToLibrary('${gameId}')">
-                <span class="material-symbols-outlined text-[18px] group-hover/btn:animate-bounce">add</span>
-                Add to Library
-            </button>`;
-    }
-
-    card.innerHTML = `
-        <div class="aspect-[16/9] overflow-hidden relative">
-            <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='../../Assets/Images/logo.png'">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#1e292b] to-transparent opacity-60"></div>
-            
-            <!-- Favorite Button -->
-             <button class="absolute top-2 left-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-full ${favClass} hover:text-red-500 hover:bg-black/80 transition-all translate-y-[-10px] group-hover:translate-y-0 z-20 shadow-lg" 
-                    title="${favTitle}" onclick="event.stopPropagation(); addToFavorites('${gameId}')">
-                <span class="material-symbols-outlined text-[20px] leading-none">favorite</span>
-            </button>
-
-            ${ratingBadge}
-            ${platformIconsHtml}
-        </div>
-        <div class="p-4">
-            <div class="flex justify-between items-start mb-1 gap-2">
-                <h4 class="font-bold text-white truncate flex-1" title="${title}">${title}</h4>
-                ${releaseYear}
+    const statusObj = getStatusIcon(game.gamestatus);
+    
+    // Check if status is Pending (either string name or enum ID)
+    const isPending = String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6';
+    
+    const gameStatusIndicator = isPending ? `
+        <div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10 transition-all duration-500">
+            <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
+                <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
             </div>
-            <div class="mb-3 flex items-center justify-between text-xs text-slate-400">
-                <span class="truncate max-w-[180px]">${category}</span>
+        </div>` : (statusObj ? `
+        <div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10 transition-all duration-500">
+            <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default" title="${statusObj.label}">
+                <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
+                <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
             </div>
-            
-            <!-- Library Button -->
-            ${libraryBtnHtml}
+        </div>` : `<div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10"></div>`);
+
+    const inventoryIndicators = `
+        <div data-inventory-for="${gameId}" class="flex justify-end gap-2 mt-2">
+            ${game.isFavorite ? `
+                <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
+                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
+                </div>` : ''}
+            ${game.isInLibrary ? `
+                <div class="h-7 w-7 rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-green-500/10" title="In Library">
+                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon">inventory_2</span>
+                </div>` : ''}
         </div>
     `;
+
+    // Status Selector (Only if in library)
+    let statusSelectorHtml = '';
+    if (game.isInLibrary && currentView === 'library') {
+        const statuses = [
+            { id: 1, label: 'Playing', icon: 'play_circle' },
+            { id: 3, label: 'Completed', icon: 'task_alt' },
+            { id: 4, label: 'Dropped', icon: 'do_not_disturb_on' },
+            { id: 5, label: 'On Hold', icon: 'pause_circle' }
+        ];
+        
+        statusSelectorHtml = `
+            <div class="mt-4 pt-4 border-t border-[#2e616b]/20 flex items-center justify-between pointer-events-auto">
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Game Status</span>
+                <div class="flex gap-1.5">
+                    ${statuses.map(s => `
+                        <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
+                                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all 
+                                ${String(game.gamestatus).toLowerCase() === String(s.id) || String(game.gamestatus).toLowerCase() === s.label.toLowerCase().replace(' ', '') ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-slate-800/40 text-slate-500 hover:bg-slate-700/60 hover:text-slate-300'}" 
+                                title="${s.label}">
+                            <span class="material-symbols-outlined text-[16px]">${s.icon}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Favorite/Library Button State logic
+    const favTitle = game.isFavorite ? 'Remove from Favorites' : 'Add to Favorites';
+    const libTitle = game.isInLibrary ? 'Remove from Library' : 'Add to Library';
+    const wishlistTitle = game.isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist';
     
+    // Icons are now consistent regardless of state
+    const libIcon = 'inventory_2';
+    const wishlistIcon = 'bookmark';
+    
+    // Use clearer text colors and remove fill-icon from button context (move to span)
+    const favBtnClass = game.isFavorite ? 'text-red-500' : 'text-white/70 hover:text-red-400';
+    const libClass = game.isInLibrary ? 'text-green-500' : 'text-white/70 hover:text-primary';
+    const wishlistClass = game.isInWishlist ? 'text-blue-400' : 'text-white/70 hover:text-blue-400';
+
+    // Mutual exclusivity and management disabling
+    const isFavDisabled = currentView === 'library' || currentView === 'wishlist' || game.isInWishlist;
+    const isLibDisabled = currentView === 'favorites' || currentView === 'wishlist' || game.isInWishlist;
+    const isWishlistDisabled = currentView === 'favorites' || currentView === 'library' || game.isFavorite || game.isInLibrary;
+
+    const favTitleMsg = isFavDisabled ? (game.isInWishlist ? 'Cannot favorite wishlisted games' : 'Management disabled in this view') : favTitle;
+    const libTitleMsg = isLibDisabled ? (game.isInWishlist ? 'Cannot add wishlisted games to library' : 'Management disabled in this view') : libTitle;
+    const wishTitleMsg = isWishlistDisabled ? (game.isFavorite ? 'Cannot wishlist favorite games' : (game.isInLibrary ? 'Cannot wishlist games already in library' : 'Management disabled in this view')) : wishlistTitle;
+
+    card.innerHTML = `
+        <!-- Image & Actions -->
+        <div class="relative h-72 overflow-hidden">
+            <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='../../Assets/Images/logo.png'">
+            
+            ${ratingBadge}
+
+            <!-- Action Buttons (Top Right) -->
+            <div class="absolute top-4 right-4 flex flex-col gap-3 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
+                <button data-fav-btn-for="${gameId}" class="w-11 h-11 glass-neon-btn ${favBtnClass} group/heart ${isFavDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
+                        title="${favTitleMsg}" 
+                        ${isFavDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToFavorites('${gameId}')"`}>
+                    <span class="material-symbols-outlined text-[24px] ${!isFavDisabled ? 'group-hover/heart:scale-110' : ''} transition-transform ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
+                </button>
+                <button data-lib-btn-for="${gameId}" class="w-11 h-11 glass-neon-btn ${libClass} group/add ${isLibDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
+                        title="${libTitleMsg}" 
+                        ${isLibDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToLibrary('${gameId}')"`}>
+                    <span class="material-symbols-outlined text-[24px] ${!isLibDisabled ? 'group-hover/add:scale-110' : ''} transition-transform ${game.isInLibrary ? 'fill-icon' : ''}">${libIcon}</span>
+                </button>
+                <button data-wish-btn-for="${gameId}" class="w-11 h-11 glass-neon-btn ${wishlistClass} group/wish ${isWishlistDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
+                        title="${wishTitleMsg}" 
+                        ${isWishlistDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToWishlist('${gameId}')"`}>
+                    <span class="material-symbols-outlined text-[24px] ${!isWishlistDisabled ? 'group-hover/wish:scale-110' : ''} transition-transform ${game.isInWishlist ? 'fill-icon' : ''}">${wishlistIcon}</span>
+                </button>
+            </div>
+
+            ${platformIconsPanel}
+            ${gameStatusIndicator}
+        </div>
+
+        <!-- Info Section -->
+        <div class="p-6">
+            <div class="flex items-start justify-between mb-2 gap-3">
+                <div class="overflow-hidden flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">${category}</p>
+                </div>
+                <div class="flex flex-col items-end">
+                    ${releaseYearBadge}
+                    ${inventoryIndicators}
+                </div>
+            </div>
+            ${statusSelectorHtml}
+        </div>
+    `;
+
     card.addEventListener('click', () => {
         showGameDetails(game);
     });
@@ -320,28 +649,42 @@ function createGameCard(game) {
 }
 
 // Update pagination controls
-function updatePaginationControls(page, query) {
+function updatePaginationControls(page, query, genre, platform, ordering, release, status, paginationInfo) {
     const pageInfo = document.getElementById('page-info');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     
-    // Simplistic pagination for infinite scroll style API
-    pageInfo.textContent = `Page ${page}`;
+    if (prevBtn) prevBtn.disabled = page === 1;
     
-    prevBtn.disabled = page === 1;
-    
-    // Disable next if we have fewer results than page size (likely end of list)
-    // If searching, we disabled next for now as search endpoint is single page in this implementation
-    if (query) {
-        nextBtn.disabled = true; 
-        pageInfo.textContent = 'Search Results';
+    if (paginationInfo.isCatalog) {
+        // Catalog uses simple logic: if count < pageSize, we're at the end
+        if (pageInfo) pageInfo.textContent = (query) ? 'Search Results' : `Page ${page}`;
+        
+        if (nextBtn) {
+            if (query) {
+                nextBtn.disabled = true; // Search is usually 1 page or deep pagination not supported
+            } else {
+                nextBtn.disabled = paginationInfo.count < gamesPerPage;
+            }
+        }
     } else {
-        nextBtn.disabled = allGames.length < gamesPerPage;
+        // User collections have full metadata
+        const totalPages = Math.max(1, Math.ceil(paginationInfo.total / gamesPerPage));
+        if (pageInfo) pageInfo.textContent = `Page ${page} of ${totalPages}`;
+        
+        if (nextBtn) {
+            nextBtn.disabled = page >= totalPages;
+        }
     }
     
     // Store current page state
     currentPage = page;
     currentQuery = query;
+    currentGenre = genre;
+    currentPlatform = platform;
+    currentOrdering = ordering;
+    currentRelease = release;
+    currentStatus = status;
 }
 
 // Initialize pagination buttons
@@ -349,17 +692,21 @@ function initializePagination() {
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     
-    prevBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-            loadGames(currentPage - 1, currentQuery);
-            scrollToTop();
-        }
-    });
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                loadGames(currentPage - 1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
+                scrollToTop();
+            }
+        });
+    }
     
-    nextBtn.addEventListener('click', () => {
-        loadGames(currentPage + 1, currentQuery);
-        scrollToTop();
-    });
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            loadGames(currentPage + 1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
+            scrollToTop();
+        });
+    }
 }
 
 // Initialize search
@@ -375,12 +722,250 @@ function initializeSearch() {
         
         debounceTimer = setTimeout(() => {
             currentPage = 1; // Reset to page 1 on new search
-            loadGames(1, query);
+            loadGames(1, query, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
         }, 500); // 500ms debounce
     });
 }
 
+// Initialize Categories dropdown
+async function initializeCategories() {
+    const categoryList = document.getElementById('category-list');
+    const currentCatDisplay = document.getElementById('current-category');
+    const catBtn = document.getElementById('category-filter-btn');
+    if (!categoryList) return;
+
+    try {
+        const response = await apiRequest('/api/RAWG/catalog/genres', { method: 'GET' });
+        if (response.ok) {
+            const genres = await response.json();
+            
+            // Clear loading spinner
+            categoryList.innerHTML = '';
+            
+            // Add "All Categories" option
+            const allOption = document.createElement('button');
+            allOption.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
+            allOption.textContent = 'All Categories';
+            allOption.onclick = () => {
+                currentGenre = '';
+                if (currentCatDisplay) currentCatDisplay.textContent = 'Category';
+                if (catBtn) catBtn.classList.remove('active-filter-btn');
+                loadGames(1, currentQuery, '', currentPlatform, currentOrdering, currentRelease, currentStatus);
+            };
+            categoryList.appendChild(allOption);
+
+            // Add each genre
+            genres.forEach(genreStr => {
+                // Backend returns "slug:name"
+                const [slug, name] = genreStr.includes(':') ? genreStr.split(':') : [genreStr, genreStr];
+                const option = document.createElement('button');
+                option.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
+                option.textContent = name;
+                option.onclick = () => {
+                    currentGenre = slug;
+                    if (currentCatDisplay) currentCatDisplay.textContent = name;
+                    if (catBtn) catBtn.classList.add('active-filter-btn');
+                    loadGames(1, currentQuery, slug, currentPlatform, currentOrdering, currentRelease, currentStatus);
+                };
+                categoryList.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading genres:', error);
+        categoryList.innerHTML = '<div class="px-4 py-2 text-xs text-red-500">Failed to load genres</div>';
+    }
+}
+
+// Initialize Platforms dropdown
+async function initializePlatforms() {
+    const platformList = document.getElementById('platform-list');
+    const currentPlatDisplay = document.getElementById('current-platform');
+    const platBtn = document.getElementById('platform-filter-btn');
+    if (!platformList) return;
+
+    try {
+        const response = await apiRequest('/api/RAWG/catalog/platforms', { method: 'GET' });
+        if (response.ok) {
+            const platforms = await response.json();
+            
+            // Clear loading spinner
+            platformList.innerHTML = '';
+            
+            // Add "All Platforms" option
+            const allOption = document.createElement('button');
+            allOption.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
+            allOption.textContent = 'All Platforms';
+            allOption.onclick = () => {
+                currentPlatform = '';
+                if (currentPlatDisplay) currentPlatDisplay.textContent = 'Platforms';
+                if (platBtn) platBtn.classList.remove('active-filter-btn');
+                loadGames(1, currentQuery, currentGenre, '', currentOrdering, currentRelease, currentStatus);
+            };
+            platformList.appendChild(allOption);
+
+            // Add each platform
+            platforms.forEach(platStr => {
+                // Backend returns "id:name"
+                const [id, name] = platStr.split(':');
+                const option = document.createElement('button');
+                option.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
+                option.textContent = name;
+                option.onclick = () => {
+                    currentPlatform = id;
+                    if (currentPlatDisplay) currentPlatDisplay.textContent = name;
+                    if (platBtn) platBtn.classList.add('active-filter-btn');
+                    loadGames(1, currentQuery, currentGenre, id, currentOrdering, currentRelease, currentStatus);
+                };
+                platformList.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading platforms:', error);
+        platformList.innerHTML = '<div class="px-4 py-2 text-xs text-red-500">Failed to load platforms</div>';
+    }
+}
+
+function setRatingOrdering(ordering, label) {
+    currentOrdering = ordering;
+    const currentRatingDisplay = document.getElementById('current-rating');
+    const ratingBtn = document.getElementById('rating-filter-btn');
+    
+    if (currentRatingDisplay) currentRatingDisplay.textContent = label;
+    
+    if (!ordering) {
+        if (ratingBtn) ratingBtn.classList.remove('active-filter-btn');
+    } else {
+        if (ratingBtn) ratingBtn.classList.add('active-filter-btn');
+    }
+    
+    loadGames(1, currentQuery, currentGenre, currentPlatform, ordering, currentRelease, currentStatus);
+}
+
+function setStatusFilter(statusId, label) {
+    currentStatus = statusId;
+    const currentStatusDisplay = document.getElementById('current-status');
+    const statusBtn = document.getElementById('status-filter-btn');
+    
+    if (currentStatusDisplay) currentStatusDisplay.textContent = label;
+    
+    if (!statusId) {
+        if (statusBtn) statusBtn.classList.remove('active-filter-btn');
+    } else {
+        if (statusBtn) statusBtn.classList.add('active-filter-btn');
+    }
+    
+    loadGames(1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, statusId);
+}
+
+function clearAllFilters() {
+    currentGenre = '';
+    currentPlatform = '';
+    currentOrdering = '';
+    currentRelease = '';
+    currentStatus = '';
+    
+    const currentCatDisplay = document.getElementById('current-category');
+    const catBtn = document.getElementById('category-filter-btn');
+    if (currentCatDisplay) currentCatDisplay.textContent = 'Category';
+    if (catBtn) catBtn.classList.remove('active-filter-btn');
+
+    const currentPlatDisplay = document.getElementById('current-platform');
+    const platBtn = document.getElementById('platform-filter-btn');
+    if (currentPlatDisplay) currentPlatDisplay.textContent = 'Platforms';
+    if (platBtn) platBtn.classList.remove('active-filter-btn');
+
+    const currentRatingDisplay = document.getElementById('current-rating');
+    const ratingBtn = document.getElementById('rating-filter-btn');
+    if (currentRatingDisplay) currentRatingDisplay.textContent = 'Rating';
+    if (ratingBtn) ratingBtn.classList.remove('active-filter-btn');
+
+    const currentReleaseDisplay = document.getElementById('current-release');
+    const releaseBtn = document.getElementById('release-filter-btn');
+    if (currentReleaseDisplay) currentReleaseDisplay.textContent = 'Release';
+    if (releaseBtn) releaseBtn.classList.remove('active-filter-btn');
+
+    const currentStatusDisplay = document.getElementById('current-status');
+    const statusBtn = document.getElementById('status-filter-btn');
+    if (currentStatusDisplay) currentStatusDisplay.textContent = 'Status';
+    if (statusBtn) statusBtn.classList.remove('active-filter-btn');
+
+    loadGames(1, currentQuery, '', '', '', '', '');
+}
+
 // Scroll to top of content area
+async function initializeReleaseYears() {
+    const releaseList = document.getElementById('release-year-list');
+    const currentReleaseDisplay = document.getElementById('current-release');
+    const releaseBtn = document.getElementById('release-filter-btn');
+    if (!releaseList) return;
+
+    const currentYear = new Date().getFullYear();
+    let startYear = 1960; // Default
+
+    try {
+        // Fetch the oldest game to find the start year dynamically
+        const response = await apiRequest('/api/RAWG/catalog/GetAll?ordering=released&page=1', { method: 'GET' });
+        if (response.ok) {
+            const games = await response.json();
+            if (games && games.length > 0 && games[0].releaseDate) {
+                const oldestDate = new Date(games[0].releaseDate);
+                if (!isNaN(oldestDate.getFullYear())) {
+                    startYear = oldestDate.getFullYear();
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching oldest game year:', error);
+    }
+
+    // Clear existing
+    releaseList.innerHTML = '';
+
+    // All Option
+    const allOption = document.createElement('button');
+    allOption.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
+    allOption.textContent = 'All Years';
+    allOption.onclick = () => {
+        currentRelease = '';
+        if (currentReleaseDisplay) currentReleaseDisplay.textContent = 'Release';
+        if (releaseBtn) releaseBtn.classList.remove('active-filter-btn');
+        loadGames(1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
+    };
+    releaseList.appendChild(allOption);
+
+    // Individual Years (1991 to Current)
+    for (let year = currentYear; year >= 1991; year--) {
+        const option = document.createElement('button');
+        option.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
+        option.textContent = year;
+        option.onclick = () => {
+            const dateRange = `${year}-01-01,${year}-12-31`;
+            currentRelease = dateRange;
+            if (currentReleaseDisplay) currentReleaseDisplay.textContent = year;
+            if (releaseBtn) releaseBtn.classList.add('active-filter-btn');
+            loadGames(1, currentQuery, currentGenre, currentPlatform, currentOrdering, dateRange, currentStatus);
+        };
+        releaseList.appendChild(option);
+    }
+
+    // Retro Group (1960-1990)
+    if (startYear <= 1990) {
+        const option = document.createElement('button');
+        option.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
+        option.textContent = '1960-1990';
+        option.onclick = () => {
+            // Use the actual startYear from API (even if < 1960) but label it as user requested
+            const actualStart = Math.min(startYear, 1960);
+            const dateRange = `${actualStart}-01-01,1990-12-31`;
+            currentRelease = dateRange;
+            if (currentReleaseDisplay) currentReleaseDisplay.textContent = '1960-1990';
+            if (releaseBtn) releaseBtn.classList.add('active-filter-btn');
+            loadGames(1, currentQuery, currentGenre, currentPlatform, currentOrdering, dateRange, currentStatus);
+        };
+        releaseList.appendChild(option);
+    }
+}
+
 function scrollToTop() {
     const contentArea = document.querySelector('.content-area'); 
     if (contentArea) {
@@ -401,7 +986,13 @@ async function addToFavorites(gameIdOrObj) {
         
         if (response.ok) {
             const result = await response.json();
-            updateFavoriteUI(gameId, result.isFavorite);
+            const isFavorite = result.isFavorite; // Backend result property name
+            
+            // Notification toast
+            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
+            showToast(`"${gameTitle}" ${isFavorite ? 'added to' : 'removed from'} favorites!`, isFavorite ? 'favorite' : 'unfavorite');
+
+            updateFavoriteUI(gameId, isFavorite);
         }
     } catch (error) {
         console.error('Error toggling favorite:', error);
@@ -409,25 +1000,208 @@ async function addToFavorites(gameIdOrObj) {
 }
 
 function updateFavoriteUI(gameId, isFavorite) {
-    // Update all buttons for this game
-    const buttons = document.querySelectorAll(`button[onclick*="'${gameId}'"]`);
-    buttons.forEach(btn => {
-        if (btn.querySelector('span')?.textContent === 'favorite' || btn.title.includes('Favorites')) {
-             if (isFavorite) {
-                 btn.classList.add('text-red-500', 'opacity-100');
-                 btn.classList.remove('text-white/70', 'opacity-0');
+    // Update local data cache first
+    const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+    if (cachedGame) {
+        cachedGame.isFavorite = isFavorite;
+        // If favorited, it cannot be in wishlist
+        if (isFavorite) cachedGame.isInWishlist = false;
+        
+        // Use central indicator update to refresh everything consistently
+        updateStatusIndicators(gameId, cachedGame);
+    }
+
+    // Update specific favorite buttons (animation and titles)
+    const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
+    favButtons.forEach(btn => {
+        const iconSpan = btn.querySelector('.material-symbols-outlined');
+        if (iconSpan) {
+            if (isFavorite) {
+                 btn.classList.add('text-red-500');
+                 btn.classList.remove('text-white/70', 'hover:text-red-400');
+                 iconSpan.classList.add('fill-icon', 'animate-pop');
                  btn.title = 'Remove from Favorites';
-             } else {
-                 btn.classList.remove('text-red-500', 'opacity-100');
-                 btn.classList.add('text-white/70', 'opacity-0'); 
+                 setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
+            } else {
+                 btn.classList.remove('text-red-500');
+                 btn.classList.add('text-white/70', 'hover:text-red-400');
+                 iconSpan.classList.remove('fill-icon');
                  btn.title = 'Add to Favorites';
-             }
+            }
         }
     });
 
-    // Update local data cache
-     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
-     if (cachedGame) cachedGame.isFavorite = isFavorite;
+    // Mutual exclusivity UI (Wishlist button)
+    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
+    wishButtons.forEach(btn => {
+        if (isFavorite) {
+            btn.disabled = true;
+            btn.classList.add('opacity-40', 'cursor-not-allowed');
+            btn.title = 'Cannot wishlist favorite games';
+            btn.classList.remove('text-blue-400');
+            btn.classList.add('text-white/70');
+            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
+        } else {
+            const isWishDisabledByView = currentView === 'favorites' || currentView === 'library';
+            btn.disabled = isWishDisabledByView;
+            if (!isWishDisabledByView) {
+                btn.classList.remove('opacity-40', 'cursor-not-allowed');
+                btn.title = 'Add to Wishlist';
+            } else {
+                btn.title = 'Management disabled in this view';
+            }
+        }
+    });
+
+    // Handle view-specific item removal
+    if (currentView === 'favorites' && !isFavorite) {
+        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        if (cardToRemove) {
+            cardToRemove.classList.add('opacity-0', 'scale-90');
+            setTimeout(() => {
+                cardToRemove.remove();
+                // Check if last game removed
+                const container = document.getElementById('library-games');
+                if (container && container.children.length === 0) {
+                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No favorite games found.</p></div>';
+                }
+            }, 300);
+        }
+    }
+}
+
+function updateStatusIndicators(gameId, game) {
+    const statusContainers = document.querySelectorAll(`[data-status-for="${gameId}"]`);
+    const inventoryContainers = document.querySelectorAll(`[data-inventory-for="${gameId}"]`);
+    const libButtons = document.querySelectorAll(`[data-lib-btn-for="${gameId}"]`);
+    const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
+    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
+    
+    // Status Icon Logic (Helper)
+    const getStatusIcon = (status) => {
+        const s = String(status).toLowerCase();
+        if (s === 'playing' || s === '1') return { icon: 'play_circle', color: 'text-primary', label: 'Playing' };
+        if (s === 'whishlist' || s === '2') return { icon: 'bookmark', color: 'text-blue-400', label: 'Wishlist' };
+        if (s === 'completed' || s === '3') return { icon: 'task_alt', color: 'text-green-500', label: 'Completed' };
+        if (s === 'dropped' || s === '4') return { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' };
+        if (s === 'onhold' || s === '5') return { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' };
+        if (s === 'pending' || s === '6') return { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
+        return null;
+    };
+
+    const statusObj = getStatusIcon(game.gamestatus);
+    const isPending = String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6';
+
+    // Update Image Status
+    statusContainers.forEach(container => {
+        if (isPending) {
+            container.innerHTML = `
+                <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
+                    <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
+                </div>`;
+        } else {
+            container.innerHTML = statusObj ? `
+                <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default" title="${statusObj.label}">
+                    <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
+                    <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
+                </div>` : '';
+        }
+    });
+
+    // Update Inventory Indicators (Below title)
+    inventoryContainers.forEach(container => {
+        container.innerHTML = `
+            ${game.isFavorite ? `
+                <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
+                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
+                </div>` : ''}
+            ${game.isInLibrary ? `
+                <div class="h-7 w-7 rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-green-500/10" title="In Library">
+                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon">inventory_2</span>
+                </div>` : ''}
+        `;
+    });
+
+    // Update Overlay Buttons
+    favButtons.forEach(btn => {
+        btn.classList.remove('text-red-500', 'text-white/70', 'hover:text-red-400', 'opacity-40', 'cursor-not-allowed');
+        const isFavLocked = game.isInWishlist;
+        btn.disabled = isFavLocked || (currentView === 'wishlist' || currentView === 'library');
+
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (game.isFavorite) {
+            btn.classList.add('text-red-500');
+            if (icon) icon.classList.add('fill-icon');
+        } else {
+            btn.classList.add('text-white/70');
+            if (isFavLocked) {
+                btn.classList.add('opacity-40', 'cursor-not-allowed');
+                btn.title = 'Cannot favorite wishlisted games';
+            } else {
+                btn.classList.add('hover:text-red-400', 'hover:text-white');
+            }
+            if (icon) icon.classList.remove('fill-icon');
+        }
+    });
+
+    libButtons.forEach(btn => {
+        // Clean old colors
+        btn.classList.remove('text-green-500', 'text-white/70', 'hover:text-primary', 'opacity-40', 'cursor-not-allowed');
+        const isLibLocked = game.isInWishlist;
+        btn.disabled = isLibLocked || (currentView === 'favorites' || currentView === 'wishlist');
+
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (game.isInLibrary) {
+            btn.classList.add('text-green-500');
+            btn.title = 'Remove from Library';
+            if (icon) {
+                icon.textContent = 'inventory_2';
+                icon.classList.add('fill-icon');
+            }
+        } else {
+            btn.classList.add('text-white/70');
+            if (isLibLocked) {
+                btn.classList.add('opacity-40', 'cursor-not-allowed');
+                btn.title = 'Cannot add wishlisted games to library';
+            } else {
+                btn.classList.add('hover:text-primary', 'hover:text-white');
+            }
+            btn.title = 'Add to Library';
+            if (icon) {
+                icon.textContent = 'inventory_2';
+                icon.classList.remove('fill-icon');
+            }
+        }
+    });
+
+    wishButtons.forEach(btn => {
+        btn.classList.remove('text-blue-400', 'text-white/70', 'hover:text-blue-400', 'opacity-40', 'cursor-not-allowed');
+        const isWishLocked = game.isFavorite || game.isInLibrary;
+        btn.disabled = isWishLocked || (currentView === 'favorites' || currentView === 'library');
+
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (game.isInWishlist) {
+            btn.classList.add('text-blue-400');
+            btn.title = 'Remove from Wishlist';
+            if (icon) {
+                icon.textContent = 'bookmark';
+                icon.classList.add('fill-icon');
+            }
+        } else {
+            btn.classList.add('text-white/70');
+            if (isWishLocked) {
+                btn.classList.add('opacity-40', 'cursor-not-allowed');
+                btn.title = game.isFavorite ? 'Cannot wishlist favorite games' : 'Cannot wishlist games already in library';
+            } else {
+                btn.classList.add('hover:text-blue-400', 'hover:text-white');
+            }
+            btn.title = 'Add to Wishlist';
+            if (icon) {
+                icon.textContent = 'bookmark';
+                icon.classList.remove('fill-icon');
+            }
+        }
+    });
 }
 
 // Add to Library
@@ -444,30 +1218,18 @@ async function addToLibrary(gameIdOrObj) {
             const isInLibrary = result.added; // Use 'added' from backend response
             
             // Show toast message
-            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game Dictionary";
-            const msg = document.createElement('div');
-            
-            if (isInLibrary) {
-                msg.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2';
-                msg.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span>"${gameTitle}" added to library!</span>`;
-            } else {
-                msg.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce flex items-center gap-2';
-                msg.innerHTML = `<span class="material-symbols-outlined">delete</span> <span>"${gameTitle}" removed from library.</span>`;
-            }
-            
-            document.body.appendChild(msg);
-            setTimeout(() => msg.remove(), 3000);
+            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
+            showToast(`"${gameTitle}" ${isInLibrary ? 'added to' : 'removed from'} library!`, isInLibrary ? 'success' : 'error');
+
+            // Update Button UI
+             updateLibraryUI(gameId, isInLibrary);
 
             // Update local state
              const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
              if (cachedGame) cachedGame.isInLibrary = isInLibrary;
-             
-             // Update Button UI
-             updateLibraryUI(gameId, isInLibrary);
         }
     } catch (error) {
         console.error('Error toggling library status:', error);
-        alert('Failed to update library status.');
     }
 }
 
@@ -475,31 +1237,184 @@ function updateLibraryUI(gameId, isInLibrary) {
      const buttons = document.querySelectorAll(`button[onclick*="'${gameId}'"]`);
      
      buttons.forEach(btn => {
-         // Identify library button vs favorite button
-         if (!btn.title.includes('Favorite')) {
+         const iconSpan = btn.querySelector('.material-symbols-outlined');
+         if (iconSpan && (iconSpan.textContent === 'inventory_2' || iconSpan.textContent === 'library_add')) {
+            // Clean up old transformations
+            iconSpan.style.transition = 'none';
+            iconSpan.style.transform = 'rotate(0deg)';
+            
+            // Force reflow
+            iconSpan.offsetHeight; 
+
+            // Full 360-degree spin
+            iconSpan.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            iconSpan.style.transform = 'rotate(360deg)';
+            
             if (isInLibrary) {
-                 // Change to "In Library" state (Remove on hover)
-                 btn.className = "w-full py-2 rounded-lg bg-green-500/20 text-green-500 border border-green-500/30 hover:bg-red-500/20 hover:text-red-500 hover:border-red-500/30 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm font-medium group/lib-btn";
-                 btn.title = "Click to remove from library";
-                 btn.innerHTML = `
-                    <span class="material-symbols-outlined text-[18px] group-hover/lib-btn:hidden">check</span>
-                    <span class="material-symbols-outlined text-[18px] hidden group-hover/lib-btn:inline">delete</span>
-                    <span class="group-hover/lib-btn:hidden">In Library</span>
-                    <span class="hidden group-hover/lib-btn:inline">Remove</span>
-                 `;
-                 btn.disabled = false; 
+                 btn.classList.add('text-green-500');
+                 btn.classList.remove('text-white/70', 'hover:text-primary');
+                 iconSpan.textContent = 'inventory_2';
+                 iconSpan.classList.add('fill-icon');
+                 btn.title = 'Remove from Library';
             } else {
-                 // Change back to "Add to Library"
-                 btn.className = "w-full py-2 rounded-lg bg-[#2e616b]/30 hover:bg-primary hover:text-white border border-[#2e616b] hover:border-primary text-primary text-sm font-medium transition-all flex items-center justify-center gap-2 group/btn";
-                 btn.title = "";
-                 btn.innerHTML = `
-                    <span class="material-symbols-outlined text-[18px] group-hover/btn:animate-bounce">add</span>
-                    Add to Library
-                 `;
-                 btn.disabled = false;
+                 btn.classList.remove('text-green-500');
+                 btn.classList.add('text-white/70', 'hover:text-primary');
+                 iconSpan.textContent = 'inventory_2';
+                 iconSpan.classList.remove('fill-icon');
+                 btn.title = 'Add to Library';
             }
+
+            // Reset rotation after animation so it can trigger again next time
+            setTimeout(() => {
+                iconSpan.style.transition = 'none';
+                iconSpan.style.transform = 'rotate(0deg)';
+            }, 600);
          }
      });
+
+    // Handle view-specific item removal
+    if (currentView === 'library' && !isInLibrary) {
+        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        if (cardToRemove) {
+            cardToRemove.classList.add('opacity-0', 'scale-90');
+            setTimeout(() => {
+                cardToRemove.remove();
+                const container = document.getElementById('library-games');
+                if (container && container.children.length === 0) {
+                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No games in library.</p></div>';
+                }
+            }, 300);
+        }
+    }
+
+    // Update local state
+     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+     if (cachedGame) {
+         cachedGame.isInLibrary = isInLibrary;
+         if (isInLibrary) {
+             cachedGame.gamestatus = 6; // Pending
+             cachedGame.isInWishlist = false;
+         } else {
+             cachedGame.gamestatus = null;
+         }
+         updateStatusIndicators(gameId, cachedGame);
+     }
+}
+
+// Add to Wishlist
+async function addToWishlist(gameIdOrObj) {
+    const gameId = (typeof gameIdOrObj === 'object') ? (gameIdOrObj.externalId || gameIdOrObj.id) : gameIdOrObj;
+    
+    try {
+        const response = await apiRequest(`/api/RAWG/catalog/wishlist/${gameId}`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            const isInWishlist = result.added; 
+            
+            // Show toast message
+            const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
+            showToast(`"${gameTitle}" ${isInWishlist ? 'added to' : 'removed from'} wishlist!`, isInWishlist ? 'info' : 'unfavorite');
+
+            // Update Button UI
+            updateWishlistUI(gameId, isInWishlist);
+        }
+    } catch (error) {
+        console.error('Error toggling wishlist status:', error);
+    }
+}
+
+function updateWishlistUI(gameId, isInWishlist) {
+    const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+    if (cachedGame) {
+        cachedGame.isInWishlist = isInWishlist;
+        // If on wishlist, it cannot be favorite
+        if (isInWishlist) cachedGame.isFavorite = false;
+        
+        updateStatusIndicators(gameId, cachedGame);
+    }
+
+    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
+    wishButtons.forEach(btn => {
+        const iconSpan = btn.querySelector('.material-symbols-outlined');
+        if (iconSpan) {
+            if (isInWishlist) {
+                btn.classList.add('text-blue-400');
+                btn.classList.remove('text-white/70', 'hover:text-blue-400');
+                iconSpan.textContent = 'bookmark';
+                iconSpan.classList.add('fill-icon', 'animate-pop');
+                btn.title = 'Remove from Wishlist';
+                setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
+            } else {
+                btn.classList.remove('text-blue-400');
+                btn.classList.add('text-white/70', 'hover:text-blue-400');
+                iconSpan.textContent = 'bookmark';
+                iconSpan.classList.remove('fill-icon');
+                btn.title = 'Add to Wishlist';
+            }
+        }
+    });
+
+    // Handle mutual exclusivity in UI (disable/enable corresponding fav & lib buttons)
+    const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
+    const libButtons = document.querySelectorAll(`[data-lib-btn-for="${gameId}"]`);
+
+    favButtons.forEach(btn => {
+        if (isInWishlist) {
+            btn.disabled = true;
+            btn.classList.add('opacity-40', 'cursor-not-allowed');
+            btn.title = 'Cannot favorite wishlisted games';
+            btn.classList.remove('text-red-500');
+            btn.classList.add('text-white/70');
+            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
+        } else {
+            const isFavDisabledByView = currentView === 'library' || currentView === 'wishlist';
+            btn.disabled = isFavDisabledByView;
+            if (!isFavDisabledByView) {
+                btn.classList.remove('opacity-40', 'cursor-not-allowed');
+                btn.title = 'Add to Favorites';
+            } else {
+                btn.title = 'Management disabled in this view';
+            }
+        }
+    });
+
+    libButtons.forEach(btn => {
+        if (isInWishlist) {
+            btn.disabled = true;
+            btn.classList.add('opacity-40', 'cursor-not-allowed');
+            btn.title = 'Cannot add wishlisted games to library';
+            btn.classList.remove('text-green-500');
+            btn.classList.add('text-white/70');
+            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
+        } else {
+            const isLibDisabledByView = currentView === 'favorites' || currentView === 'wishlist';
+            btn.disabled = isLibDisabledByView;
+            if (!isLibDisabledByView) {
+                btn.classList.remove('opacity-40', 'cursor-not-allowed');
+                btn.title = 'Add to Library';
+            } else {
+                btn.title = 'Management disabled in this view';
+            }
+        }
+    });
+
+    // Handle view-specific item removal
+    if (currentView === 'wishlist' && !isInWishlist) {
+        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        if (cardToRemove) {
+            cardToRemove.classList.add('opacity-0', 'scale-90');
+            setTimeout(() => {
+                cardToRemove.remove();
+                const container = document.getElementById('library-games');
+                if (container && container.children.length === 0) {
+                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>Your wishlist is empty.</p></div>';
+                }
+            }, 300);
+        }
+    }
 }
 
 // Show game details
@@ -507,8 +1422,118 @@ function showGameDetails(game) {
     // Placeholder
 }
 
+// Update game status in database
+async function changeGameStatus(gameId, statusId) {
+    try {
+        const response = await apiRequest(`/api/UserGames/UpdateUserGame`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                gameId: parseInt(gameId),
+                gamestatus: statusId
+            })
+        });
+
+        if (response.ok) {
+            const updated = await response.json();
+            
+            // Toast
+            const statusLabels = { 1: 'Playing', 3: 'Completed', 4: 'Dropped', 5: 'On Hold', 6: 'Pending' };
+            showToast(`Status updated to "${statusLabels[statusId]}"!`, 'success');
+
+            // Update local state
+            const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+            if (cachedGame) {
+                cachedGame.gamestatus = statusId;
+                updateStatusIndicators(gameId, cachedGame);
+                
+                // Re-render the selector on this specific card
+                updateStatusSelectorUI(gameId, statusId);
+            }
+        } else {
+            showToast('Failed to update status', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating game status:', error);
+    }
+}
+
+function updateStatusSelectorUI(gameId, statusId) {
+    // Find all selector buttons for this game
+    const indicators = document.querySelector(`[data-status-for="${gameId}"]`);
+    if (!indicators) return;
+
+    const card = indicators.closest('.group');
+    if (!card) return;
+    
+    const buttons = card.querySelectorAll('button[onclick*="changeGameStatus"]');
+    buttons.forEach(btn => {
+        // Extract status from onclick
+        const match = btn.getAttribute('onclick').match(/changeGameStatus\(.*?,[\s]*(\d+)\)/);
+        if (match) {
+            const btnStatusId = parseInt(match[1]);
+            const isActive = btnStatusId === statusId;
+            
+            if (isActive) {
+                btn.className = 'w-7 h-7 rounded-lg flex items-center justify-center transition-all bg-primary/20 text-primary border border-primary/40';
+            } else {
+                btn.className = 'w-7 h-7 rounded-lg flex items-center justify-center transition-all bg-slate-800/40 text-slate-500 hover:bg-slate-700/60 hover:text-slate-300';
+            }
+        }
+    });
+}
+
 // Initialize navigation
 function initializeNavigation() {
     // Already handled by onclick in HTML primarily, but for sidebar active states:
     // ...
+}
+
+/**
+ * Shows a slide-in notification toast
+ * @param {string} message - Text to display
+ * @param {string} type - 'success', 'error', or 'favorite'
+ */
+function showToast(message, type = 'success') {
+    if (activeToast) {
+        clearTimeout(toastTimeout);
+        const oldToast = activeToast;
+        oldToast.classList.remove('toast-slide-in');
+        oldToast.classList.add('toast-slide-out');
+        setTimeout(() => oldToast.remove(), 400);
+    }
+
+    const toast = document.createElement('div');
+    let bgColor = 'bg-primary/90';
+    let icon = 'info';
+    
+    if (type === 'success') {
+        bgColor = 'bg-green-500/95';
+        icon = 'check_circle';
+    } else if (type === 'error') {
+        bgColor = 'bg-red-500/95';
+        icon = 'delete';
+    } else if (type === 'favorite') {
+        bgColor = 'bg-pink-500/95';
+        icon = 'favorite';
+    } else if (type === 'unfavorite') {
+        bgColor = 'bg-slate-700/95';
+        icon = 'heart_broken';
+    }
+
+    toast.className = 'fixed bottom-8 right-8 ' + bgColor + ' text-white px-6 py-4 rounded-xl shadow-2xl z-[100] toast-slide-in flex items-center gap-3 backdrop-blur-md border border-white/10';
+    toast.innerHTML = '<span class=\"material-symbols-outlined\">' + icon + '</span> <span class=\"font-medium\">' + message + '</span>';
+
+    document.body.appendChild(toast);
+    activeToast = toast;
+
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('toast-slide-in');
+        toast.classList.add('toast-slide-out');
+        setTimeout(() => {
+            if (activeToast === toast) {
+                toast.remove();
+                activeToast = null;
+            }
+        }, 400);
+    }, 3000);
 }

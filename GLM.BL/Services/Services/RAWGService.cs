@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Game_Library_Management_BL.Services.Services
 {
@@ -36,10 +37,26 @@ namespace Game_Library_Management_BL.Services.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirstValue("uid");
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync(int page = 1)
+        public async Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync(int page = 1, string? genre = null, string? platforms = null, string? ordering = null, string? dates = null)
         {
             var key = _config["RAWG:ApiKey"];
-            var url = $"https://api.rawg.io/api/games?key={key}&page={page}&page_size=20";
+            var url = $"https://api.rawg.io/api/games?key={key}&page={page}&page_size=12";
+            if (!string.IsNullOrEmpty(genre))
+            {
+                url += $"&genres={genre.ToLower()}";
+            }
+            if (!string.IsNullOrEmpty(platforms))
+            {
+                url += $"&parent_platforms={platforms}";
+            }
+            if (!string.IsNullOrEmpty(ordering))
+            {
+                url += $"&ordering={ordering}";
+            }
+            if (!string.IsNullOrEmpty(dates))
+            {
+                url += $"&dates={dates}";
+            }
 
             var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
             var games = response.Results.Select(g => new RAWGCatalogDto
@@ -68,6 +85,7 @@ namespace Game_Library_Management_BL.Services.Services
                     if (userGame != null)
                     {
                         game.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+                        game.IsInWishlist = userGame.Gamestatus == Gamestatus.whishlist;
                         game.IsFavorite = userGame.IsFavorite;
                     }
                 }
@@ -76,10 +94,54 @@ namespace Game_Library_Management_BL.Services.Services
             return games;
         }
 
+        public async Task<IEnumerable<string>> GetAllGenresAsync()
+        {
+            var key = _config["RAWG:ApiKey"];
+            var url = $"https://api.rawg.io/api/genres?key={key}";
+            
+            try 
+            {
+                var response = await _http.GetFromJsonAsync<JsonElement>(url);
+                if (response.TryGetProperty("results", out var results))
+                {
+                    return results.EnumerateArray()
+                        .Select(g => $"{g.GetProperty("slug").GetString()}:{g.GetProperty("name").GetString()}")
+                        .ToList();
+                }
+                return Enumerable.Empty<string>();
+            }
+            catch
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        public async Task<IEnumerable<string>> GetAllPlatformsAsync()
+        {
+            var key = _config["RAWG:ApiKey"];
+            var url = $"https://api.rawg.io/api/platforms/lists/parents?key={key}";
+            
+            try 
+            {
+                var response = await _http.GetFromJsonAsync<JsonElement>(url);
+                if (response.TryGetProperty("results", out var results))
+                {
+                    return results.EnumerateArray()
+                        .Select(p => $"{p.GetProperty("id").GetInt32()}:{p.GetProperty("name").GetString()}")
+                        .ToList();
+                }
+                return Enumerable.Empty<string>();
+            }
+            catch
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
         {
             var key = _config["RAWG:ApiKey"];
-            var url = $"https://api.rawg.io/api/games?key={key}&search={query}&page_size=20";
+            var url = $"https://api.rawg.io/api/games?key={key}&search={query}&page_size=12";
 
             var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
 
@@ -110,12 +172,57 @@ namespace Game_Library_Management_BL.Services.Services
                     {
                         // Check if in library based on status
                         game.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+                        game.IsInWishlist = userGame.Gamestatus == Gamestatus.whishlist;
                         game.IsFavorite = userGame.IsFavorite;
                     }
                 }
             }
 
             return games;
+        }
+
+        public async Task<IEnumerable<RAWGCatalogDto>> GetGamesByExternalIdsAsync(List<int> externalIds)
+        {
+            if (externalIds == null || externalIds.Count == 0)
+                return Enumerable.Empty<RAWGCatalogDto>();
+
+            var key = _config["RAWG:ApiKey"];
+            var allResults = new List<RAWGCatalogDto>();
+
+            // RAWG has a maximum page_size limit (usually 40), so we chunk requests for safety
+            const int CHUNK_SIZE = 40;
+            for (int i = 0; i < externalIds.Count; i += CHUNK_SIZE)
+            {
+                var chunk = externalIds.Skip(i).Take(CHUNK_SIZE).ToList();
+                var idsString = string.Join(",", chunk);
+                var url = $"https://api.rawg.io/api/games?key={key}&ids={idsString}&page_size={CHUNK_SIZE}";
+
+                try
+                {
+                    var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
+                    if (response != null && response.Results != null)
+                    {
+                        var games = response.Results.Select(g => new RAWGCatalogDto
+                        {
+                            ExternalId = g.Id,
+                            Title = g.Name,
+                            ImageUrl = g.Background_Image,
+                            Rating = g.Rating,
+                            ReleaseDate = g.Released,
+                            Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                            Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
+                        });
+                        allResults.AddRange(games);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error fetching chunk of RAWG IDs: {ex.Message}");
+                    // Continue to next chunk instead of returning empty
+                }
+            }
+
+            return allResults;
         }
 
         public async Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games)
@@ -164,7 +271,7 @@ namespace Game_Library_Management_BL.Services.Services
             else
             {
                 userGame.IsFavorite = !userGame.IsFavorite;
-                unitofwork.UserGames.Update(userGame);
+                await unitofwork.UserGames.Update(userGame);
             }
 
             unitofwork.Save();
@@ -195,14 +302,14 @@ namespace Game_Library_Management_BL.Services.Services
                     {
                         // Downgrade to just favorite (wishlist)
                         userGame.Gamestatus = Gamestatus.whishlist;
-                        unitofwork.UserGames.Update(userGame);
+                        await unitofwork.UserGames.Update(userGame);
                         unitofwork.Save();
                         return false; // Result: Not in library
                     }
                     else
                     {
                         // Not favorite, so just delete
-                        unitofwork.UserGames.DeleteAsync(userGame);
+                        await unitofwork.UserGames.DeleteAsync(userGame);
                         unitofwork.Save();
                         return false; // Result: Not in library
                     }
@@ -210,8 +317,8 @@ namespace Game_Library_Management_BL.Services.Services
                 else
                 {
                     // Currently wishlist (favorite only), so upgrade to library
-                    userGame.Gamestatus = Gamestatus.playing;
-                    unitofwork.UserGames.Update(userGame);
+                    userGame.Gamestatus = Gamestatus.Pending;
+                    await unitofwork.UserGames.Update(userGame);
                     unitofwork.Save();
                     return true; // Result: In library
                 }
@@ -223,7 +330,66 @@ namespace Game_Library_Management_BL.Services.Services
                 UserId = userId,
                 GameId = game.Id,
                 IsFavorite = false,
-                Gamestatus = Gamestatus.playing,
+                Gamestatus = Gamestatus.Pending,
+                Rating = 0
+            };
+
+            await unitofwork.UserGames.Add(userGame);
+            unitofwork.Save();
+            return true;
+        }
+
+        public async Task<bool> ToggleWishlistAsync(string userId, int externalId)
+        {
+            var game = await EnsureGameExistsAsync(externalId);
+            if (game == null) return false;
+
+            var userGame = await unitofwork.UserGames.Query()
+                .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GameId == game.Id);
+
+            if (userGame != null)
+            {
+                // If it's already wishlist, remove (if not favorite)
+                // If it's something else (playing, etc.), we don't necessarily want to toggle status?
+                // The user's request is "add the game to wishlist". 
+                // Let's implement it as toggle wishlist status.
+                
+                if (userGame.Gamestatus == Gamestatus.whishlist)
+                {
+                    // If also not favorite, delete entirely.
+                    if (!userGame.IsFavorite)
+                    {
+                        await unitofwork.UserGames.DeleteAsync(userGame);
+                        unitofwork.Save();
+                        return false; // No longer in any status
+                    }
+                    else
+                    {
+                        // Stay as wishlist but we can't really "remove" it without deleting usergame 
+                        // if we want to toggle. Let's just say if they click again, they intended something.
+                        // For now, let's keep it simple: if it's wishlist, it clears the entry if not favorite.
+                        await unitofwork.UserGames.DeleteAsync(userGame);
+                        unitofwork.Save();
+                        return false;
+                    }
+                }
+                else
+                {
+                    // Downgrade playing/completed to wishlist
+                    userGame.Gamestatus = Gamestatus.whishlist;
+                    await unitofwork.UserGames.Update(userGame);
+                    unitofwork.Save();
+                    return true;
+                }
+            }
+
+            // New entry -> Add to wishlist
+            userGame = new UserGame
+            {
+                UserId = userId,
+                GameId = game.Id,
+                IsFavorite = false,
+                Gamestatus = Gamestatus.whishlist,
                 Rating = 0
             };
 

@@ -6,6 +6,8 @@
     <title>Dashboard - N3M|Nest</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Use FontAwesome for compatibility with existing JS icons if needed, though we prefer Material Symbols -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -32,6 +34,127 @@
         }
     </script>
     <style>
+        @font-face {
+            font-family: 'Xirod';
+            src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+        }
+
+        .animate-pop {
+            animation: pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+        
+        /* High-End Neon Brand Text (CSS-Tricks Inspired) */
+        .neon-text-cyan {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 4px #fff,
+                0 0 11px #fff,
+                0 0 19px #fff,
+                0 0 40px #4a7dff,
+                0 0 80px #4a7dff,
+                0 0 90px #4a7dff,
+                0 0 100px #4a7dff,
+                0 0 150px #4a7dff;
+            font-weight: 900;
+        }
+        .neon-divider {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 7px #fff,
+                0 0 10px #fff,
+                0 0 21px #fff,
+                0 0 42px #4a7dff,
+                0 0 82px #4a7dff;
+            opacity: 1;
+            animation: flicker 1.5s infinite alternate;
+        }
+        .neon-text-white {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 4px #fff,
+                0 0 11px #fff,
+                0 0 19px #fff,
+                0 0 40px #00d2ff,
+                0 0 80px #00d2ff;
+            font-weight: 200;
+            letter-spacing: 0.1em;
+        }
+        .neon-username {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #4a7dff,
+                0 0 40px #4a7dff;
+            font-weight: 800;
+        }
+        .xirod-font {
+            font-family: 'Xirod', sans-serif;
+        }
+
+        /* Subtle Flicker Effect */
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow:
+                    0 0 4px #fff,
+                    0 0 11px #fff,
+                    0 0 19px #fff,
+                    0 0 40px #4a7dff,
+                    0 0 80px #4a7dff;
+            }
+            20%, 24%, 55% {        
+                text-shadow: none;
+                opacity: 0.5;
+            }
+        }
+
+        /* Toast Animations */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(110%); opacity: 0; }
+        }
+        .toast-slide-in {
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .toast-slide-out {
+            animation: slideOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Status Badge Glows */
+        .status-badge-fav {
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .status-badge-lib {
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .status-badge-wish {
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
+            background: rgba(96, 165, 250, 0.1);
+        }
+        
+        @keyframes badgeEntrance {
+            from { transform: scale(0) rotate(-45deg); opacity: 0; }
+            to { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        .animate-badge {
+            animation: badgeEntrance 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -47,6 +170,56 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #475569; 
         }
+
+        /* Glassmorphism Classes for Game Cards */
+        .glass-neon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+            background: rgba(15, 32, 35, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px -3px rgba(74, 125, 255, 0.3);
+        }
+        .glass-neon-btn:hover {
+            background: rgba(15, 32, 35, 0.6);
+            box-shadow: 0 0 20px 2px rgba(74, 125, 255, 0.5);
+            transform: translateY(-2px);
+            border-color: rgba(74, 125, 255, 0.5);
+        }
+        .glass-panel {
+            background: rgba(15, 32, 35, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Active Filter Effect */
+        .active-filter-btn {
+            background: rgba(74, 125, 255, 0.25) !important;
+            border-color: rgba(74, 125, 255, 0.5) !important;
+            color: #fff !important;
+            box-shadow: 0 0 20px rgba(74, 125, 255, 0.2) !important;
+        }
+
+        /* Heart Pop Animation */
+        @keyframes heart-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1.1); }
+        }
+        .animate-pop {
+            animation: heart-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex overflow-hidden">
@@ -58,7 +231,9 @@
             <div class="h-8 w-8 relative">
                 <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain">
             </div>
-            <span class="hidden lg:block ml-3 font-bold text-lg tracking-wide">N3M<span class="text-primary text-xl mx-0.5">|</span>Nest</span>
+            <span class="hidden lg:block ml-3 font-bold text-lg tracking-wide">
+                <span class="neon-text-cyan">N3M</span><span class="neon-divider text-xl mx-0.5">|</span><span class="neon-text-white">Nest</span>
+            </span>
         </div>
 
         <!-- Nav -->
@@ -75,9 +250,9 @@
                 <span class="material-symbols-outlined">favorite</span>
                 <span class="hidden lg:block font-medium">Favorites</span>
             </a>
-            <a href="javascript:void(0)" onclick="selectView('discover')" id="nav-discover" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
-                <span class="material-symbols-outlined">explore</span>
-                <span class="hidden lg:block font-medium">Discover</span>
+            <a href="javascript:void(0)" onclick="selectView('wishlist')" id="nav-wishlist" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">bookmark</span>
+                <span class="hidden lg:block font-medium">Wishlist</span>
             </a>
             <a href="javascript:void(0)" onclick="selectView('community')" id="nav-community" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
                 <span class="material-symbols-outlined">group</span>
@@ -97,7 +272,7 @@
                     <span id="display-avatar">U</span>
                 </div>
                 <div class="hidden lg:block overflow-hidden">
-                    <p id="display-username" class="text-sm font-semibold text-white truncate">User</p>
+                    <p id="display-username" class="text-xs xirod-font text-white truncate">User</p>
                     <p class="text-xs text-slate-400 truncate">Online</p>
                 </div>
                 <button onclick="logout()" class="ml-auto text-slate-400 hover:text-error transition-colors lg:block hidden" title="Logout">
@@ -122,16 +297,10 @@
         <!-- Top Bar -->
         <header class="h-16 flex items-center justify-between px-6 border-b border-[#1e293b] bg-[#0a1618]/80 backdrop-blur-md sticky top-0 z-20">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                Welcome back, <span id="welcome-username" class="text-primary">Gamer</span>
+                Welcome back, <span id="welcome-username" class="neon-username">Gamer</span>
             </h2>
             
-            <div class="flex items-center gap-4 search-bar">
-                <div class="relative hidden sm:block">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                        <span class="material-symbols-outlined text-[20px]">search</span>
-                    </span>
-                    <input type="text" placeholder="Search library..." class="h-10 w-64 rounded-full bg-[#1e292b] border-none pl-10 pr-4 text-sm text-white focus:ring-1 focus:ring-primary placeholder-slate-500">
-                </div>
+            <div class="flex items-center gap-4">
                 <button class="p-2 text-slate-400 hover:text-white transition-colors relative">
                     <span class="material-symbols-outlined">notifications</span>
                     <span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border border-[#0a1618]"></span>
@@ -142,67 +311,125 @@
         <!-- Scrollable Content -->
         <div class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
             
-            <!-- Stats Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <!-- Total Games -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">videogame_asset</span>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Catalog Games</p>
-                        <p id="total-games" class="text-xl font-bold text-white">0 Games</p>
-                    </div>
-                </div>
-                
-                <!-- Hours Played -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">schedule</span>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Hours Played</p>
-                        <p class="text-xl font-bold text-white">124.5h</p> <!-- Static for now per previous content -->
-                    </div>
+            <!-- Header & Search Section -->
+            <div class="mb-14 w-full max-w-5xl mx-auto text-center">
+                <h3 class="header-title text-5xl font-black text-white mb-2 tracking-tight neon-text-white">Catalog Games</h3>
+                <p id="total-games" class="text-slate-500 font-medium mb-10 text-lg">0 Games</p>
+
+                <!-- Top Search Bar -->
+                <div class="relative w-full max-w-4xl mx-auto mb-10 search-bar">
+                    <span class="absolute inset-y-0 left-0 pl-8 flex items-center pointer-events-none text-slate-400">
+                        <span class="material-symbols-outlined text-[32px]">search</span>
+                    </span>
+                    <input type="text" placeholder="Search for games, platforms, and categories..." 
+                           class="h-16 w-full rounded-full bg-[#1e292b]/60 backdrop-blur-xl border border-[#2e616b]/40 text-white pl-20 pr-10 text-lg focus:outline-none placeholder-slate-500 shadow-2xl shadow-black/80 font-medium border-none ring-0 focus:ring-0">
                 </div>
 
-                <!-- Achievements -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">emoji_events</span>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Achievements</p>
-                        <p class="text-xl font-bold text-white">342</p> <!-- Static -->
-                    </div>
-                </div>
+                <!-- Filters Row -->
+                <div class="flex flex-wrap items-center justify-center gap-6 px-4">
+                    <!-- Main Filters -->
+                    <div class="flex flex-wrap items-center justify-center gap-3">
+                        <div class="relative group" id="category-filter-container">
+                            <button id="category-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
+                                <span id="current-category">Category</span> <span class="material-symbols-outlined text-sm">expand_more</span>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="category-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] max-h-80 overflow-y-auto custom-scrollbar">
+                                <div class="p-2 space-y-1" id="category-list">
+                                    <!-- Dynamic categories -->
+                                    <div class="flex items-center justify-center py-4 text-slate-500">
+                                        <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Completed -->
-                <div class="bg-[#1e292b]/60 backdrop-blur-sm border border-[#2e616b]/30 p-5 rounded-2xl flex items-center gap-4 hover:bg-[#1e292b]/80 transition-colors">
-                    <div class="h-12 w-12 rounded-xl bg-green-500/20 text-green-400 flex items-center justify-center">
-                        <span class="material-symbols-outlined">check_circle</span>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Completed</p>
-                        <p class="text-xl font-bold text-white">12</p> <!-- Static -->
-                    </div>
-                </div>
-            </div>
+                        <div class="relative group" id="platform-filter-container">
+                            <button id="platform-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
+                                <span id="current-platform">Platforms</span> <span class="material-symbols-outlined text-sm">expand_more</span>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="platform-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] max-h-80 overflow-y-auto custom-scrollbar">
+                                <div class="p-2 space-y-1" id="platform-list">
+                                    <div class="flex items-center justify-center py-4 text-slate-500">
+                                        <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            <!-- Library Section -->
-            <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h3 class="text-2xl font-bold text-white">Games Library</h3>
-                
-                <!-- Filters -->
-                <div class="flex gap-2 text-sm bg-[#1e292b]/80 p-1 rounded-lg self-start sm:self-auto">
-                    <button class="px-4 py-1.5 rounded-md bg-primary text-white font-medium shadow-sm transition-all">All</button>
-                    <button class="px-4 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-[#2d3b3e] transition-all">Favorites</button>
-                    <button class="px-4 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-[#2d3b3e] transition-all">Installed</button>
+                        <div class="relative group" id="rating-filter-container">
+                            <button id="rating-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
+                                <span id="current-rating">Rating</span> <span class="material-symbols-outlined text-sm">expand_more</span>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="rating-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] overflow-hidden">
+                                <div class="p-2 space-y-1">
+                                    <button onclick="setRatingOrdering('', 'Rating')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium">
+                                        All Ratings
+                                    </button>
+                                    <button onclick="setRatingOrdering('-rating', 'Highest to Lowest')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center justify-between">
+                                        Highest to Lowest <span class="material-symbols-outlined text-xs">arrow_downward</span>
+                                    </button>
+                                    <button onclick="setRatingOrdering('rating', 'Lowest to Highest')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center justify-between">
+                                        Lowest to Highest <span class="material-symbols-outlined text-xs">arrow_upward</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative group" id="release-filter-container">
+                            <button id="release-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
+                                <span id="current-release">Release</span> <span class="material-symbols-outlined text-sm">expand_more</span>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="release-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] max-h-80 overflow-y-auto custom-scrollbar">
+                                <div class="p-2 space-y-1" id="release-year-list">
+                                    <!-- Dynamic years -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative group hidden" id="status-filter-container">
+                            <button id="status-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
+                                <span id="current-status">Status</span> <span class="material-symbols-outlined text-sm">expand_more</span>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="status-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] overflow-hidden">
+                                <div class="p-2 space-y-1" id="status-filter-list">
+                                    <button onclick="setStatusFilter('', 'Status')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium">
+                                        All Statuses
+                                    </button>
+                                    <button onclick="setStatusFilter('6', 'Pending')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-slate-400">schedule</span> Pending
+                                    </button>
+                                    <button onclick="setStatusFilter('1', 'Playing')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-primary">play_circle</span> Playing
+                                    </button>
+                                    <button onclick="setStatusFilter('3', 'Completed')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-green-500">task_alt</span> Completed
+                                    </button>
+                                    <button onclick="setStatusFilter('4', 'Dropped')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-red-400">do_not_disturb_on</span> Dropped
+                                    </button>
+                                    <button onclick="setStatusFilter('5', 'On Hold')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-yellow-500">pause_circle</span> On Hold
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden md:block h-6 w-px bg-slate-700 mx-2 opacity-50"></div>
+
+                        <button onclick="clearAllFilters()" class="px-6 py-2.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 flex items-center gap-2 hover:bg-red-500/20 transition-all shadow-lg text-sm font-bold">
+                            <span class="material-symbols-outlined text-lg">filter_alt_off</span> Clear All
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Games Grid -->
-            <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <!-- Game Cards will be injected here by dashboard.js -->
                  <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
                     <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
