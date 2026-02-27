@@ -39,6 +39,21 @@
             src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
         }
 
+        .xirod-font {
+            font-family: 'Xirod', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .neon-xirod {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 
+                0 0 5px rgba(74, 125, 255, 0.8),
+                0 0 10px rgba(74, 125, 255, 0.5),
+                0 0 15px rgba(74, 125, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
         .animate-pop {
             animation: pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -231,8 +246,8 @@
             <div class="h-8 w-8 relative">
                 <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain">
             </div>
-            <span class="hidden lg:block ml-3 font-bold text-lg tracking-wide">
-                <span class="neon-text-cyan">N3M</span><span class="neon-divider text-xl mx-0.5">|</span><span class="neon-text-white">Nest</span>
+            <span class="hidden lg:block ml-3 neon-xirod font-bold text-lg tracking-wide">
+                N3M<span class="mx-0.5">|</span>Nest
             </span>
         </div>
 

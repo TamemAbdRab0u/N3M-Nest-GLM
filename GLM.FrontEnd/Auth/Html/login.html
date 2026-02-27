@@ -31,6 +31,28 @@
         }
     </script>
     <style>
+        @font-face {
+            font-family: 'Xirod';
+            src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        .xirod-font {
+            font-family: 'Xirod', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .neon-xirod {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 
+                0 0 5px rgba(74, 125, 255, 0.8),
+                0 0 10px rgba(74, 125, 255, 0.5),
+                0 0 15px rgba(74, 125, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
         .btn-loader {
             display: none;
             width: 20px;
@@ -58,12 +80,122 @@
 
         /* Slide Transition Classes */
         .auth-container {
-            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            transition: transform 0.8s cubic-bezier(0.7, 0, 0.2, 1);
+            will-change: transform, filter;
         }
+        
+        .animating .auth-container {
+            filter: blur(2px) brightness(1.4);
+            transition: transform 0.8s cubic-bezier(0.7, 0, 0.2, 1), filter 0.8s ease;
+        }
+
+        /* Neon Flash Effect */
+        .neon-flash {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(74, 125, 255, 0.4) 0%, transparent 70%);
+            opacity: 0;
+            z-index: 10;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .animating .neon-flash {
+            opacity: 1;
+            animation: neon-pulse 0.8s ease-out forwards;
+        }
+
+        @keyframes neon-pulse {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+
+        /* Neon Streak Effect */
+        .neon-streak {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #4a7dff; /* Hardcoded to match primary */
+            box-shadow: 0 0 40px 10px #4a7dff, 0 0 100px 20px rgba(74, 125, 255, 0.3);
+            opacity: 0;
+            z-index: 50;
+            pointer-events: none;
+            transition: none;
+        }
+
+        .animating .neon-streak {
+            animation: neon-slide-across 0.8s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+        }
+
+        .animating-to-register .neon-streak {
+            animation: neon-slide-reverse 0.8s cubic-bezier(0.7, 0, 0.2, 1) forwards !important;
+        }
+
+        @keyframes neon-slide-across {
+            0% { left: -10%; opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { left: 110%; opacity: 0; }
+        }
+
+        @keyframes neon-slide-reverse {
+            0% { left: 110%; opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { left: -10%; opacity: 0; }
+        }
+
         .show-register .auth-container {
             transform: translateX(-50%);
         }
-        
+
+        /* Form Staggered Animations */
+        .auth-section {
+            transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.7, 0, 0.2, 1);
+        }
+
+        #login-section {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .show-register #login-section {
+            opacity: 0;
+            transform: scale(0.95) translateX(-50px);
+            pointer-events: none;
+        }
+
+        #register-section {
+            opacity: 0;
+            transform: scale(0.95) translateX(50px);
+            pointer-events: none;
+        }
+
+        .show-register #register-section {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+            pointer-events: auto;
+        }
+
+        /* Elements Staggering */
+        .auth-section > div > * {
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            transition-delay: calc(var(--stagger) * 0.05s);
+        }
+
+        .animating .auth-section > div > * {
+            text-shadow: 0 0 10px rgba(74, 125, 255, 0.4);
+            opacity: 0.5;
+            transform: translateY(20px) scale(0.98);
+        }
+
+        /* Neon Glow to inputs on focus */
+        input:focus {
+            box-shadow: 0 0 15px 2px rgba(74, 125, 255, 0.2);
+        }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display antialiased h-screen w-full overflow-hidden flex flex-col md:flex-row">
@@ -75,29 +207,33 @@
     <!-- Right Side: Auth Forms Container (Viewport) -->
     <div class="w-full md:w-1/2 h-full relative overflow-hidden bg-[#121212] dark:bg-[#121212] text-white">
         
+        <!-- Neon Effects for transition -->
+        <div class="neon-flash"></div>
+        <div class="neon-streak" id="transition-streak"></div>
+
         <!-- Sliding Container (Holds both forms side-by-side) -->
         <div id="auth-slider" class="auth-container flex w-[200%] h-full">
             
             <!-- Login Section (50% width) -->
-            <div class="w-1/2 h-full flex flex-col overflow-y-auto">
+            <div id="login-section" class="auth-section w-1/2 h-full flex flex-col overflow-y-auto">
                 <div class="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-24 py-12">
                     <!-- Header -->
-                    <div class="mb-10">
+                    <div class="mb-10" style="--stagger: 1">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="h-12 w-auto flex items-center justify-center">
                                 <img src="../../Assets/Images/logo.png" alt="N3M Logo" class="h-full object-contain filter drop-shadow-[0_0_10px_rgba(74,125,255,0.3)]">
                             </div>
-                            <span class="font-bold text-2xl tracking-wide">N3M<span style="color: rgb(188 207 255);text-shadow: 0px 0px 10px #366fe9;" class="text-primary text-3xl mx-1">|</span>Nest</span>
+                            <span class="neon-xirod font-bold text-2xl tracking-wide">N3M<span class="mx-0.5">|</span>Nest</span>
                         </div>
                         <h2 class="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h2>
                         <p class="text-slate-400">Enter your credentials to access your collection.</p>
                     </div>
 
                     <!-- Error Message Container (Login) -->
-                    <div id="login-error-message" class="error-message"></div>
+                    <div id="login-error-message" class="error-message" style="--stagger: 1.5"></div>
 
                     <!-- Main Form -->
-                    <form id="login-form" class="flex flex-col gap-5">
+                    <form id="login-form" class="flex flex-col gap-5" style="--stagger: 2">
                         <!-- Email Input -->
                         <label class="flex flex-col gap-2">
                             <span class="text-sm font-medium text-slate-300">Email Address</span>
@@ -128,23 +264,26 @@
 
                         <!-- Action Button -->
                         <button id="login-btn" class="btn-submit mt-2 w-full h-12 bg-primary hover:bg-primary/90 text-[#ffffff] font-bold rounded-lg shadow-lg shadow-primary/20 transition-all duration-200 flex items-center justify-center gap-2" type="submit">
-                            <span class="btn-text flex items-center gap-2">Log In <span class="material-symbols-outlined text-[20px]">arrow_forward</span></span>
+                            <span class="btn-text flex items-center gap-2">
+                                <span class="xirod-font text-sm">Log In</span> 
+                                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                            </span>
                             <div class="btn-loader"></div>
                         </button>
                     </form>
 
                     <!-- Divider -->
-                    <div class="relative my-8">
+                    <div class="relative my-8" style="--stagger: 3">
                         <div class="absolute inset-0 flex items-center">
                             <div class="w-full border-t border-[#333333]"></div>
                         </div>
                         <div class="relative flex justify-center text-sm">
-                            <span class="px-2 bg-[#121212] text-slate-500">Or continue with</span>
+                            <span class="px-2 bg-[#121212] text-slate-500 xirod-font">Or continue with</span>
                         </div>
                     </div>
 
                     <!-- Social Logins -->
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-3 gap-3" style="--stagger: 4">
                         <button class="flex flex-col items-center justify-center gap-2 h-20 rounded-lg border border-[#333333] bg-[#1e1e1e] hover:bg-[#252525] hover:border-primary/50 transition-all group">
                             <i class="fab fa-discord text-2xl text-[#5865F2]"></i>
                         </button>
@@ -157,7 +296,7 @@
                     </div>
 
                     <!-- Footer Signup -->
-                    <div class="mt-10 text-center">
+                    <div class="mt-10 text-center" style="--stagger: 5">
                         <p class="text-slate-400">
                             Don't have an account? 
                             <button type="button" class="font-bold text-white hover:text-primary transition-colors" onclick="toggleAuthView('register')">Sign up for free</button>
@@ -166,31 +305,31 @@
                 </div>
                 
                 <!-- Bottom Disclaimer -->
-                <div class="p-6 text-center">
+                <div class="p-6 text-center" style="--stagger: 6">
                     <p class="text-xs text-slate-600">© 2026 N3M Library. All rights reserved.</p>
                 </div>
             </div>
 
             <!-- Register Section (50% width) -->
-            <div class="w-1/2 h-full flex flex-col overflow-y-auto">
+            <div id="register-section" class="auth-section w-1/2 h-full flex flex-col overflow-y-auto">
                 <div class="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-24 py-12">
                     <!-- Header -->
-                    <div class="mb-8">
+                    <div class="mb-8" style="--stagger: 1">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="h-12 w-auto flex items-center justify-center">
                                 <img src="../../Assets/Images/logo.png" alt="N3M Logo" class="h-full object-contain filter drop-shadow-[0_0_10px_rgba(74,125,255,0.3)]">
                             </div>
-                            <span class="font-bold text-2xl tracking-wide">N3M<span class="text-primary text-3xl mx-1">|</span>Nest</span>
+                            <span class="neon-xirod font-bold text-2xl tracking-wide">N3M<span class="mx-0.5">|</span>Nest</span>
                         </div>
-                        <h2 class="text-3xl font-bold tracking-tight text-white mb-2">Create Account</h2>
+                        <h2 class="xirod-font text-2xl font-bold tracking-tight text-white mb-2">Create Account</h2>
                         <p class="text-slate-400">Join us to start managing your game library.</p>
                     </div>
 
                     <!-- Error Message Container (Register) -->
-                    <div id="register-error-message" class="error-message"></div>
+                    <div id="register-error-message" class="error-message" style="--stagger: 1.5"></div>
 
                     <!-- Main Form -->
-                    <form id="register-form" class="flex flex-col gap-4">
+                    <form id="register-form" class="flex flex-col gap-4" style="--stagger: 2">
                         <div class="grid grid-cols-2 gap-4">
                             <!-- First Name -->
                             <label class="flex flex-col gap-2">
@@ -258,22 +397,22 @@
 
                         <!-- Action Button -->
                         <button id="register-btn" class="btn-submit mt-2 w-full h-12 bg-primary hover:bg-primary/90 text-[#ffffff] font-bold rounded-lg shadow-lg shadow-primary/20 transition-all duration-200 flex items-center justify-center gap-2" type="submit">
-                            <span class="btn-text flex items-center gap-2">Create Account <span class="material-symbols-outlined text-[20px]">person_add</span></span>
+                            <span class="btn-text flex items-center gap-2 xirod-font text-sm">Create Account <span class="material-symbols-outlined text-[20px]">person_add</span></span>
                             <div class="btn-loader"></div>
                         </button>
                     </form>
 
                     <!-- Footer Login -->
-                    <div class="mt-8 text-center">
+                    <div class="mt-8 text-center" style="--stagger: 3">
                         <p class="text-slate-400">
                             Already have an account? 
-                            <button type="button" class="font-bold text-white hover:text-primary transition-colors" onclick="toggleAuthView('login')">Log In</button>
+                            <button type="button" class="xirod-font text-white hover:text-primary transition-colors text-sm" onclick="toggleAuthView('login')">Log In</button>
                         </p>
                     </div>
                 </div>
                 
                 <!-- Bottom Disclaimer -->
-                <div class="p-6 text-center">
+                <div class="p-6 text-center" style="--stagger: 4">
                     <p class="text-xs text-slate-600">© 2026 N3M Library. All rights reserved.</p>
                 </div>
             </div>
@@ -291,13 +430,33 @@
         // Handle view toggling
         function toggleAuthView(view) {
             const body = document.body;
-            if (view === 'register') {
+            
+            // Determine animation direction class
+            const isCurrentlyRegister = body.classList.contains('show-register');
+            const targetViewIsRegister = view === 'register';
+            
+            // Only animate if the target view is different from the current one
+            if (isCurrentlyRegister !== targetViewIsRegister) {
+                body.classList.add('animating');
+                if (targetViewIsRegister) {
+                    body.classList.add('animating-to-register');
+                } else {
+                    body.classList.add('animating-to-login');
+                }
+            }
+            
+            if (targetViewIsRegister) {
                 body.classList.add('show-register');
                 window.location.hash = 'register';
             } else {
                 body.classList.remove('show-register');
                 window.location.hash = 'login';
             }
+            
+            // Remove animating classes after transition finishes
+            setTimeout(() => {
+                body.classList.remove('animating', 'animating-to-register', 'animating-to-login');
+            }, 800); // Matches the 0.8s transition
         }
         
         // Handle initial hash check if user navigates to #register
