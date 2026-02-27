@@ -33,7 +33,7 @@ namespace Game_Library_Management.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateDto model, IFormFile? avatarFile)
+        public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateDto model, [FromForm(Name = "Avatar")] IFormFile? avatarFile)
         {
             var userId = User.FindFirst("uid")?.Value;
             if (string.IsNullOrEmpty(userId))

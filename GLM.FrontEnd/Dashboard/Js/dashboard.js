@@ -43,10 +43,52 @@ document.addEventListener('DOMContentLoaded', () => {
 function displayUserInfo() {
     const userInfo = getUserInfo();
     const usernameElements = document.querySelectorAll('#display-username, #welcome-username');
-    
+    const displayAvatar = document.getElementById('display-avatar');
+
     usernameElements.forEach(el => {
         el.textContent = userInfo.userName || 'User';
     });
+    
+    // Fetch actual profile to update name and avatar if they exist
+    fetchProfileInfo();
+}
+
+async function fetchProfileInfo() {
+    try {
+        const response = await apiRequest('/api/Profile');
+        if (response.ok) {
+            const profile = await response.json();
+            const usernameElements = document.querySelectorAll('#display-username, #welcome-username');
+            const displayAvatar = document.getElementById('display-avatar');
+
+            if (profile.displayName) {
+                usernameElements.forEach(el => {
+                    el.textContent = profile.displayName;
+                });
+                
+                // Update local storage too to keep it consistent
+                const userInfo = getUserInfo();
+                userInfo.userName = profile.displayName;
+                saveAuthData(userInfo);
+            }
+
+            if (profile.avatarUrl && displayAvatar) {
+                // Remove initial text icon and add image
+                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full">`;
+                
+                // Remove background gradient from parent div if it exists
+                const parent = displayAvatar.parentElement;
+                if (parent && parent.classList.contains('bg-gradient-to-tr')) {
+                    parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
+                    parent.classList.add('bg-transparent');
+                }
+            } else if (displayAvatar && profile.displayName) {
+                displayAvatar.textContent = profile.displayName.charAt(0).toUpperCase();
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching profile into dashboard:', error);
+    }
 }
 
 function selectView(view) {

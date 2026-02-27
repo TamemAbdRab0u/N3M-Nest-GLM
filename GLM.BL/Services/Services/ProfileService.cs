@@ -33,7 +33,6 @@ namespace Game_Library_Management_BL.Services.Services
 
             if (profile == null)
             {
-                // If profile doesn't exist, create one for the user?
                 var user = await unitOfWork.Users.Query().FirstOrDefaultAsync(x => x.Id == userId);
                 if (user == null) return null;
 
@@ -78,7 +77,6 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 profile.DisplayName = model.DisplayName;
                 
-                // If the user wants to sync this with Identity Username or custom User table Username:
                 if (appUser != null)
                 {
                     appUser.Username = model.DisplayName;
@@ -98,15 +96,32 @@ namespace Game_Library_Management_BL.Services.Services
                 profile.Bio = model.Bio;
             }
 
-            if (avatarFile != null)
+            if (avatarFile != null && avatarFile.Length > 0)
             {
+                var originalAvatar = profile.AvatarUrl;
+
                 var fileName = await uploadHandler.UploadAsync(avatarFile);
                 if (!fileName.StartsWith("Invalid") && !fileName.Contains("limit"))
                 {
                     profile.AvatarUrl = fileName;
+
+                    // Delete the old file only after the new one is successfully uploaded and property is set
+                    if (!string.IsNullOrEmpty(originalAvatar))
+                    {
+                        try
+                        {
+                            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", originalAvatar);
+                            if (System.IO.File.Exists(oldPath))
+                            {
+                                System.IO.File.Delete(oldPath);
+                            }
+                        }
+                        catch { /* Ignore deletion errors to prevent failure */ }
+                    }
                 }
             }
 
+            // Explicitly mark the profile as modified if it was an update to an existing record
             unitOfWork.Save();
 
             return new ProfileResponseDto
