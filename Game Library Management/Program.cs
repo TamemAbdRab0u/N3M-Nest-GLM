@@ -46,6 +46,7 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IPlatformservices, PlatformServices>();
             builder.Services.AddScoped<IUserGamesServices, UserGamesServices>();
             builder.Services.AddScoped<IStatsService, StatsService>();
+            builder.Services.AddScoped<IProfileService, ProfileService>();
             builder.Services.AddHttpClient<IRAWGService, RAWGService>();
 
             builder.Services.AddSignalR();
@@ -99,6 +100,14 @@ namespace Game_Library_Management
 
             // Comment out HTTPS redirection for development
             // app.UseHttpsRedirection();
+
+            app.UseStaticFiles(); // Serve files from wwwroot
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+                    Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+                RequestPath = "/Uploads"
+            });
 
             app.UseCors("AllowFrontend");
 

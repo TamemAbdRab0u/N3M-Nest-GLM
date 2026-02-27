@@ -14,5 +14,6 @@ namespace Game_Library_Management_DAL.Models
         public string Password { get; set; }
 
         public List<UserGame> UserGames { get; set; }
+        public Profile Profile { get; set; }
     }
 }
