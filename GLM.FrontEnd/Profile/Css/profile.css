@@ -1,0 +1,246 @@
+@font-face {
+    font-family: 'Xirod';
+    src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+}
+
+.xirod-font {
+    font-family: 'Xirod', sans-serif;
+    letter-spacing: 1px;
+}
+
+.neon-xirod {
+    font-family: 'Xirod', sans-serif;
+    color: #fff;
+    text-shadow: 
+        0 0 5px rgba(13, 242, 242, 0.8),
+        0 0 10px rgba(13, 242, 242, 0.5),
+        0 0 15px rgba(13, 242, 242, 0.3);
+    letter-spacing: 2px;
+}
+
+.neon-username {
+    font-family: 'Xirod', sans-serif;
+    color: #fff;
+    text-shadow:
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px #0df2f2,
+        0 0 40px #0df2f2;
+    font-weight: 800;
+}
+
+.neon-text-cyan {
+    font-family: 'Xirod', sans-serif;
+    color: #fff;
+    text-shadow:
+        0 0 4px #fff,
+        0 0 11px #fff,
+        0 0 19px #fff,
+        0 0 40px #0df2f2,
+        0 0 80px #0df2f2,
+        0 0 90px #0df2f2,
+        0 0 100px #0df2f2,
+        0 0 150px #0df2f2;
+    font-weight: 900;
+}
+
+.neon-divider {
+    font-family: 'Xirod', sans-serif;
+    color: #fff;
+    text-shadow:
+        0 0 7px #fff,
+        0 0 10px #fff,
+        0 0 21px #fff,
+        0 0 42px #0df2f2,
+        0 0 82px #0df2f2;
+    opacity: 1;
+    animation: flicker 1.5s infinite alternate;
+}
+
+/* Subtle Flicker Effect */
+@keyframes flicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        text-shadow:
+            0 0 4px #fff,
+            0 0 11px #fff,
+            0 0 19px #fff,
+            0 0 40px #0df2f2,
+            0 0 80px #0df2f2;
+    }
+    20%, 24%, 55% {        
+        text-shadow: none;
+        opacity: 0.5;
+    }
+}
+
+.neon-text-white {
+    font-family: 'Xirod', sans-serif;
+    color: #fff;
+    text-shadow:
+        0 0 4px #fff,
+        0 0 11px #fff,
+        0 0 19px #fff,
+        0 0 40px #0df2f2,
+        0 0 80px #0df2f2;
+    font-weight: 200;
+    letter-spacing: 0.1em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a; 
+}
+::-webkit-scrollbar-thumb {
+    background: #334155; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; 
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+    background: rgba(18, 29, 29, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(13, 242, 242, 0.1);
+}
+
+.glow-border:hover {
+    border-color: rgba(13, 242, 242, 0.5);
+    box-shadow: 0 0 15px rgba(13, 242, 242, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #0df2f2;
+    border-radius: 10px;
+}
+
+.glass-neon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+    background: rgba(15, 32, 35, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 15px -3px rgba(13, 242, 242, 0.3);
+}
+.glass-neon-btn:hover {
+    background: rgba(15, 32, 35, 0.6);
+    box-shadow: 0 0 20px 2px rgba(13, 242, 242, 0.5);
+    transform: translateY(-2px);
+    border-color: rgba(13, 242, 242, 0.5);
+}
+
+/* Profile Specific Layout Adjustments */
+#profile-avatar-img {
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.profile-view-container:hover #profile-avatar-img {
+    transform: scale(1.05);
+}
+
+/* Favorites Carousel - Simplified 3D slots from profile.txt */
+.carousel-card {
+    position: absolute;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    cursor: pointer;
+    user-select: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.carousel-card.active {
+    width: 256px; /* w-64 */
+    height: 384px; /* h-96 */
+    transform: scale(1.1);
+    z-index: 30;
+    opacity: 1;
+    border: 1px solid rgba(13, 242, 242, 0.5);
+    box-shadow: 0 0 50px rgba(13, 242, 242, 0.4);
+    pointer-events: auto;
+}
+
+.carousel-card.left {
+    width: 192px; /* w-48 */
+    height: 288px; /* h-72 */
+    transform: scale(0.75) rotate(-12deg);
+    z-index: 10;
+    opacity: 0.4;
+    filter: blur(1px);
+    pointer-events: auto;
+    left: calc(50% - 240px);
+}
+
+.carousel-card.right {
+    width: 192px; /* w-48 */
+    height: 288px; /* h-72 */
+    transform: scale(0.75) rotate(12deg);
+    z-index: 10;
+    opacity: 0.4;
+    filter: blur(1px);
+    pointer-events: auto;
+    left: calc(50% + 48px);
+}
+
+.carousel-card.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.5);
+    z-index: 0;
+}
+
+.carousel-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, #080f0f 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.carousel-card.active .card-overlay {
+    opacity: 1;
+}
+
+.card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.5s ease 0.2s;
+    text-align: left;
+}
+
+.carousel-card.active .card-content {
+    transform: translateY(0);
+    opacity: 1;
+    line-height: 1.2;
+}
+
+.card-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 13px;
+}

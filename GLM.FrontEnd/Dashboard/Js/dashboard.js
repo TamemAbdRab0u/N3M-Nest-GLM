@@ -25,8 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display user info
     displayUserInfo();
     
-    // Check if initial view is requested (e.g. from nav) - simpler to default to catalog
-    selectView('catalog'); // Load intial view
+    // Check for view in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedView = urlParams.get('view') || 'catalog';
+    
+    selectView(requestedView);
     
     initializeNavigation();
     initializePagination();
@@ -106,6 +109,7 @@ function selectView(view) {
 
     // Update Header Text
     const headerTitle = document.querySelector('.header-title') || document.querySelector('h2'); 
+    
     if (headerTitle) {
         if (view === 'catalog') headerTitle.textContent = 'Catalog Games';
         else if (view === 'library') headerTitle.textContent = 'My Library';

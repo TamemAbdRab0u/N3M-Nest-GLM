@@ -63,33 +63,7 @@
             100% { transform: scale(1); }
         }
         
-        /* High-End Neon Brand Text (CSS-Tricks Inspired) */
-        .neon-text-cyan {
-            font-family: 'Xirod', sans-serif;
-            color: #fff;
-            text-shadow:
-                0 0 4px #fff,
-                0 0 11px #fff,
-                0 0 19px #fff,
-                0 0 40px #4a7dff,
-                0 0 80px #4a7dff,
-                0 0 90px #4a7dff,
-                0 0 100px #4a7dff,
-                0 0 150px #4a7dff;
-            font-weight: 900;
-        }
-        .neon-divider {
-            font-family: 'Xirod', sans-serif;
-            color: #fff;
-            text-shadow:
-                0 0 7px #fff,
-                0 0 10px #fff,
-                0 0 21px #fff,
-                0 0 42px #4a7dff,
-                0 0 82px #4a7dff;
-            opacity: 1;
-            animation: flicker 1.5s infinite alternate;
-        }
+        /* High-End Neon Brand Text */
         .neon-text-white {
             font-family: 'Xirod', sans-serif;
             color: #fff;
@@ -111,25 +85,6 @@
                 0 0 20px #4a7dff,
                 0 0 40px #4a7dff;
             font-weight: 800;
-        }
-        .xirod-font {
-            font-family: 'Xirod', sans-serif;
-        }
-
-        /* Subtle Flicker Effect */
-        @keyframes flicker {
-            0%, 18%, 22%, 25%, 53%, 57%, 100% {
-                text-shadow:
-                    0 0 4px #fff,
-                    0 0 11px #fff,
-                    0 0 19px #fff,
-                    0 0 40px #4a7dff,
-                    0 0 80px #4a7dff;
-            }
-            20%, 24%, 55% {        
-                text-shadow: none;
-                opacity: 0.5;
-            }
         }
 
         /* Toast Animations */
@@ -282,18 +237,18 @@
 
         <!-- User Profile (Bottom Sidebar) -->
         <div class="p-4 border-t border-[#1e293b]">
-            <div class="user-profile flex items-center gap-3">
-                <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold shadow-lg">
+            <a href="../../Profile/Html/profile.html" id="nav-profile" class="user-profile flex items-center gap-3 cursor-pointer group hover:bg-[#1e293b]/50 p-2 rounded-xl transition-all">
+                <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">
                     <span id="display-avatar">U</span>
                 </div>
                 <div class="hidden lg:block overflow-hidden">
                     <p id="display-username" class="text-xs xirod-font text-white truncate">User</p>
                     <p class="text-xs text-slate-400 truncate">Online</p>
                 </div>
-                <button onclick="logout()" class="ml-auto text-slate-400 hover:text-error transition-colors lg:block hidden" title="Logout">
+                <button onclick="logout(); event.preventDefault(); event.stopPropagation();" class="ml-auto text-slate-400 hover:text-error transition-colors lg:block hidden" title="Logout">
                     <span class="material-symbols-outlined text-[20px]">logout</span>
                 </button>
-            </div>
+            </a>
             <!-- Mobile Logout (only icon) -->
             <button onclick="logout()" class="lg:hidden mt-4 w-full flex justify-center text-slate-400 hover:text-error">
                  <span class="material-symbols-outlined">logout</span>
@@ -324,7 +279,7 @@
         </header>
 
         <!-- Scrollable Content -->
-        <div class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
+        <div id="games-view" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
             
             <!-- Header & Search Section -->
             <div class="mb-14 w-full max-w-5xl mx-auto text-center">
@@ -468,6 +423,7 @@
                 <p class="text-xs text-slate-600">© 2026 N3M Library. Game data provided by RAWG.</p>
             </footer>
         </div>
+    </main>
     </main>
 
     <!-- Dependencies -->
