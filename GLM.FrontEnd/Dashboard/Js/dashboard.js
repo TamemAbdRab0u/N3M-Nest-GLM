@@ -28,8 +28,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for view in URL
     const urlParams = new URLSearchParams(window.location.search);
     const requestedView = urlParams.get('view') || 'catalog';
+    const requestedGenre = urlParams.get('genre');
     
     selectView(requestedView);
+    
+    // Apply genre filter if specified in URL
+    if (requestedGenre && requestedView === 'library') {
+        currentGenre = requestedGenre;
+        
+        // Update category filter UI to show the selected genre
+        const currentCatDisplay = document.getElementById('current-category');
+        const catBtn = document.getElementById('category-filter-btn');
+        if (currentCatDisplay) {
+            currentCatDisplay.textContent = requestedGenre;
+        }
+        if (catBtn) {
+            catBtn.classList.add('active-filter-btn');
+        }
+        
+        // Reload library with genre filter
+        loadGames(1, '', requestedGenre, '', '', '', '');
+    }
     
     initializeNavigation();
     initializePagination();

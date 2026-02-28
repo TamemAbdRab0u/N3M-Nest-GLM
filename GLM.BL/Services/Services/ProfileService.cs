@@ -91,10 +91,8 @@ namespace Game_Library_Management_BL.Services.Services
                 }
             }
 
-            if (!string.IsNullOrEmpty(model.Bio))
-            {
-                profile.Bio = model.Bio;
-            }
+            // Always update Bio - set default "..." if empty
+            profile.Bio = string.IsNullOrWhiteSpace(model.Bio) ? "..." : model.Bio;
 
             if (avatarFile != null && avatarFile.Length > 0)
             {

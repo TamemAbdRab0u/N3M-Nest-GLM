@@ -143,15 +143,15 @@
                             <span class="px-4 py-1.5 rounded-full border border-yellow-500/40 text-yellow-500 text-[10px] xirod-font bg-yellow-500/5 shadow-[0_0_15px_rgba(234,179,8,0.1)]">PRO MEMBER</span>
                         </div>
                         <div class="group/bio relative mb-8 max-w-3xl">
-                            <p id="profile-bio" class="text-slate-400 italic text-xl leading-relaxed opacity-90 outline-none transition-all duration-300" contenteditable="false">
-                                "Exploring the digital horizons, one achievement at a time. Neon runner in the day, legendary raider at night."
+                            <p id="profile-bio" class="text-slate-300 font-display text-lg leading-relaxed opacity-90 outline-none transition-all duration-300 tracking-wide" contenteditable="false">
+                                ...
                             </p>
                             <span id="bio-edit-icon" class="hidden absolute top-0 -right-8 material-symbols-outlined text-primary/60 cursor-pointer hover:text-primary transition-colors text-xl" title="Edit bio" onclick="document.getElementById('profile-bio').focus()">edit_note</span>
                         </div>
                         
                         <!-- Stats Bar (Integrated) -->
-                        <div class="flex items-center w-full max-w-4xl rounded-2xl bg-[#0a1618]/40 border border-[#1e293b]/50 backdrop-blur-2xl overflow-hidden divide-x divide-[#1e293b]/50">
-                            <div id="stat-box-owned" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box" onclick="switchCarouselView('owned')">
+                        <div class="flex items-center w-full max-w-4xl rounded-2xl bg-[#0a1618]/40 border border-[#1e293b]/50 backdrop-blur-2xl divide-x divide-[#1e293b]/50">
+                            <div id="stat-box-owned" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box rounded-l-2xl" onclick="switchCarouselView('owned')">
                                 <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Owned</p>
                                 <p class="text-3xl font-black text-white" id="stat-owned">0</p>
                             </div>
@@ -163,31 +163,33 @@
                                 <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Wishlisted</p>
                                 <p class="text-3xl font-black text-white" id="stat-wishlisted">0</p>
                             </div>
-                            <div id="stat-box-others" class="flex-1 text-center relative group/status">
-                                <div id="stat-box-completed" class="cursor-pointer py-6 hover:bg-white/5 transition-all group/stat stat-box" onclick="switchCarouselView('completed')">
+                            <div id="stat-box-others" class="flex-1 text-center relative group rounded-r-2xl">
+                                <div id="stat-box-completed" class="cursor-pointer py-6 hover:bg-white/5 transition-all group/stat stat-box rounded-r-2xl" onclick="switchCarouselView('completed')">
                                     <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Completed</p>
                                     <div class="flex items-center justify-center gap-2">
                                         <p class="text-3xl font-black text-white" id="stat-completed">0</p>
-                                        <button class="p-1 text-slate-500 hover:text-primary transition-colors focus:outline-none" onclick="event.stopPropagation(); toggleOtherStats()">
-                                            <span class="material-symbols-outlined text-[18px]">expand_circle_down</span>
-                                        </button>
+                                        <span class="material-symbols-outlined text-[18px] text-slate-500 group-hover:text-primary group-hover:rotate-180 transition-all duration-300">expand_circle_down</span>
                                     </div>
                                 </div>
 
                                 <!-- Others Popup -->
-                                <div id="other-stats-popup" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-4 w-52 bg-[#0a1618]/95 border border-[#1e293b] rounded-xl p-5 backdrop-blur-3xl z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                                <div id="other-stats-popup" class="opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute top-full left-1/2 -translate-x-1/2 w-52 bg-[#0a1618]/95 border border-[#1e293b] rounded-xl p-5 backdrop-blur-3xl z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 before:content-[''] before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
                                     <div class="space-y-4">
-                                        <div class="flex justify-between items-center cursor-pointer hover:text-primary transition-colors" onclick="switchCarouselView('playing')">
-                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider">PLAYING</span>
-                                            <span class="text-lg font-bold text-white" id="stat-playing">0</span>
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('playing')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-primary transition-colors">PLAYING</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-primary transition-colors" id="stat-playing">0</span>
                                         </div>
-                                        <div class="flex justify-between items-center cursor-pointer hover:text-primary transition-colors" onclick="switchCarouselView('dropped')">
-                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider">DROPPED</span>
-                                            <span class="text-lg font-bold text-white" id="stat-dropped">0</span>
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('dropped')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-rose-400 transition-colors">DROPPED</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-rose-400 transition-colors" id="stat-dropped">0</span>
                                         </div>
-                                        <div class="flex justify-between items-center cursor-pointer hover:text-primary transition-colors" onclick="switchCarouselView('onhold')">
-                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider">ON HOLD</span>
-                                            <span class="text-lg font-bold text-white" id="stat-onhold">0</span>
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-orange-400/10 hover:border-l-2 hover:border-orange-400 hover:pl-4 group/item" onclick="switchCarouselView('onhold')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-orange-400 transition-colors">ON HOLD</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-orange-400 transition-colors" id="stat-onhold">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-slate-400/10 hover:border-l-2 hover:border-slate-400 hover:pl-4 group/item" onclick="switchCarouselView('pending')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-slate-300 transition-colors">PENDING</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-slate-300 transition-colors" id="stat-pending">0</span>
                                         </div>
                                     </div>
                                     <!-- Triangle Arrow -->
@@ -249,17 +251,17 @@
                     <!-- Stats and Breakdown Grid -->
                     <div class="grid grid-cols-12 gap-8 mb-12">
                         <!-- Genre Breakdown -->
-                        <div class="col-span-12 lg:col-span-7 glass-panel rounded-2xl p-6 glow-border transition-all">
+                        <div id="genre-breakdown-container" class="col-span-12 lg:col-span-7 glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden">
                             <div class="flex justify-between items-start mb-8">
                                 <div>
-                                    <h3 class="text-xl font-bold text-slate-100 italic">Genre Distribution</h3>
+                                    <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Distribution</h3>
                                     <p class="text-sm text-slate-500">Breakdown by library volume</p>
                                 </div>
-                                <button class="text-primary text-[10px] xirod-font font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
-                                    VIEW FULL REPORT <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                <button id="toggle-genre-report" onclick="toggleGenreReport()" class="text-primary text-[10px] xirod-font font-bold flex items-center gap-2 hover:translate-x-1 transition-all group">
+                                    <span id="genre-report-text">VIEW FULL REPORT</span> <span id="genre-report-icon" class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
                                 </button>
                             </div>
-                            <div class="flex items-center gap-12">
+                            <div id="genre-content" class="flex items-center gap-12 transition-all duration-500">
                                 <!-- Custom Pie Chart Component -->
                                 <div class="relative w-48 h-48 flex-shrink-0">
                                     <svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
@@ -278,7 +280,7 @@
                                         <span class="text-[10px] text-slate-500 uppercase tracking-tighter xirod-font">TOP GENRE</span>
                                     </div>
                                 </div>
-                                <div class="flex-1 grid grid-cols-2 gap-4">
+                                <div id="genre-list-container" class="flex-1 grid grid-cols-2 gap-4">
                                     <div class="flex items-center gap-3">
                                         <div class="size-3 rounded-sm bg-primary shadow-[0_0_8px_rgba(13,242,242,0.5)]"></div>
                                         <div>
@@ -307,6 +309,13 @@
                                             <p class="text-xs text-slate-500 mt-1" id="genre-4-stat">187 Games (15%)</p>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <!-- Expanded View -->
+                            <div id="genre-expanded-view" class="hidden mt-8 pt-8 border-t border-slate-700/50 transition-all duration-500 ease-in-out">
+                                <h4 class="text-sm font-bold text-slate-300 mb-4 xirod-font uppercase tracking-wider">Complete Genre Breakdown</h4>
+                                <div id="all-genres-list" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                    <!-- Dynamically populated -->
                                 </div>
                             </div>
                         </div>
