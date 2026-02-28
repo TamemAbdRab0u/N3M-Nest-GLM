@@ -14,6 +14,42 @@ let currentView = 'catalog'; // 'catalog', 'library', 'favorites'
 let activeToast = null;
 let toastTimeout = null;
 
+// Helper function to convert DateTime to relative time
+function getRelativeTime(dateString) {
+    if (!dateString) return '';
+    
+    // Fix C# date format: replace space with T and append Z to treat as UTC
+    // e.g. "2026-02-28 10:53:28" → "2026-02-28T10:53:28Z"
+    const normalized = dateString.toString().replace(' ', 'T').replace(/Z?$/, 'Z');
+    const date = new Date(normalized);
+    
+    if (isNaN(date.getTime())) return '';
+
+    const diffMs = Date.now() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+
+    if (diffSec < 1) return 'just now';
+    if (diffSec < 60) return `${diffSec} sec${diffSec === 1 ? '' : 's'} ago`;
+
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} min${diffMin === 1 ? '' : 's'} ago`;
+
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`;
+
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 7) return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
+
+    const diffWeek = Math.floor(diffDay / 7);
+    if (diffWeek < 4) return `${diffWeek} week${diffWeek === 1 ? '' : 's'} ago`;
+
+    const diffMonth = Math.floor(diffDay / 30);
+    if (diffMonth < 12) return `${diffMonth} month${diffMonth === 1 ? '' : 's'} ago`;
+
+    const diffYear = Math.floor(diffDay / 365);
+    return `${diffYear} year${diffYear === 1 ? '' : 's'} ago`;
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
     // Check authentication
@@ -260,7 +296,8 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                     isFavorite: ug.isFavorite,
                     isInLibrary: inLibrary,
                     isInWishlist: inWishlist,
-                    gamestatus: ug.gamestatus
+                    gamestatus: ug.gamestatus,
+                    addedAt: ug.addedAt
                 };
             });
 
@@ -585,17 +622,13 @@ function createGameCard(game) {
     const isPending = String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6';
     
     const gameStatusIndicator = isPending ? `
-        <div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10 transition-all duration-500">
-            <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
+        <div data-status-for="${gameId}" class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
                 <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
-            </div>
         </div>` : (statusObj ? `
-        <div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10 transition-all duration-500">
-            <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default" title="${statusObj.label}">
+        <div data-status-for="${gameId}" class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
                 <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-            </div>
-        </div>` : `<div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10"></div>`);
+        </div>` : `<div data-status-for="${gameId}"></div>`);
 
     const inventoryIndicators = `
         <div data-inventory-for="${gameId}" class="flex justify-end gap-2 mt-2">
@@ -646,13 +679,16 @@ function createGameCard(game) {
     const libIcon = 'inventory_2';
     const wishlistIcon = 'bookmark';
     
+    // Timestamp for library/favorites views
+    let timestampDisplay = '';
+    
     // Use clearer text colors and remove fill-icon from button context (move to span)
     const favBtnClass = game.isFavorite ? 'text-red-500' : 'text-white/70 hover:text-red-400';
     const libClass = game.isInLibrary ? 'text-green-500' : 'text-white/70 hover:text-primary';
     const wishlistClass = game.isInWishlist ? 'text-blue-400' : 'text-white/70 hover:text-blue-400';
 
     // Mutual exclusivity and management disabling
-    const isFavDisabled = currentView === 'library' || currentView === 'wishlist' || game.isInWishlist;
+    const isFavDisabled = currentView === 'wishlist' || game.isInWishlist;
     const isLibDisabled = currentView === 'favorites' || currentView === 'wishlist' || game.isInWishlist;
     const isWishlistDisabled = currentView === 'favorites' || currentView === 'library' || game.isFavorite || game.isInLibrary;
 
@@ -687,7 +723,17 @@ function createGameCard(game) {
             </div>
 
             ${platformIconsPanel}
-            ${gameStatusIndicator}
+            
+            <!-- Game Status & Added At Group -->
+            <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5">
+                ${gameStatusIndicator}
+                ${game.addedAt ? `
+                    <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg">
+                        <span class="material-symbols-outlined text-[15px] text-primary/70 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">schedule</span>
+                        <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[200px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-primary/90 whitespace-nowrap">added ${getRelativeTime(game.addedAt)}</span>
+                    </div>
+                ` : ''}
+            </div>
         </div>
 
         <!-- Info Section -->
@@ -1160,16 +1206,17 @@ function updateStatusIndicators(gameId, game) {
     // Update Image Status
     statusContainers.forEach(container => {
         if (isPending) {
+            container.className = 'absolute bottom-3 right-3 z-10 transition-all duration-500';
             container.innerHTML = `
                 <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
                     <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
                 </div>`;
         } else {
+            container.className = 'h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg';
             container.innerHTML = statusObj ? `
-                <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default" title="${statusObj.label}">
                     <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
                     <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-                </div>` : '';
+                ` : '';
         }
     });
 

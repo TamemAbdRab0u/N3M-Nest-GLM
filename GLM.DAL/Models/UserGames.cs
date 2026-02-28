@@ -19,5 +19,6 @@ namespace Game_Library_Management_DAL.Models
         public int? Rating { get; set; }
         public bool IsFavorite { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public DateTime AddedAt { get; set; }
     }
 }

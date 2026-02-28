@@ -27,5 +27,6 @@ namespace Game_Library_Management_BL.DTO_s.UserGamesDto
         public double? Rating { get; set; }
         public int? UserRating { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public DateTime AddedAt { get; set; }
     }
 }

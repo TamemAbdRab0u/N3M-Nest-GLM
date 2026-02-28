@@ -48,6 +48,8 @@ namespace Game_Library_Management_DAL.Data
 
             modelBuilder.Entity<User>().HasOne(x => x.Profile).WithOne(x => x.user).HasForeignKey<Profile>(x => x.UserId);
 
+            modelBuilder.Entity<UserGame>().Property(x => x.AddedAt).HasDefaultValueSql("GETUTCDATE()");
+
             modelBuilder.Entity<IdentityRole>().HasData(
                new IdentityRole
                {
@@ -59,6 +61,7 @@ namespace Game_Library_Management_DAL.Data
                {
                    Id = "8fada92e-503c-4dee-8a7e-1316f73db59f",
                    Name = "User",
+
                    NormalizedName = "USER"
                }
             );
