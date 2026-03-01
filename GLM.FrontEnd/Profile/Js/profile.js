@@ -432,74 +432,239 @@ function calculateGenres(allGames) {
     });
 
     const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-    allGenresData = sorted; // Store all genres
-    
-    const topFour = sorted.slice(0, 4);
-    if (topFour.length > 0) {
-        const top = document.getElementById("top-genre-label");
-        if (top) top.textContent = topFour[0][0];
+    allGenresData = sorted;
+    drawGenreRadar(sorted);
 
-        topFour.forEach((genre, idx) => {
-            const nameEl = document.getElementById(`genre-${idx+1}-name`);
-            const statEl = document.getElementById(`genre-${idx+1}-stat`);
-            const parentEl = nameEl?.closest('.flex.items-center.gap-3');
-            
-            if (nameEl && statEl) {
-                nameEl.textContent = genre[0];
-                statEl.textContent = `${genre[1]} Games`;
-                
-                // Make genre item clickable
-                if (parentEl) {
-                    parentEl.classList.add('cursor-pointer', 'group/genre', 'hover:scale-105', 'transition-transform');
-                    parentEl.onclick = () => navigateToLibraryWithGenre(genre[0]);
-                    
-                    // Add hover effect to genre name
-                    nameEl.classList.add('group-hover/genre:text-primary', 'transition-colors');
-                }
-            }
+    const donutColors = ['#0df2f2', '#067d7d', '#06b6d4', '#334155'];
+    const topLabel = document.getElementById('top-genre-label');
+    if (topLabel && sorted.length > 0) topLabel.textContent = sorted[0][0];
+
+    // --- Dynamic donut ---
+    const donutSvg = document.getElementById('genre-donut-svg');
+    if (donutSvg && sorted.length > 0) {
+        const topN  = sorted.slice(0, 4);
+        const total = sorted.reduce((s, [, c]) => s + c, 0);
+        let offset = 0;
+        let circles = `<circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b" stroke-width="3.5"/>`;
+        topN.forEach(([, count], i) => {
+            const pct = total > 0 ? (count / total) * 100 : 0;
+            circles += `<circle cx="18" cy="18" fill="transparent" r="16" stroke="${donutColors[i]}" stroke-dasharray="${pct.toFixed(2)} 100" stroke-dashoffset="${(-offset).toFixed(2)}" stroke-width="3.5"/>`;
+            offset += pct;
         });
+        donutSvg.innerHTML = circles;
+    }
+
+    // --- Progress-bar list: 5 normal + separator + inline clipped full grid ---
+    const barList = document.getElementById('genre-bar-list');
+    if (barList && sorted.length > 0) {
+        const maxCount = sorted[0][1];
+        const total = sorted.reduce((s, [, c]) => s + c, 0);
+        const barColors = ['#0df2f2', '#067d7d', '#06b6d4', '#334155', '#475569', '#64748b', '#94a3b8'];
+        const gridColors = ['#0df2f2','#067d7d','#06b6d4','#0891b2','#0e7490','#155e75','#164e63','#334155','#475569','#64748b','#94a3b8','#cbd5e1'];
+
+        const renderBar = ([name, count], globalIdx) => {
+            const barW = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+            const pct  = total  > 0 ? Math.round((count / total)    * 100) : 0;
+            const color    = barColors[Math.min(globalIdx, barColors.length - 1)];
+            const safeName = name.replace(/'/g, "\\'");
+            return `
+            <div class="group/genre cursor-pointer" onclick="navigateToLibraryWithGenre('${safeName}')">
+                <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] xirod-font text-slate-600 w-5 flex-shrink-0">${String(globalIdx+1).padStart(2,'0')}</span>
+                        <span class="text-xs font-bold text-slate-200 group-hover/genre:text-primary transition-colors truncate max-w-[120px]">${name}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <span class="text-[10px] text-slate-500">${count}</span>
+                        <span class="text-[9px] xirod-font px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400">${pct}%</span>
+                    </div>
+                </div>
+                <div class="h-1 rounded-full bg-slate-800 overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-700 ease-out" style="width:${barW}%;background:${color};box-shadow:0 0 6px ${color}50"></div>
+                </div>
+            </div>`;
+        };
+
+        const top5 = sorted.slice(0, 5);
+
+        // Bars only go into genre-bar-list
+        barList.innerHTML = `<div class="flex flex-col gap-3">${top5.map((g, i) => renderBar(g, i)).join('')}</div>`;
+
+        // All genres grid goes full-width into genre-full-breakdown
+        const breakdown = document.getElementById('genre-full-breakdown');
+        if (breakdown) {
+            const allGridItems = sorted.map(([name, count], idx) => {
+                const color = gridColors[idx % gridColors.length];
+                const safeName = name.replace(/'/g, "\\'");
+                return `
+                <div class="flex items-center gap-2 py-1 px-1 cursor-pointer group" onclick="navigateToLibraryWithGenre('${safeName}')">
+                    <div class="size-2.5 rounded-sm flex-shrink-0 group-hover:scale-125 transition-transform" style="background-color:${color}"></div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold text-slate-200 truncate group-hover:text-primary transition-colors">${name}</p>
+                        <p class="text-[10px] text-slate-500">${count} ${count === 1 ? 'Game' : 'Games'}</p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            breakdown.innerHTML = `
+                <div class="border-t border-slate-700/50 my-4"></div>
+                <p class="text-[9px] xirod-font text-slate-500 uppercase tracking-wider mb-3">Complete Genre Breakdown</p>
+                <div class="relative">
+                    <div id="genre-inline-grid" class="grid grid-cols-3 gap-x-1 gap-y-0.5 overflow-hidden transition-all duration-500" 
+                         style="max-height:130px; -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); mask-image: linear-gradient(to bottom, black 60%, transparent 100%);">
+                        ${allGridItems}
+                    </div>
+                </div>`;
+        }
+    }
+}
+
+function drawGenreRadar(genres) {
+    const svg = document.getElementById('genre-radar-svg');
+    const statsEl = document.getElementById('genre-radar-stats');
+    if (!svg) return;
+
+    const top = genres.slice(0, 6);
+
+    if (top.length < 3) {
+        svg.innerHTML = `<text x="155" y="155" text-anchor="middle" dominant-baseline="middle" fill="#475569" font-size="11" font-family="sans-serif">Not enough genre data</text>`;
+        return;
+    }
+
+    const n      = top.length;
+    const cx     = 155, cy = 148, r = 90;
+    const maxVal = top[0][1];
+
+    const angle  = i => (Math.PI * 2 * i / n) - Math.PI / 2;
+    const pt     = (i, radius) => ({
+        x: cx + radius * Math.cos(angle(i)),
+        y: cy + radius * Math.sin(angle(i))
+    });
+    const poly   = pts => pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+    // Grid levels
+    let gridSvg = '';
+    [1/3, 2/3, 1].forEach(lvl => {
+        const pts = Array.from({length: n}, (_, i) => pt(i, r * lvl));
+        gridSvg += `<polygon points="${poly(pts)}" fill="none" stroke="#1e293b" stroke-width="1"/>`;
+    });
+
+    // Axis lines
+    let axesSvg = '';
+    for (let i = 0; i < n; i++) {
+        const p = pt(i, r);
+        axesSvg += `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#1e293b" stroke-width="1"/>`;
+    }
+
+    // Data polygon
+    const dataPts = top.map(([, count], i) => {
+        const ratio = maxVal > 0 ? count / maxVal : 0;
+        return pt(i, r * Math.max(0.07, ratio));
+    });
+
+    // Labels
+    const labelR = r + 20;
+    let labelsSvg = '';
+    top.forEach(([name], i) => {
+        const p   = pt(i, labelR);
+        const cos = Math.cos(angle(i));
+        const anchor = cos > 0.25 ? 'start' : cos < -0.25 ? 'end' : 'middle';
+        const display = name.length > 9 ? name.slice(0, 8) + '\u2026' : name;
+        labelsSvg += `<text id="radar-label-${i}" x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle" fill="#94a3b8" font-size="8.5" font-family="'Courier New', monospace" letter-spacing="0.08em" style="transition:all .18s ease">${display.toUpperCase()}</text>`;
+    });
+
+    // Vertex dots
+    let dotsSvg = dataPts.map((p, i) =>
+        `<circle id="radar-dot-${i}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="#0df2f2" filter="url(#radarGlow)" style="cursor:pointer;transition:r .18s ease"/>`
+    ).join('');
+
+    svg.innerHTML = `
+        <defs>
+            <filter id="radarGlow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="3.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <linearGradient id="radarFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0df2f2" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#067d7d" stop-opacity="0.1"/>
+            </linearGradient>
+        </defs>
+        ${gridSvg}
+        ${axesSvg}
+        <polygon points="${poly(dataPts)}" fill="url(#radarFill)" stroke="#0df2f2" stroke-width="2" stroke-linejoin="round" filter="url(#radarGlow)"/>
+        ${dotsSvg}
+        ${labelsSvg}`;
+
+    // Hover: scale dot + highlight label (triggers from both dot and label)
+    top.forEach(([name, count], i) => {
+        const dot   = svg.querySelector(`#radar-dot-${i}`);
+        const label = svg.querySelector(`#radar-label-${i}`);
+        if (!dot || !label) return;
+
+        const activate = () => {
+            dot.setAttribute('r', '6.5');
+            dot.setAttribute('fill', '#ffffff');
+            label.setAttribute('fill', '#0df2f2');
+            label.setAttribute('font-size', '10');
+            label.setAttribute('font-weight', 'bold');
+        };
+        const deactivate = () => {
+            dot.setAttribute('r', '3.5');
+            dot.setAttribute('fill', '#0df2f2');
+            label.setAttribute('fill', '#94a3b8');
+            label.setAttribute('font-size', '8.5');
+            label.setAttribute('font-weight', 'normal');
+        };
+
+        dot.addEventListener('mouseenter', activate);
+        dot.addEventListener('mouseleave', deactivate);
+        label.style.cursor = 'pointer';
+        label.addEventListener('mouseenter', activate);
+        label.addEventListener('mouseleave', deactivate);
+    });
+
+    // Stats strip
+    if (statsEl) {
+        const totalGames  = allUserGames.filter(g => g.gamestatus !== 'whishlist' && g.gamestatus !== 2).length;
+        const topPct      = totalGames > 0 ? Math.round((top[0][1] / totalGames) * 100) : 0;
+        const totalGenres = genres.length;
+        statsEl.innerHTML = `
+            <div class="text-center">
+                <p class="text-xl font-black text-primary xirod-font leading-none">${topPct}%</p>
+                <p class="text-[9px] text-slate-500 xirod-font uppercase tracking-wider mt-1">${top[0][0].length > 8 ? top[0][0].slice(0,7)+'\u2026' : top[0][0]}</p>
+            </div>
+            <div class="text-center border-x border-slate-700/50">
+                <p class="text-xl font-black text-slate-100 xirod-font leading-none">${totalGenres}</p>
+                <p class="text-[9px] text-slate-500 xirod-font uppercase tracking-wider mt-1">Genres</p>
+            </div>
+            <div class="text-center">
+                <p class="text-xl font-black text-violet-400 xirod-font leading-none">${totalGames}</p>
+                <p class="text-[9px] text-slate-500 xirod-font uppercase tracking-wider mt-1">Library</p>
+            </div>`;
     }
 }
 
 function toggleGenreReport() {
     isGenreReportExpanded = !isGenreReportExpanded;
-    const container = document.getElementById("genre-breakdown-container");
-    const expandedView = document.getElementById("genre-expanded-view");
     const reportText = document.getElementById("genre-report-text");
     const reportIcon = document.getElementById("genre-report-icon");
-    
+    const grid = document.getElementById('genre-inline-grid');
+
     if (isGenreReportExpanded) {
-        // Expand with smooth transition
-        expandedView.style.maxHeight = "0px";
-        expandedView.style.opacity = "0";
-        expandedView.classList.remove("hidden");
-        
-        // Force reflow
-        expandedView.offsetHeight;
-        
-        setTimeout(() => {
-            expandedView.style.maxHeight = "600px";
-            expandedView.style.opacity = "1";
-        }, 10);
-        
+        if (grid) {
+            grid.style.maxHeight = grid.scrollHeight + 'px';
+            grid.style.maskImage = 'none';
+            grid.style.webkitMaskImage = 'none';
+        }
         reportText.textContent = "CLOSE REPORT";
         reportIcon.textContent = "expand_less";
-        
-        // Populate all genres after a brief delay
-        setTimeout(() => {
-            populateAllGenres();
-        }, 150);
     } else {
-        // Collapse with smooth transition
-        expandedView.style.maxHeight = "0px";
-        expandedView.style.opacity = "0";
-        
-        setTimeout(() => {
-            expandedView.classList.add("hidden");
-            expandedView.style.maxHeight = "";
-            expandedView.style.opacity = "";
-        }, 500);
-        
+        if (grid) {
+            grid.style.maxHeight = '130px';
+            const mask = 'linear-gradient(to bottom, black 60%, transparent 100%)';
+            grid.style.maskImage = mask;
+            grid.style.webkitMaskImage = mask;
+        }
         reportText.textContent = "VIEW FULL REPORT";
         reportIcon.textContent = "arrow_forward";
     }

@@ -250,9 +250,12 @@
 
                     <!-- Stats and Breakdown Grid -->
                     <div class="mb-8">
-                        <!-- Genre Breakdown (Full Width) -->
-                        <div id="genre-breakdown-container" class="glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden mb-8">
-                            <div class="flex justify-between items-start mb-8">
+                        <!-- Genre Row: Distribution + Radar -->
+                        <div class="grid grid-cols-12 gap-6 mb-8">
+
+                        <!-- Genre Breakdown -->
+                        <div id="genre-breakdown-container" class="col-span-12 lg:col-span-7 glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden">
+                            <div class="flex justify-between items-start mb-5">
                                 <div>
                                     <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Distribution</h3>
                                     <p class="text-sm text-slate-500">Breakdown by library volume</p>
@@ -261,60 +264,45 @@
                                     <span id="genre-report-text">VIEW FULL REPORT</span> <span id="genre-report-icon" class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
                                 </button>
                             </div>
-                            <div id="genre-content" class="flex items-center gap-12 transition-all duration-500">
-                                <!-- Custom Pie Chart Component -->
-                                <div class="relative w-48 h-48 flex-shrink-0">
-                                    <svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
-                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b" stroke-width="4"></circle>
-                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#0df2f2" stroke-dasharray="45 100" stroke-dashoffset="0" stroke-width="4"></circle>
-                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#067d7d" stroke-dasharray="25 100" stroke-dashoffset="-45" stroke-width="4"></circle>
-                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#334155" stroke-dasharray="15 100" stroke-dashoffset="-70" stroke-width="4"></circle>
-                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#0f172a" stroke-dasharray="15 100" stroke-dashoffset="-85" stroke-width="4"></circle>
+                            <div id="genre-content" class="flex items-start gap-8 transition-all duration-500">
+                                <!-- Dynamic Donut Chart -->
+                                <div class="relative w-36 h-36 flex-shrink-0 self-start sticky top-0">
+                                    <svg id="genre-donut-svg" class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b" stroke-width="3.5"></circle>
                                     </svg>
                                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span class="text-3xl font-black text-slate-100 leading-none" id="top-genre-label">RPG</span>
-                                        <span class="text-[10px] text-slate-500 uppercase tracking-tighter xirod-font">TOP GENRE</span>
+                                        <span class="text-2xl font-black text-slate-100 leading-none" id="top-genre-label">—</span>
+                                        <span class="text-[9px] text-slate-500 uppercase tracking-tighter xirod-font">TOP GENRE</span>
                                     </div>
                                 </div>
-                                <div id="genre-list-container" class="flex-1 grid grid-cols-2 gap-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="size-3 rounded-sm bg-primary shadow-[0_0_8px_rgba(13,242,242,0.5)]"></div>
-                                        <div>
-                                            <p class="text-sm font-bold text-slate-200 leading-none" id="genre-1-name">RPG</p>
-                                            <p class="text-xs text-slate-500 mt-1" id="genre-1-stat">562 Games (45%)</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="size-3 rounded-sm bg-[#067d7d]"></div>
-                                        <div>
-                                            <p class="text-sm font-bold text-slate-200 leading-none" id="genre-2-name">Action</p>
-                                            <p class="text-xs text-slate-500 mt-1" id="genre-2-stat">312 Games (25%)</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="size-3 rounded-sm bg-slate-600"></div>
-                                        <div>
-                                            <p class="text-sm font-bold text-slate-200 leading-none" id="genre-3-name">Shooter</p>
-                                            <p class="text-xs text-slate-500 mt-1" id="genre-3-stat">187 Games (15%)</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="size-3 rounded-sm bg-slate-900"></div>
-                                        <div>
-                                            <p class="text-sm font-bold text-slate-200 leading-none" id="genre-4-name">Indie</p>
-                                            <p class="text-xs text-slate-500 mt-1" id="genre-4-stat">187 Games (15%)</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Expanded View -->
-                            <div id="genre-expanded-view" class="hidden mt-8 pt-8 border-t border-slate-700/50 transition-all duration-500 ease-in-out">
-                                <h4 class="text-sm font-bold text-slate-300 mb-4 xirod-font uppercase tracking-wider">Complete Genre Breakdown</h4>
-                                <div id="all-genres-list" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                <!-- Progress-bar genre list -->
+                                <div id="genre-bar-list" class="flex-1 flex flex-col gap-3">
                                     <!-- Dynamically populated -->
                                 </div>
                             </div>
+                            <!-- Full-width breakdown section -->
+                            <div id="genre-full-breakdown" class="mt-1">
+                                <!-- Dynamically populated -->
+                            </div>
                         </div>
+
+                        <!-- Genre Radar -->
+                        <div class="col-span-12 lg:col-span-5 glass-panel rounded-2xl p-6 border border-primary/10 flex flex-col gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Radar</h3>
+                                <p class="text-sm text-slate-500">Top genres visualised</p>
+                            </div>
+                            <div class="flex justify-center flex-1 items-center">
+                                <svg id="genre-radar-svg" viewBox="0 0 310 310" class="w-full max-w-[280px]">
+                                    <!-- Dynamically populated by JS -->
+                                </svg>
+                            </div>
+                            <div id="genre-radar-stats" class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-700/50">
+                                <!-- Dynamically populated by JS -->
+                            </div>
+                        </div>
+
+                        </div><!-- end genre row grid -->
 
                         <!-- Recently Added — 3 Widgets -->
                         <div class="flex items-center gap-3 mb-2">
@@ -342,7 +330,7 @@
                             </div>
 
                             <!-- Favorites Widget -->
-                            <div class="glass-panel rounded-2xl p-5 border border-red-500/10 flex flex-col gap-4">
+                            <div class="glass-panel rounded-2xl p-5 border border-red-500/10 flex flex-col gap-4 transition-all duration-300 hover:border-red-500/40 hover:shadow-[0_0_24px_rgba(239,68,68,0.12)]">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
                                         <span class="material-symbols-outlined text-red-400 text-[18px]">favorite</span>
@@ -361,7 +349,7 @@
                             </div>
 
                             <!-- Wishlist Widget -->
-                            <div class="glass-panel rounded-2xl p-5 border border-blue-400/10 flex flex-col gap-4">
+                            <div class="glass-panel rounded-2xl p-5 border border-blue-400/10 flex flex-col gap-4 transition-all duration-300 hover:border-blue-400/40 hover:shadow-[0_0_24px_rgba(96,165,250,0.12)]">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
                                         <span class="material-symbols-outlined text-blue-400 text-[18px]">bookmark</span>
