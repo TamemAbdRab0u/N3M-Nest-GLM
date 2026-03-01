@@ -292,6 +292,9 @@ async function loadInitialData() {
         
         allUserGames = await response.json();
         updateLibraryStats(allUserGames);
+        loadRecentActivity();
+        loadRecentFavorites();
+        loadRecentWishlist();
         
         // Initial view is owned games
         switchCarouselView('owned');
@@ -692,24 +695,114 @@ function toggleOtherStats() {
     if (popup) popup.classList.toggle("hidden");
 }
 
-async function loadRecentActivity() {
-    const list = document.getElementById("recent-activity-list");
-    if (!list || allUserGames.length === 0) return;
-    
-    list.innerHTML = "";
-    allUserGames.slice(0, 4).forEach(game => {
-        const gameImg = game.gameImageUrl || "../../Assets/Images/Bg1.jpg";
-        const item = document.createElement("div");
-        item.className = "glass-panel p-3 rounded-xl flex gap-4 hover:bg-primary/5 transition-all cursor-pointer glow-border";
-        item.innerHTML = `
-            <div class="size-16 rounded-lg bg-slate-800 overflow-hidden">
-                <img src="${gameImg}" class="w-full h-full object-cover" onerror="this.src='../../Assets/Images/Bg1.jpg'">
-            </div>
-            <div class="flex-1 py-1">
-                <p class="text-sm font-bold text-white mb-1 uppercase">${game.gameTitle}</p>
-                <p class="text-[10px] text-slate-500 xirod-font uppercase">STATUS: ${game.gamestatus || "LIBRARY"}</p>
+// ─── Shared helper for all three recent-games widgets ────────────────────────
+function _parseDate(dateStr) {
+    if (!dateStr) return new Date(0);
+    const iso = dateStr.toString().replace(' ', 'T').replace(/Z?$/, 'Z');
+    return new Date(iso);
+}
+
+function _relativeTime(dateStr) {
+    const date = _parseDate(dateStr);
+    if (!dateStr || isNaN(date)) return null;
+    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (diff < 60)      return `${diff}s ago`;
+    if (diff < 3600)    return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400)   return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+const _statusLabels = {
+    'playing':   { label: 'Playing',   color: 'text-primary',    icon: 'play_circle' },
+    '1':         { label: 'Playing',   color: 'text-primary',    icon: 'play_circle' },
+    'completed': { label: 'Completed', color: 'text-green-400',  icon: 'task_alt' },
+    '3':         { label: 'Completed', color: 'text-green-400',  icon: 'task_alt' },
+    'dropped':   { label: 'Dropped',   color: 'text-red-400',    icon: 'do_not_disturb_on' },
+    '4':         { label: 'Dropped',   color: 'text-red-400',    icon: 'do_not_disturb_on' },
+    'onhold':    { label: 'On Hold',   color: 'text-yellow-400', icon: 'pause_circle' },
+    '5':         { label: 'On Hold',   color: 'text-yellow-400', icon: 'pause_circle' },
+    'pending':   { label: 'Pending',   color: 'text-slate-400',  icon: 'schedule' },
+    '6':         { label: 'Pending',   color: 'text-slate-400',  icon: 'schedule' },
+};
+
+function renderRecentGames(listId, games, cfg) {
+    // cfg = { emptyIcon, emptyMsg, viewHref, accentColor, statusOverride }
+    const list = document.getElementById(listId);
+    if (!list) return;
+
+    const sorted = [...games]
+        .sort((a, b) => _parseDate(b.addedAt) - _parseDate(a.addedAt))
+        .slice(0, 3);
+
+    if (sorted.length === 0) {
+        list.innerHTML = `
+            <div class="py-6 text-center text-slate-600">
+                <span class="material-symbols-outlined text-3xl mb-1 block opacity-30">${cfg.emptyIcon}</span>
+                <p class="text-[10px] xirod-font uppercase tracking-wider">${cfg.emptyMsg}</p>
             </div>`;
-        list.appendChild(item);
+        return;
+    }
+
+    list.innerHTML = '';
+    sorted.forEach((game, i) => {
+        const img   = game.gameImageUrl || '../../Assets/Images/Bg1.jpg';
+        const sKey  = String(game.gamestatus).toLowerCase();
+        const st    = cfg.statusOverride || _statusLabels[sKey] || { label: 'Library', color: 'text-slate-400', icon: 'inventory_2' };
+        const time  = _relativeTime(game.addedAt);
+
+        const row = document.createElement('div');
+        row.className = `flex gap-3 items-center p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer group`;
+        row.style.animationDelay = `${i * 60}ms`;
+        row.onclick = () => window.location.href = cfg.viewHref;
+        row.innerHTML = `
+            <div class="relative size-12 rounded-lg bg-slate-800 overflow-hidden flex-shrink-0 shadow-md">
+                <img src="${img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='../../Assets/Images/Bg1.jpg'">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold text-white truncate group-hover:${cfg.accentText} transition-colors uppercase">${game.gameTitle}</p>
+                <div class="flex items-center gap-1 mt-0.5">
+                    <span class="material-symbols-outlined text-[11px] ${st.color}">${st.icon}</span>
+                    <span class="text-[10px] xirod-font ${st.color}">${st.label}</span>
+                </div>
+                ${time ? `<p class="text-[9px] text-slate-600 mt-0.5">${time}</p>` : ''}
+            </div>
+            <span class="material-symbols-outlined text-[16px] text-slate-700 group-hover:${cfg.accentText} transition-colors">chevron_right</span>`;
+        list.appendChild(row);
+    });
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function loadRecentActivity() {
+    const libraryGames = allUserGames.filter(g => g.gamestatus !== 'whishlist' && g.gamestatus !== 2);
+    renderRecentGames('recent-activity-list', libraryGames, {
+        emptyIcon:   'inventory_2',
+        emptyMsg:    'No games in library yet',
+        viewHref:    '../../Dashboard/Html/dashboard.html?view=library',
+        accentText:  'text-primary',
+    });
+}
+
+function loadRecentFavorites() {
+    const favGames = allUserGames.filter(g => g.isFavorite === true);
+    renderRecentGames('recent-favorites-list', favGames, {
+        emptyIcon:   'heart_plus',
+        emptyMsg:    'No favorites yet',
+        viewHref:    '../../Dashboard/Html/dashboard.html?view=favorites',
+        accentText:  'text-red-400',
+        statusOverride: { label: 'Favorite', color: 'text-red-400', icon: 'favorite' },
+    });
+}
+
+function loadRecentWishlist() {
+    const wishGames = allUserGames.filter(g => g.isInWishlist === true);
+    renderRecentGames('recent-wishlist-list', wishGames, {
+        emptyIcon:   'bookmark_add',
+        emptyMsg:    'Wishlist is empty',
+        viewHref:    '../../Dashboard/Html/dashboard.html?view=wishlist',
+        accentText:  'text-blue-400',
+        statusOverride: { label: 'Wishlisted', color: 'text-blue-400', icon: 'bookmark' },
     });
 }
 

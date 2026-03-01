@@ -249,9 +249,9 @@
                     </section>
 
                     <!-- Stats and Breakdown Grid -->
-                    <div class="grid grid-cols-12 gap-8 mb-12">
-                        <!-- Genre Breakdown -->
-                        <div id="genre-breakdown-container" class="col-span-12 lg:col-span-7 glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden">
+                    <div class="mb-8">
+                        <!-- Genre Breakdown (Full Width) -->
+                        <div id="genre-breakdown-container" class="glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden mb-8">
                             <div class="flex justify-between items-start mb-8">
                                 <div>
                                     <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Distribution</h3>
@@ -266,13 +266,9 @@
                                 <div class="relative w-48 h-48 flex-shrink-0">
                                     <svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
                                         <circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b" stroke-width="4"></circle>
-                                        <!-- RPG (45%) -->
                                         <circle cx="18" cy="18" fill="transparent" r="16" stroke="#0df2f2" stroke-dasharray="45 100" stroke-dashoffset="0" stroke-width="4"></circle>
-                                        <!-- FPS (25%) -->
                                         <circle cx="18" cy="18" fill="transparent" r="16" stroke="#067d7d" stroke-dasharray="25 100" stroke-dashoffset="-45" stroke-width="4"></circle>
-                                        <!-- Strategy (15%) -->
                                         <circle cx="18" cy="18" fill="transparent" r="16" stroke="#334155" stroke-dasharray="15 100" stroke-dashoffset="-70" stroke-width="4"></circle>
-                                        <!-- Others (15%) -->
                                         <circle cx="18" cy="18" fill="transparent" r="16" stroke="#0f172a" stroke-dasharray="15 100" stroke-dashoffset="-85" stroke-width="4"></circle>
                                     </svg>
                                     <div class="absolute inset-0 flex flex-col items-center justify-center">
@@ -320,22 +316,69 @@
                             </div>
                         </div>
 
-                        <!-- Recently Played (Adapting to "Recent Activity") -->
-                        <div class="col-span-12 lg:col-span-5 flex flex-col gap-4">
-                            <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2 italic">
-                                <span class="material-symbols-outlined text-primary">bolt</span>
-                                Recent Activity
-                            </h3>
-                            <div class="flex flex-col gap-3" id="recent-activity-list">
-                                <!-- Placeholders loaded by dynamic script -->
-                                <div class="glass-panel p-3 rounded-xl flex gap-4 hover:bg-primary/5 transition-all cursor-pointer glow-border opacity-50">
-                                    <div class="size-16 rounded-lg bg-slate-800 animate-pulse"></div>
-                                    <div class="flex-1 py-1">
-                                        <div class="h-4 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div>
-                                        <div class="h-3 bg-slate-800 rounded w-1/2 animate-pulse"></div>
+                        <!-- Recently Added — 3 Widgets -->
+                        <div class="flex items-center gap-3 mb-2">
+                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Your Recent Activity</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                            <!-- Library Widget -->
+                            <div class="glass-panel rounded-2xl p-5 glow-border flex flex-col gap-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span class="material-symbols-outlined text-primary text-[18px]">inventory_2</span>
+                                        Library
+                                    </h3>
+                                    <a href="../../Dashboard/Html/dashboard.html?view=library" class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all">
+                                        ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                    </a>
+                                </div>
+                                <div class="flex flex-col gap-2.5" id="recent-activity-list">
+                                    <div class="flex gap-3 items-center opacity-40">
+                                        <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
+                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Favorites Widget -->
+                            <div class="glass-panel rounded-2xl p-5 border border-red-500/10 flex flex-col gap-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span class="material-symbols-outlined text-red-400 text-[18px]">favorite</span>
+                                        Favorites
+                                    </h3>
+                                    <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="text-[10px] xirod-font text-red-400/60 hover:text-red-400 flex items-center gap-0.5 transition-all">
+                                        ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                    </a>
+                                </div>
+                                <div class="flex flex-col gap-2.5" id="recent-favorites-list">
+                                    <div class="flex gap-3 items-center opacity-40">
+                                        <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
+                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wishlist Widget -->
+                            <div class="glass-panel rounded-2xl p-5 border border-blue-400/10 flex flex-col gap-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span class="material-symbols-outlined text-blue-400 text-[18px]">bookmark</span>
+                                        Wishlist
+                                    </h3>
+                                    <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="text-[10px] xirod-font text-blue-400/60 hover:text-blue-400 flex items-center gap-0.5 transition-all">
+                                        ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                    </a>
+                                </div>
+                                <div class="flex flex-col gap-2.5" id="recent-wishlist-list">
+                                    <div class="flex gap-3 items-center opacity-40">
+                                        <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
+                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 

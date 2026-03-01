@@ -282,7 +282,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                 // Determine if in library based on status
                 // Backend returns enum as string "whishlist" or int 2
                 const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
-                const inWishlist = ug.gamestatus === 'whishlist' || ug.gamestatus === 2;
+                const inWishlist = ug.isInWishlist === true;
                 
                 return {
                     externalId: ug.externalId, 
@@ -410,7 +410,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                                 ...game,
                                 isFavorite: ug.isFavorite,
                                 isInLibrary: ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2,
-                                isInWishlist: ug.gamestatus === 'whishlist' || ug.gamestatus === 2,
+                                isInWishlist: ug.isInWishlist === true,
                                 gamestatus: ug.gamestatus
                             };
                         }
@@ -616,10 +616,10 @@ function createGameCard(game) {
         return null;
     };
 
-    const statusObj = getStatusIcon(game.gamestatus);
+    const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
     
     // Check if status is Pending (either string name or enum ID)
-    const isPending = String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6';
+    const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
     
     const gameStatusIndicator = isPending ? `
         <div data-status-for="${gameId}" class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
@@ -632,6 +632,10 @@ function createGameCard(game) {
 
     const inventoryIndicators = `
         <div data-inventory-for="${gameId}" class="flex justify-end gap-2 mt-2">
+            ${game.isInWishlist ? `
+                <div class="h-7 w-7 rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-blue-400/10" title="In Wishlist">
+                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon">bookmark</span>
+                </div>` : ''}
             ${game.isFavorite ? `
                 <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
                     <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
@@ -687,14 +691,14 @@ function createGameCard(game) {
     const libClass = game.isInLibrary ? 'text-green-500' : 'text-white/70 hover:text-primary';
     const wishlistClass = game.isInWishlist ? 'text-blue-400' : 'text-white/70 hover:text-blue-400';
 
-    // Mutual exclusivity and management disabling
-    const isFavDisabled = currentView === 'wishlist' || game.isInWishlist;
-    const isLibDisabled = currentView === 'favorites' || currentView === 'wishlist' || game.isInWishlist;
-    const isWishlistDisabled = currentView === 'favorites' || currentView === 'library' || game.isFavorite || game.isInLibrary;
+    // Wishlist is mutually exclusive with Library and Favorite
+    const isFavDisabled = game.isInWishlist === true;
+    const isLibDisabled = game.isInWishlist === true;
+    const isWishlistDisabled = game.isFavorite === true || game.isInLibrary === true;
 
-    const favTitleMsg = isFavDisabled ? (game.isInWishlist ? 'Cannot favorite wishlisted games' : 'Management disabled in this view') : favTitle;
-    const libTitleMsg = isLibDisabled ? (game.isInWishlist ? 'Cannot add wishlisted games to library' : 'Management disabled in this view') : libTitle;
-    const wishTitleMsg = isWishlistDisabled ? (game.isFavorite ? 'Cannot wishlist favorite games' : (game.isInLibrary ? 'Cannot wishlist games already in library' : 'Management disabled in this view')) : wishlistTitle;
+    const favTitleMsg = isFavDisabled ? 'Remove from Wishlist first' : favTitle;
+    const libTitleMsg = isLibDisabled ? 'Remove from Wishlist first' : libTitle;
+    const wishTitleMsg = isWishlistDisabled ? (game.isInLibrary ? 'Remove from Library first' : 'Remove from Favorites first') : wishlistTitle;
 
     card.innerHTML = `
         <!-- Image & Actions -->
@@ -1200,11 +1204,17 @@ function updateStatusIndicators(gameId, game) {
         return null;
     };
 
-    const statusObj = getStatusIcon(game.gamestatus);
-    const isPending = String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6';
+    const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
+    const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
 
     // Update Image Status
     statusContainers.forEach(container => {
+        if (!game.isInLibrary) {
+            // Not in library — clear status icon entirely
+            container.className = '';
+            container.innerHTML = '';
+            return;
+        }
         if (isPending) {
             container.className = 'absolute bottom-3 right-3 z-10 transition-all duration-500';
             container.innerHTML = `
@@ -1223,6 +1233,10 @@ function updateStatusIndicators(gameId, game) {
     // Update Inventory Indicators (Below title)
     inventoryContainers.forEach(container => {
         container.innerHTML = `
+            ${game.isInWishlist ? `
+                <div class="h-7 w-7 rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-blue-400/10" title="In Wishlist">
+                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon">bookmark</span>
+                </div>` : ''}
             ${game.isFavorite ? `
                 <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
                     <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
@@ -1235,83 +1249,64 @@ function updateStatusIndicators(gameId, game) {
     });
 
     // Update Overlay Buttons
+    const favLocked = game.isInWishlist === true;
+    const libLocked = game.isInWishlist === true;
+    const wishLocked = game.isFavorite === true || game.isInLibrary === true;
+
     favButtons.forEach(btn => {
         btn.classList.remove('text-red-500', 'text-white/70', 'hover:text-red-400', 'opacity-40', 'cursor-not-allowed');
-        const isFavLocked = game.isInWishlist;
-        btn.disabled = isFavLocked || (currentView === 'wishlist' || currentView === 'library');
-
+        btn.disabled = favLocked;
         const icon = btn.querySelector('.material-symbols-outlined');
-        if (game.isFavorite) {
+        if (favLocked) {
+            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
+            btn.title = 'Remove from Wishlist first';
+            if (icon) icon.classList.remove('fill-icon');
+        } else if (game.isFavorite) {
             btn.classList.add('text-red-500');
+            btn.title = 'Remove from Favorites';
             if (icon) icon.classList.add('fill-icon');
         } else {
-            btn.classList.add('text-white/70');
-            if (isFavLocked) {
-                btn.classList.add('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Cannot favorite wishlisted games';
-            } else {
-                btn.classList.add('hover:text-red-400', 'hover:text-white');
-            }
+            btn.classList.add('text-white/70', 'hover:text-red-400');
+            btn.title = 'Add to Favorites';
             if (icon) icon.classList.remove('fill-icon');
         }
     });
 
     libButtons.forEach(btn => {
-        // Clean old colors
         btn.classList.remove('text-green-500', 'text-white/70', 'hover:text-primary', 'opacity-40', 'cursor-not-allowed');
-        const isLibLocked = game.isInWishlist;
-        btn.disabled = isLibLocked || (currentView === 'favorites' || currentView === 'wishlist');
-
+        btn.disabled = libLocked;
         const icon = btn.querySelector('.material-symbols-outlined');
-        if (game.isInLibrary) {
+        if (libLocked) {
+            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
+            btn.title = 'Remove from Wishlist first';
+            if (icon) { icon.textContent = 'inventory_2'; icon.classList.remove('fill-icon'); }
+        } else if (game.isInLibrary) {
             btn.classList.add('text-green-500');
             btn.title = 'Remove from Library';
-            if (icon) {
-                icon.textContent = 'inventory_2';
-                icon.classList.add('fill-icon');
-            }
+            if (icon) { icon.textContent = 'inventory_2'; icon.classList.add('fill-icon'); }
         } else {
-            btn.classList.add('text-white/70');
-            if (isLibLocked) {
-                btn.classList.add('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Cannot add wishlisted games to library';
-            } else {
-                btn.classList.add('hover:text-primary', 'hover:text-white');
-            }
+            btn.classList.add('text-white/70', 'hover:text-primary');
             btn.title = 'Add to Library';
-            if (icon) {
-                icon.textContent = 'inventory_2';
-                icon.classList.remove('fill-icon');
-            }
+            if (icon) { icon.textContent = 'inventory_2'; icon.classList.remove('fill-icon'); }
         }
     });
 
     wishButtons.forEach(btn => {
         btn.classList.remove('text-blue-400', 'text-white/70', 'hover:text-blue-400', 'opacity-40', 'cursor-not-allowed');
-        const isWishLocked = game.isFavorite || game.isInLibrary;
-        btn.disabled = isWishLocked || (currentView === 'favorites' || currentView === 'library');
-
+        btn.disabled = wishLocked;
         const icon = btn.querySelector('.material-symbols-outlined');
-        if (game.isInWishlist) {
+        if (wishLocked) {
+            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
+            btn.title = game.isInLibrary ? 'Remove from Library first' : 'Remove from Favorites first';
+            if (icon) { icon.textContent = 'bookmark'; icon.classList.remove('fill-icon'); }
+        } else if (game.isInWishlist) {
             btn.classList.add('text-blue-400');
             btn.title = 'Remove from Wishlist';
-            if (icon) {
-                icon.textContent = 'bookmark';
-                icon.classList.add('fill-icon');
-            }
+            if (icon) { icon.textContent = 'bookmark'; icon.classList.add('fill-icon'); }
         } else {
-            btn.classList.add('text-white/70');
-            if (isWishLocked) {
-                btn.classList.add('opacity-40', 'cursor-not-allowed');
-                btn.title = game.isFavorite ? 'Cannot wishlist favorite games' : 'Cannot wishlist games already in library';
-            } else {
-                btn.classList.add('hover:text-blue-400', 'hover:text-white');
-            }
+            btn.classList.add('text-white/70', 'hover:text-blue-400');
             btn.title = 'Add to Wishlist';
-            if (icon) {
-                icon.textContent = 'bookmark';
-                icon.classList.remove('fill-icon');
-            }
+            if (icon) { icon.textContent = 'bookmark'; icon.classList.remove('fill-icon'); }
         }
     });
 }
@@ -1405,7 +1400,7 @@ function updateLibraryUI(gameId, isInLibrary) {
          cachedGame.isInLibrary = isInLibrary;
          if (isInLibrary) {
              cachedGame.gamestatus = 6; // Pending
-             cachedGame.isInWishlist = false;
+             // isInWishlist and isFavorite are untouched — independent
          } else {
              cachedGame.gamestatus = null;
          }
@@ -1442,9 +1437,7 @@ function updateWishlistUI(gameId, isInWishlist) {
     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
     if (cachedGame) {
         cachedGame.isInWishlist = isInWishlist;
-        // If on wishlist, it cannot be favorite
-        if (isInWishlist) cachedGame.isFavorite = false;
-        
+        // isFavorite and isInLibrary are untouched — all three are independent
         updateStatusIndicators(gameId, cachedGame);
     }
 
@@ -1465,50 +1458,6 @@ function updateWishlistUI(gameId, isInWishlist) {
                 iconSpan.textContent = 'bookmark';
                 iconSpan.classList.remove('fill-icon');
                 btn.title = 'Add to Wishlist';
-            }
-        }
-    });
-
-    // Handle mutual exclusivity in UI (disable/enable corresponding fav & lib buttons)
-    const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
-    const libButtons = document.querySelectorAll(`[data-lib-btn-for="${gameId}"]`);
-
-    favButtons.forEach(btn => {
-        if (isInWishlist) {
-            btn.disabled = true;
-            btn.classList.add('opacity-40', 'cursor-not-allowed');
-            btn.title = 'Cannot favorite wishlisted games';
-            btn.classList.remove('text-red-500');
-            btn.classList.add('text-white/70');
-            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
-        } else {
-            const isFavDisabledByView = currentView === 'library' || currentView === 'wishlist';
-            btn.disabled = isFavDisabledByView;
-            if (!isFavDisabledByView) {
-                btn.classList.remove('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Add to Favorites';
-            } else {
-                btn.title = 'Management disabled in this view';
-            }
-        }
-    });
-
-    libButtons.forEach(btn => {
-        if (isInWishlist) {
-            btn.disabled = true;
-            btn.classList.add('opacity-40', 'cursor-not-allowed');
-            btn.title = 'Cannot add wishlisted games to library';
-            btn.classList.remove('text-green-500');
-            btn.classList.add('text-white/70');
-            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
-        } else {
-            const isLibDisabledByView = currentView === 'favorites' || currentView === 'wishlist';
-            btn.disabled = isLibDisabledByView;
-            if (!isLibDisabledByView) {
-                btn.classList.remove('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Add to Library';
-            } else {
-                btn.title = 'Management disabled in this view';
             }
         }
     });

@@ -76,7 +76,7 @@ namespace Game_Library_Management_BL.Services.Services
                 var userGames = await unitofwork.UserGames.Query()
                     .Include(ug => ug.Game)
                     .Where(ug => ug.UserId == userId)
-                    .Select(ug => new { ug.Game.ExternalId, ug.IsFavorite, ug.Gamestatus })
+                    .Select(ug => new { ug.Game.ExternalId, ug.IsFavorite, ug.Gamestatus, ug.IsInWishlist })
                     .ToListAsync();
 
                 foreach (var game in games)
@@ -85,7 +85,7 @@ namespace Game_Library_Management_BL.Services.Services
                     if (userGame != null)
                     {
                         game.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
-                        game.IsInWishlist = userGame.Gamestatus == Gamestatus.whishlist;
+                        game.IsInWishlist = userGame.IsInWishlist;
                         game.IsFavorite = userGame.IsFavorite;
                     }
                 }
@@ -162,7 +162,7 @@ namespace Game_Library_Management_BL.Services.Services
                 var userGames = await unitofwork.UserGames.Query()
                     .Include(ug => ug.Game)
                     .Where(ug => ug.UserId == userId)
-                    .Select(ug => new { ug.Game.ExternalId, ug.IsFavorite, ug.Gamestatus }) // Updated Projection
+                    .Select(ug => new { ug.Game.ExternalId, ug.IsFavorite, ug.Gamestatus, ug.IsInWishlist })
                     .ToListAsync();
 
                 foreach (var game in games)
@@ -170,9 +170,8 @@ namespace Game_Library_Management_BL.Services.Services
                     var userGame = userGames.FirstOrDefault(ug => ug.ExternalId == game.ExternalId);
                     if (userGame != null)
                     {
-                        // Check if in library based on status
                         game.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
-                        game.IsInWishlist = userGame.Gamestatus == Gamestatus.whishlist;
+                        game.IsInWishlist = userGame.IsInWishlist;
                         game.IsFavorite = userGame.IsFavorite;
                     }
                 }
@@ -258,22 +257,37 @@ namespace Game_Library_Management_BL.Services.Services
 
             if (userGame == null)
             {
+                // No row yet — create one flagged as favorite only (no library, no wishlist)
                 userGame = new UserGame
                 {
                     UserId = userId,
                     GameId = game.Id,
                     IsFavorite = true,
-                    Gamestatus = Gamestatus.whishlist, // Default for favorites
-                    Rating = 0 // Initialize
+                    IsInWishlist = false,
+                    Gamestatus = Gamestatus.whishlist, // sentinel: exists but not in library
+                    Rating = 0
                 };
                 await unitofwork.UserGames.Add(userGame);
-            }
-            else
-            {
-                userGame.IsFavorite = !userGame.IsFavorite;
-                await unitofwork.UserGames.Update(userGame);
+                unitofwork.Save();
+                return true;
             }
 
+            // Block: game is on wishlist
+            if (userGame.IsInWishlist)
+                return false;
+
+            userGame.IsFavorite = !userGame.IsFavorite;
+
+            // If nothing keeps this row alive, delete it
+            bool hasLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+            if (!userGame.IsFavorite && !hasLibrary && !userGame.IsInWishlist)
+            {
+                await unitofwork.UserGames.DeleteAsync(userGame);
+                unitofwork.Save();
+                return false;
+            }
+
+            await unitofwork.UserGames.Update(userGame);
             unitofwork.Save();
             return userGame.IsFavorite;
         }
@@ -288,50 +302,48 @@ namespace Game_Library_Management_BL.Services.Services
 
             if (userGame != null)
             {
-                // Toggle Logic:
-                // If currently "In Library" (not just wishlist), remove.
-                // If currently "Not in Library" (wishlist or null), add.
-                
-                // Check if currently considered "In Library" (Playing/Completed/etc)
                 bool currentlyInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+
+                // Block: game is on wishlist (only allow toggle-off if already in library)
+                if (!currentlyInLibrary && userGame.IsInWishlist)
+                    return false;
 
                 if (currentlyInLibrary)
                 {
-                    // Remove from library
-                    if (userGame.IsFavorite)
+                    // Remove from library — keep row alive if still favorited or wishlisted
+                    userGame.Gamestatus = Gamestatus.whishlist; // sentinel: not in library
+                    if (!userGame.IsFavorite && !userGame.IsInWishlist)
                     {
-                        // Downgrade to just favorite (wishlist)
-                        userGame.Gamestatus = Gamestatus.whishlist;
-                        await unitofwork.UserGames.Update(userGame);
-                        unitofwork.Save();
-                        return false; // Result: Not in library
+                        await unitofwork.UserGames.DeleteAsync(userGame);
                     }
                     else
                     {
-                        // Not favorite, so just delete
-                        await unitofwork.UserGames.DeleteAsync(userGame);
-                        unitofwork.Save();
-                        return false; // Result: Not in library
+                        await unitofwork.UserGames.Update(userGame);
                     }
+                    unitofwork.Save();
+                    return false;
                 }
                 else
                 {
-                    // Currently wishlist (favorite only), so upgrade to library
+                    // Row exists but not in library — add to library (preserve wishlist & favorite)
                     userGame.Gamestatus = Gamestatus.Pending;
+                    userGame.AddedAt = DateTime.UtcNow;
                     await unitofwork.UserGames.Update(userGame);
                     unitofwork.Save();
-                    return true; // Result: In library
+                    return true;
                 }
             }
 
-            // New entry -> Add to library
+            // Brand new entry — add to library only
             userGame = new UserGame
             {
                 UserId = userId,
                 GameId = game.Id,
                 IsFavorite = false,
+                IsInWishlist = false,
                 Gamestatus = Gamestatus.Pending,
-                Rating = 0
+                Rating = 0,
+                AddedAt = DateTime.UtcNow
             };
 
             await unitofwork.UserGames.Add(userGame);
@@ -349,47 +361,39 @@ namespace Game_Library_Management_BL.Services.Services
 
             if (userGame != null)
             {
-                // If it's already wishlist, remove (if not favorite)
-                // If it's something else (playing, etc.), we don't necessarily want to toggle status?
-                // The user's request is "add the game to wishlist". 
-                // Let's implement it as toggle wishlist status.
-                
-                if (userGame.Gamestatus == Gamestatus.whishlist)
+                // Block: game is in library or marked as favorite
+                bool currentlyInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+                if (!userGame.IsInWishlist && (currentlyInLibrary || userGame.IsFavorite))
+                    return false;
+
+                // Simply toggle the dedicated bool — never touches library status or favorite
+                userGame.IsInWishlist = !userGame.IsInWishlist;
+
+                if (!userGame.IsInWishlist)
                 {
-                    // If also not favorite, delete entirely.
-                    if (!userGame.IsFavorite)
+                    // Removing from wishlist — delete row if nothing else keeps it
+                    bool hasLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+                    if (!hasLibrary && !userGame.IsFavorite)
                     {
-                        await unitofwork.UserGames.DeleteAsync(userGame);
-                        unitofwork.Save();
-                        return false; // No longer in any status
-                    }
-                    else
-                    {
-                        // Stay as wishlist but we can't really "remove" it without deleting usergame 
-                        // if we want to toggle. Let's just say if they click again, they intended something.
-                        // For now, let's keep it simple: if it's wishlist, it clears the entry if not favorite.
                         await unitofwork.UserGames.DeleteAsync(userGame);
                         unitofwork.Save();
                         return false;
                     }
                 }
-                else
-                {
-                    // Downgrade playing/completed to wishlist
-                    userGame.Gamestatus = Gamestatus.whishlist;
-                    await unitofwork.UserGames.Update(userGame);
-                    unitofwork.Save();
-                    return true;
-                }
+
+                await unitofwork.UserGames.Update(userGame);
+                unitofwork.Save();
+                return userGame.IsInWishlist;
             }
 
-            // New entry -> Add to wishlist
+            // Brand new entry — wishlist only (no library status)
             userGame = new UserGame
             {
                 UserId = userId,
                 GameId = game.Id,
                 IsFavorite = false,
-                Gamestatus = Gamestatus.whishlist,
+                IsInWishlist = true,
+                Gamestatus = Gamestatus.whishlist, // sentinel: not in library
                 Rating = 0
             };
 
