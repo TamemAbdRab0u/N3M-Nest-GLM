@@ -744,7 +744,7 @@ function createGameCard(game) {
         <div class="p-6">
             <div class="flex items-start justify-between mb-2 gap-3">
                 <div class="overflow-hidden flex-1">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
+                    <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">${category}</p>
                 </div>
                 <div class="flex flex-col items-end">

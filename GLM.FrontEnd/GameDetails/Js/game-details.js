@@ -314,6 +314,43 @@ function setMainVideo(g = null) {
     if (label) label.textContent = "Official Trailer";
     if (title) title.textContent = "Cinematic Experience";
 
+    // Seek bar starts hidden — click video to toggle
+    const videoControls = document.getElementById('video-controls');
+    if (videoControls) videoControls.classList.add('hidden');
+
+    // Toggle seek bar on video click
+    trailer.onclick = () => {
+        if (videoControls) videoControls.classList.toggle('hidden');
+    };
+
+    // Wire up time events (remove old listeners first to avoid stacking)
+    trailer.removeEventListener('timeupdate', updateVideoProgress);
+    trailer.removeEventListener('loadedmetadata', updateVideoMeta);
+    trailer.addEventListener('timeupdate', updateVideoProgress);
+    trailer.addEventListener('loadedmetadata', updateVideoMeta);
+    if (trailer.readyState >= 1) updateVideoMeta(); // already loaded
+
+    // Seek bar click + drag (stop propagation so it doesn't toggle visibility)
+    const seekBar = document.getElementById('video-seek-bar');
+    if (seekBar) {
+        seekBar.onmousedown = (e) => {
+            e.stopPropagation();
+            const seek = (ev) => {
+                const rect = seekBar.getBoundingClientRect();
+                const pct = Math.min(1, Math.max(0, (ev.clientX - rect.left) / rect.width));
+                if (trailer.duration) trailer.currentTime = pct * trailer.duration;
+            };
+            seek(e);
+            const onMove = (ev) => seek(ev);
+            const onUp = () => {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        };
+    }
+
     playBtn.onclick = () => {
         if (trailer.paused) {
             trailer.play();
@@ -349,6 +386,10 @@ function setMainMedia(url, index) {
     placeholder.src = url;
     placeholder.classList.remove('hidden');
     playBtn.classList.add('hidden');
+
+    // Hide seek bar
+    const videoControls = document.getElementById('video-controls');
+    if (videoControls) videoControls.classList.add('hidden');
     
     if (label) label.textContent = `Screenshot ${index + 1}`;
     if (title) title.textContent = `Gallery Preview`;
@@ -637,6 +678,33 @@ function switchTab(tab) {
     });
     document.getElementById(`tab-${tab}`)?.classList.add('active-tab');
     document.getElementById(`panel-${tab}`)?.classList.remove('hidden');
+}
+
+/* ──────────────────────────────────────────────
+   Video seek bar helpers
+────────────────────────────────────────────── */
+function formatVideoTime(seconds) {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function updateVideoProgress() {
+    const trailer = document.getElementById('main-trailer');
+    const fill = document.getElementById('video-seek-fill');
+    const currentEl = document.getElementById('video-current-time');
+    if (!trailer || !fill) return;
+    const pct = trailer.duration ? (trailer.currentTime / trailer.duration) * 100 : 0;
+    fill.style.width = pct + '%';
+    if (currentEl) currentEl.textContent = formatVideoTime(trailer.currentTime);
+}
+
+function updateVideoMeta() {
+    const trailer = document.getElementById('main-trailer');
+    const totalEl = document.getElementById('video-total-time');
+    if (!trailer || !totalEl) return;
+    totalEl.textContent = formatVideoTime(trailer.duration);
 }
 
 /* ──────────────────────────────────────────────
