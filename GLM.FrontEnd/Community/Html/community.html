@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Community Chat - N3M|Nest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0df2f2",
+                        "background-dark": "#080f0f",
+                        "surface-dark": "#121d1d",
+                        "input-bg": "#1e292b",
+                        "input-border": "#2e616b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body":    ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="../Css/community.css">
+</head>
+<body class="bg-background-dark text-slate-200 font-body h-screen flex overflow-hidden">
+
+    <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
+    <aside class="w-20 lg:w-64 flex-shrink-0 bg-[#0a1618] border-r border-[#1e293b] flex flex-col transition-all duration-300 z-20">
+        <div class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-[#1e293b]">
+            <div class="h-8 w-8 relative">
+                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain">
+            </div>
+            <span class="hidden lg:block ml-3 neon-xirod font-bold text-lg tracking-wide">
+                N3M<span class="mx-0.5">|</span>Nest
+            </span>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
+            <a href="../../Dashboard/Html/dashboard.html?view=catalog" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="hidden lg:block font-medium">Dashboard</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=library" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors">
+                <span class="material-symbols-outlined">stadia_controller</span>
+                <span class="hidden lg:block font-medium">My Library</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors">
+                <span class="material-symbols-outlined">favorite</span>
+                <span class="hidden lg:block font-medium">Favorites</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors">
+                <span class="material-symbols-outlined">bookmark</span>
+                <span class="hidden lg:block font-medium">Wishlist</span>
+            </a>
+            <a href="community.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-primary bg-primary/10 border border-primary/20 transition-colors">
+                <span class="material-symbols-outlined">group</span>
+                <span class="hidden lg:block font-medium">Community</span>
+            </a>
+            <div class="my-2 border-t border-[#1e293b]"></div>
+            <a href="../../Dashboard/Html/dashboard.html?view=settings" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="hidden lg:block font-medium">Settings</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t border-[#1e293b]">
+            <div class="flex items-center gap-3 cursor-pointer p-2 rounded-xl border border-primary/40 bg-primary/10">
+                <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold shadow-lg overflow-hidden">
+                    <span id="sidebar-avatar" class="flex items-center justify-center w-full h-full text-sm">U</span>
+                </div>
+                <div class="hidden lg:block overflow-hidden">
+                    <p id="sidebar-username" class="text-xs xirod-font text-white truncate">User</p>
+                    <p class="text-xs text-slate-400 flex items-center gap-1">
+                        <span class="size-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>Online
+                    </p>
+                </div>
+                <button onclick="logout()" class="ml-auto text-slate-400 hover:text-red-400 transition-colors lg:block hidden" title="Logout">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ══ MAIN LAYOUT ══════════════════════════════════════════════════════ -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+
+        <!-- Top Bar -->
+        <header class="h-16 bg-[#0a1618]/80 backdrop-blur-md border-b border-[#1e293b] flex items-center px-6 gap-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="size-9 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-[20px]">forum</span>
+                </div>
+                <div>
+                    <h1 class="text-sm font-black xirod-font text-white tracking-wider">COMMUNITY CHAT</h1>
+                    <p class="text-[10px] text-slate-500" id="online-count-label">— online</p>
+                </div>
+            </div>
+            <!-- Connection Status -->
+            <div class="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] xirod-font" id="conn-status-badge">
+                <span class="size-2 rounded-full" id="conn-dot"></span>
+                <span id="conn-label">Connecting…</span>
+            </div>
+        </header>
+
+        <!-- Body -->
+        <div class="flex-1 flex overflow-hidden">
+
+            <!-- ── Chat Area ─────────────────────────────────────────────── -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+
+                <!-- Messages Scroll Area -->
+                <div id="messages-container" class="flex-1 overflow-y-auto px-6 py-4 space-y-1 scroll-smooth custom-scrollbar">
+                    <!-- Messages rendered here -->
+                    <div id="chat-loading" class="flex flex-col items-center justify-center h-full gap-3 text-slate-600">
+                        <span class="material-symbols-outlined text-5xl">chat_bubble</span>
+                        <p class="text-xs xirod-font tracking-widest uppercase">Loading History…</p>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div id="typing-indicator" class="hidden px-6 py-1">
+                    <p class="text-[10px] text-slate-500 italic" id="typing-text"></p>
+                </div>
+
+                <!-- Message Input Bar -->
+                <div class="flex-shrink-0 px-4 py-4 border-t border-[#1e293b] bg-[#0a1618]/60 backdrop-blur-md">
+                    <div class="flex items-end gap-3 bg-[#0f1e20] border border-[#1e3a3d] rounded-2xl px-4 py-3 focus-within:border-primary/50 focus-within:shadow-[0_0_0_1px_rgba(13,242,242,0.15)] transition-all">
+                        <textarea
+                            id="message-input"
+                            rows="1"
+                            maxlength="500"
+                            placeholder="Send a message to the community…"
+                            class="flex-1 bg-transparent text-sm text-slate-200 placeholder-slate-600 resize-none outline-none leading-relaxed max-h-32 overflow-y-auto custom-scrollbar"></textarea>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span id="char-count" class="text-[10px] text-slate-700 tabular-nums">0/500</span>
+                            <button id="send-btn" onclick="sendMessage()"
+                                class="size-9 rounded-xl bg-primary/20 border border-primary/30 text-primary flex items-center justify-center hover:bg-primary/30 hover:scale-105 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100">
+                                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1">send</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[9px] text-slate-700 text-right mt-1 mr-1 xirod-font">PRESS ENTER TO SEND · SHIFT+ENTER FOR NEW LINE</p>
+                </div>
+            </div>
+
+            <!-- ── Online Users Panel ────────────────────────────────────── -->
+            <aside class="w-64 flex-shrink-0 border-l border-[#1e293b] bg-[#090f10] flex flex-col overflow-hidden">
+                <div class="px-4 py-4 border-b border-[#1e293b]">
+                    <h2 class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest">Online Members</h2>
+                </div>
+                <div id="online-users-list" class="flex-1 overflow-y-auto px-3 py-3 space-y-1 custom-scrollbar">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Chat Stats -->
+                <div class="border-t border-[#1e293b] px-4 py-4 grid grid-cols-2 gap-3">
+                    <div class="bg-[#0f1e20] rounded-xl p-3 text-center border border-[#1e3a3d]">
+                        <p class="text-lg font-black text-primary" id="stat-messages">—</p>
+                        <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-wider">Messages</p>
+                    </div>
+                    <div class="bg-[#0f1e20] rounded-xl p-3 text-center border border-[#1e3a3d]">
+                        <p class="text-lg font-black text-emerald-400" id="stat-online">—</p>
+                        <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-wider">Online</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ══ SCRIPTS ════════════════════════════════════════════════════════ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="../../Auth/Js/auth.js"></script>
+    <script src="../Js/community.js"></script>
+</body>
+</html>
