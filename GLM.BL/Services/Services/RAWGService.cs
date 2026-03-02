@@ -402,6 +402,156 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
+        public async Task<RAWGGameDetailsDto> GetGameDetailsAsync(int externalId)
+        {
+            var key = _config["RAWG:ApiKey"];
+
+            // Fetch core game details
+            var detailUrl = $"https://api.rawg.io/api/games/{externalId}?key={key}";
+            var screenshotsUrl = $"https://api.rawg.io/api/games/{externalId}/screenshots?key={key}";
+            var moviesUrl = $"https://api.rawg.io/api/games/{externalId}/movies?key={key}";
+
+            var detailTask = _http.GetFromJsonAsync<JsonElement>(detailUrl);
+            var screenshotsTask = _http.GetFromJsonAsync<JsonElement>(screenshotsUrl);
+            var moviesTask = _http.GetFromJsonAsync<JsonElement>(moviesUrl);
+
+            await Task.WhenAll(detailTask, screenshotsTask, moviesTask);
+
+            var detail = detailTask.Result;
+            var dto = new RAWGGameDetailsDto
+            {
+                ExternalId = detail.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : externalId,
+                Title = detail.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : "",
+                Description = detail.TryGetProperty("description_raw", out var descProp) ? descProp.GetString() : "",
+                BackgroundImage = detail.TryGetProperty("background_image", out var bgProp) ? bgProp.GetString() : "",
+                BackgroundImageAdditional = detail.TryGetProperty("background_image_additional", out var bgAddProp) ? bgAddProp.GetString() : "",
+                Rating = detail.TryGetProperty("rating", out var ratingProp) ? ratingProp.GetDouble() : 0,
+                RatingTop = detail.TryGetProperty("rating_top", out var rTopProp) ? rTopProp.GetInt32() : 0,
+                RatingsCount = detail.TryGetProperty("ratings_count", out var rcProp) ? rcProp.GetInt32() : 0,
+                ReleaseDate = detail.TryGetProperty("released", out var relProp) ? relProp.GetString() : "",
+                Metacritic = detail.TryGetProperty("metacritic", out var mcProp) && mcProp.ValueKind == JsonValueKind.Number ? mcProp.GetInt32() : null,
+                Playtime = detail.TryGetProperty("playtime", out var ptProp) ? ptProp.GetInt32() : 0,
+                Website = detail.TryGetProperty("website", out var webProp) ? webProp.GetString() : "",
+                EsrbRating = detail.TryGetProperty("esrb_rating", out var esrbProp) && esrbProp.ValueKind == JsonValueKind.Object
+                    ? (esrbProp.TryGetProperty("name", out var esrbName) ? esrbName.GetString() : null)
+                    : null,
+            };
+
+            // Genres
+            if (detail.TryGetProperty("genres", out var genresProp) && genresProp.ValueKind == JsonValueKind.Array)
+                dto.Genres = genresProp.EnumerateArray()
+                    .Where(g => g.TryGetProperty("name", out _))
+                    .Select(g => g.GetProperty("name").GetString())
+                    .ToList();
+
+            // Platforms
+            if (detail.TryGetProperty("parent_platforms", out var platsProp) && platsProp.ValueKind == JsonValueKind.Array)
+                dto.Platforms = platsProp.EnumerateArray()
+                    .Where(p => p.TryGetProperty("platform", out var pl) && pl.TryGetProperty("name", out _))
+                    .Select(p => p.GetProperty("platform").GetProperty("name").GetString())
+                    .ToList();
+
+            // Tags (top 10)
+            if (detail.TryGetProperty("tags", out var tagsProp) && tagsProp.ValueKind == JsonValueKind.Array)
+                dto.Tags = tagsProp.EnumerateArray()
+                    .Where(t => t.TryGetProperty("language", out var lang) && lang.GetString() == "eng" && t.TryGetProperty("name", out _))
+                    .Take(10)
+                    .Select(t => t.GetProperty("name").GetString())
+                    .ToList();
+
+            // Requirements (from platforms -> requirements_en)
+            if (detail.TryGetProperty("platforms", out var platformsFull) && platformsFull.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var p in platformsFull.EnumerateArray())
+                {
+                    if (p.TryGetProperty("platform", out var plat) && plat.TryGetProperty("slug", out var slug) && slug.GetString() == "pc")
+                    {
+                        if (p.TryGetProperty("requirements", out var reqs) && reqs.ValueKind == JsonValueKind.Object)
+                        {
+                            if (reqs.TryGetProperty("minimum", out var min)) dto.MinimumRequirements = min.GetString();
+                            if (reqs.TryGetProperty("recommended", out var rec)) dto.RecommendedRequirements = rec.GetString();
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Developers
+            if (detail.TryGetProperty("developers", out var devsProp) && devsProp.ValueKind == JsonValueKind.Array)
+                dto.Developers = devsProp.EnumerateArray()
+                    .Where(d => d.TryGetProperty("name", out _))
+                    .Select(d => d.GetProperty("name").GetString())
+                    .ToList();
+
+            // Publishers
+            if (detail.TryGetProperty("publishers", out var pubsProp) && pubsProp.ValueKind == JsonValueKind.Array)
+                dto.Publishers = pubsProp.EnumerateArray()
+                    .Where(p => p.TryGetProperty("name", out _))
+                    .Select(p => p.GetProperty("name").GetString())
+                    .ToList();
+
+            // Trailer from clip (short preview) or movies
+            if (detail.TryGetProperty("clip", out var clipProp) && clipProp.ValueKind == JsonValueKind.Object)
+            {
+                if (clipProp.TryGetProperty("clip", out var clipUrl)) dto.TrailerUrl = clipUrl.GetString();
+                if (clipProp.TryGetProperty("preview", out var clipPreview)) dto.TrailerPreview = clipPreview.GetString();
+            }
+
+            // Screenshots
+            try
+            {
+                var screenshots = screenshotsTask.Result;
+                if (screenshots.TryGetProperty("results", out var ssResults) && ssResults.ValueKind == JsonValueKind.Array)
+                    dto.Screenshots = ssResults.EnumerateArray()
+                        .Where(s => s.TryGetProperty("image", out _))
+                        .Select(s => s.GetProperty("image").GetString())
+                        .ToList();
+            }
+            catch { /* screenshots optional */ }
+
+            // Movies / trailers (override clip if a proper trailer exists)
+            try
+            {
+                var movies = moviesTask.Result;
+                if (movies.TryGetProperty("results", out var mvResults) && mvResults.ValueKind == JsonValueKind.Array)
+                {
+                    var firstMovie = mvResults.EnumerateArray().FirstOrDefault();
+                    if (firstMovie.ValueKind == JsonValueKind.Object)
+                    {
+                        if (firstMovie.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Object)
+                        {
+                            // Prefer 480 quality, fall back to max
+                            if (dataProp.TryGetProperty("480", out var p480)) dto.TrailerUrl = p480.GetString();
+                            else if (dataProp.TryGetProperty("max", out var pMax)) dto.TrailerUrl = pMax.GetString();
+                        }
+                        if (string.IsNullOrEmpty(dto.TrailerPreview) && firstMovie.TryGetProperty("preview", out var mvPreview))
+                            dto.TrailerPreview = mvPreview.GetString();
+                    }
+                }
+            }
+            catch { /* movies optional */ }
+
+            // Populate user state if authenticated
+            var userId = GetCurrentUserId();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var game = await unitofwork.Games.Query().FirstOrDefaultAsync(g => g.ExternalId == externalId);
+                if (game != null)
+                {
+                    var userGame = await unitofwork.UserGames.Query()
+                        .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GameId == game.Id);
+                    if (userGame != null)
+                    {
+                        dto.IsFavorite = userGame.IsFavorite;
+                        dto.IsInWishlist = userGame.IsInWishlist;
+                        dto.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+                    }
+                }
+            }
+
+            return dto;
+        }
+
         private async Task<Game> EnsureGameExistsAsync(int externalId)
         {
             var game = await unitofwork.Games.Query().FirstOrDefaultAsync(g => g.ExternalId == externalId);

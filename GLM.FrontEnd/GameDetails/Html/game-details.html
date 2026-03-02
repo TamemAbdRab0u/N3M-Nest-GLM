@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Game Details - N3M|Nest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4a7dff",
+                        "accent": "#00f2ff",
+                        "background-dark": "#050b0c",
+                        "surface-dark": "#0a1618",
+                        "card-bg": "rgba(15, 32, 35, 0.7)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="../Css/game-details.css"/>
+</head>
+<body class="bg-background-dark text-slate-200 font-body min-h-screen flex overflow-x-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-20 lg:w-64 flex-shrink-0 bg-[#060d0e] border-r border-white/5 flex flex-col transition-all duration-300 z-50 fixed top-0 left-0 h-full">
+        <!-- Logo -->
+        <div class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
+            <div class="h-8 w-8 relative">
+                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain scale-125">
+            </div>
+            <span class="hidden lg:block ml-3 neon-xirod font-bold text-lg tracking-wide text-white">
+                N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
+            </span>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
+            <a href="../../Dashboard/Html/dashboard.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="hidden lg:block font-medium">Dashboard</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=library" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <span class="material-symbols-outlined">stadia_controller</span>
+                <span class="hidden lg:block font-medium">My Library</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <span class="material-symbols-outlined">favorite</span>
+                <span class="hidden lg:block font-medium">Favorites</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <span class="material-symbols-outlined">bookmark</span>
+                <span class="hidden lg:block font-medium">Wishlist</span>
+            </a>
+            <div class="my-2 border-t border-white/5"></div>
+            <a href="../../Community/Html/community.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <span class="material-symbols-outlined">group</span>
+                <span class="hidden lg:block font-medium">Community</span>
+            </a>
+        </nav>
+
+        <!-- User profile -->
+        <div class="p-4 border-t border-white/5">
+            <a href="../../Profile/Html/profile.html" class="flex items-center gap-3 cursor-pointer group hover:bg-white/5 p-2 rounded-xl transition-all">
+                <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white font-bold shadow-lg overflow-hidden">
+                    <span id="display-avatar">U</span>
+                </div>
+                <div class="hidden lg:block overflow-hidden">
+                    <p id="display-username" class="text-xs xirod-font text-white truncate">User</p>
+                    <p class="text-xs text-slate-400 truncate">Online</p>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 ml-20 lg:ml-64 relative min-h-screen bg-background-dark">
+        
+        <!-- Hero Background -->
+        <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-background-dark/80 to-background-dark z-10"></div>
+            <div id="hero-bg-accent" class="absolute top-0 right-0 w-[60%] h-[80%] bg-primary/10 blur-[150px] -z-10 rounded-full"></div>
+            <img id="hero-bg-img" src="" alt="" class="w-full h-full object-cover opacity-30 scale-110 blur-md">
+        </div>
+
+        <!-- Top Navigation -->
+        <header class="h-20 flex items-center justify-between px-8 relative z-40 bg-gradient-to-b from-black/40 to-transparent">
+            <button onclick="history.back()" class="flex items-center gap-2 text-slate-400 hover:text-white transition-all group px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
+                <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                <span class="text-xs font-bold uppercase tracking-widest">Back</span>
+            </button>
+            
+            <div class="flex items-center gap-4">
+                <!-- Money and Bell removed -->
+            </div>
+        </header>
+
+        <!-- Scrollable content -->
+        <div class="relative z-10 px-8 py-4 max-w-[1600px] mx-auto">
+            
+            <!-- Main Grid Layout -->
+            <div class="grid grid-cols-12 gap-8">
+                
+                <!-- Left Column: Title & Main Media (Col 1-8) -->
+                <div class="col-span-12 lg:col-span-8 space-y-8">
+                  
+                    <!-- Game Header Title -->
+                    <div class="space-y-4">
+                        <h1 id="game-title" class="text-5xl lg:text-7xl font-black text-white italic tracking-tighter uppercase leading-none"></h1>
+                        <div class="flex items-center gap-6 text-sm font-bold text-slate-400">
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-yellow-500 fill-icon text-[18px]">star</span>
+                                <span id="game-rating" class="text-white">--</span>
+                                <span class="text-[10px] opacity-50">/ 5.0</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 border-l border-white/10 pl-6">
+                                <span class="material-symbols-outlined text-primary text-[18px]">calendar_month</span>
+                                <span id="game-release" class="text-slate-300">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video / Main Screenshot Container -->
+                    <div id="main-media-container" class="relative aspect-video rounded-3xl overflow-hidden border border-white/10 bg-black group shadow-2xl shadow-primary/5">
+                        <video id="main-trailer" class="w-full h-full object-cover hidden" loop muted playsinline poster=""></video>
+                        <img id="main-media-placeholder" src="" class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105">
+                        
+                        <!-- Navigation Arrows -->
+                        <button id="nav-prev" onclick="prevMedia()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button id="nav-next" onclick="nextMedia()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">
+                            <div class="flex justify-between items-end w-full">
+                                <div class="space-y-1">
+                                    <p id="media-label" class="text-xs font-bold text-primary uppercase tracking-widest">Official Gameplay</p>
+                                    <h3 id="media-title" class="text-xl font-bold text-white">Experience the next generation logic</h3>
+                                </div>
+                                <button id="play-btn" class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 hover:scale-110 transition-all pointer-events-auto">
+                                    <span class="material-symbols-outlined text-4xl fill-icon">play_arrow</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Screenshots Thumbnails Strip -->
+                    <div id="screenshots-strip" class="flex gap-4 overflow-x-auto pb-2 no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing">
+                        <!-- Video square will go here first, then screenshots -->
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="space-y-4">
+                        <h2 class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
+                            <span class="w-8 h-1 bg-primary rounded-full"></span>
+                            The Story
+                        </h2>
+                        <div id="game-description" class="text-slate-400 leading-relaxed text-lg max-w-4xl">
+                            <!-- Description -->
+                        </div>
+                    </div>
+
+                    <!-- System Requirements -->
+                    <div class="grid md:grid-cols-2 gap-6 pt-8">
+                        <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
+                            <h3 class="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">memory</span>
+                                Minimum Requirements
+                            </h3>
+                            <div id="req-min" class="text-xs text-slate-400 space-y-2 leading-relaxed">
+                                Not specified for this platform.
+                            </div>
+                        </div>
+                        <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
+                            <h3 class="text-sm font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                                Recommended
+                            </h3>
+                            <div id="req-rec" class="text-xs text-slate-400 space-y-2 leading-relaxed">
+                                Not specified for this platform.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Sidebar (Col 9-12) -->
+                <div class="col-span-12 lg:col-span-4 space-y-6">
+                    
+                    <!-- Main CTA Card -->
+                    <div class="p-8 rounded-[40px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
+                        <!-- Background Glow -->
+                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-[60px] rounded-full group-hover:bg-primary/30 transition-all"></div>
+                        
+                        <div class="relative space-y-6">
+                            <!-- Game Logo/Poster -->
+                            <div class="aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                                <img id="game-side-poster" src="" alt="" class="w-full h-full object-cover">
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button id="btn-library" onclick="toggleLibrary()" class="col-span-2 flex items-center justify-center gap-2 h-14 rounded-2xl glass-btn text-white font-black uppercase tracking-widest hover:bg-primary/40 transition-all shadow-lg shadow-primary/10">
+                                        <span id="library-icon" class="material-symbols-outlined">add_to_photos</span>
+                                        <span id="btn-library-label">Add to Library</span>
+                                    </button>
+                                    <button id="btn-wishlist" onclick="toggleWishlist()" class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
+                                        <span class="material-symbols-outlined text-[20px]">bookmark</span>
+                                        <span id="btn-wishlist-label" class="text-xs uppercase">Wishlist</span>
+                                    </button>
+                                    <button id="btn-favorite" onclick="toggleFavorite()" class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
+                                        <span id="fav-icon" class="material-symbols-outlined text-[20px]">favorite</span>
+                                        <span id="btn-favorite-label" class="text-xs uppercase">Like</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Meta Info List -->
+                            <div class="pt-6 border-t border-white/10 space-y-4">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Developer</span>
+                                    <span id="val-developer" class="text-slate-200 font-bold">--</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Publisher</span>
+                                    <span id="val-publisher" class="text-slate-200 font-bold">--</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Metascore</span>
+                                    <div class="flex items-center gap-2">
+                                        <span id="val-metascore" class="px-2 py-0.5 rounded bg-green-500 text-black font-black">--</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Playtime</span>
+                                    <span id="val-playtime" class="text-slate-200 font-bold">--</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm pt-2">
+                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Available On</span>
+                                    <div id="platforms-icons" class="flex gap-2 text-slate-400"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tags Card -->
+                    <div class="p-6 rounded-3xl bg-white/5 border border-white/10">
+                        <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest mb-4">Popular Tags</h3>
+                        <div id="genres-row" class="flex flex-wrap gap-2">
+                            <!-- Tags here -->
+                        </div>
+                    </div>
+
+                    <!-- Links Card -->
+                    <div id="links-container" class="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col gap-3">
+                        <a id="btn-website" href="#" target="_blank" class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-primary transition-all group">
+                            WEBSITE
+                            <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">open_in_new</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="notification-toast" class="fixed bottom-8 right-8 z-[100] transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+            <div class="bg-surface-dark border border-white/10 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                    <span id="toast-icon" class="material-symbols-outlined">info</span>
+                </div>
+                <div>
+                    <p id="toast-msg" class="text-white font-bold text-sm"></p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="../Js/game-details.js"></script>
+    <script src="../../Shared/Js/auth-header.js"></script>
+</body>
+</html>
+                            <div id="publishers-list" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- Genres -->
+                        <div id="detail-genres" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px] text-primary">category</span>Genres
+                            </h3>
+                            <div id="genres-detail-list" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- Platforms -->
+                        <div id="detail-platforms" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px] text-primary">devices</span>Platforms
+                            </h3>
+                            <div id="platforms-detail-list" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div id="detail-tags" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30 sm:col-span-2">
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px] text-primary">sell</span>Tags
+                            </h3>
+                            <div id="tags-list" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden relative z-10 flex flex-col items-center justify-center flex-1 min-h-[60vh] text-slate-500">
+            <span class="material-symbols-outlined text-7xl mb-4 text-red-500/60">error</span>
+            <p class="text-lg font-medium text-red-400">Failed to load game details</p>
+            <p class="text-sm mt-1 opacity-70">The game could not be found or the server is unavailable.</p>
+            <button onclick="history.back()" class="mt-6 px-6 py-2 bg-primary/10 border border-primary/30 text-primary rounded-full hover:bg-primary hover:text-white transition-all">
+                Go Back
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center" onclick="closeLightbox()">
+        <button class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 rounded-full p-2 transition-colors z-10">
+            <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+        <button id="lb-prev" onclick="event.stopPropagation(); lbNavigate(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <button id="lb-next" onclick="event.stopPropagation(); lbNavigate(1)" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+        <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl" onclick="event.stopPropagation()"/>
+        <p id="lightbox-counter" class="absolute bottom-4 text-white/50 text-sm"></p>
+    </div>
+
+    <script src="../../Auth/Js/auth.js"></script>
+    <script src="../Js/game-details.js"></script>
+</body>
+</html>

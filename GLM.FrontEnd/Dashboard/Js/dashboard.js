@@ -1480,7 +1480,9 @@ function updateWishlistUI(gameId, isInWishlist) {
 
 // Show game details
 function showGameDetails(game) {
-    // Placeholder
+    const gameId = game.externalId || game.id;
+    if (!gameId) return;
+    window.location.href = `../../GameDetails/Html/game-details.html?id=${gameId}`;
 }
 
 // Update game status in database

@@ -14,6 +14,7 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<IEnumerable<string>> GetAllGenresAsync();
         Task<IEnumerable<string>> GetAllPlatformsAsync();
         Task<IEnumerable<RAWGCatalogDto>> GetGamesByExternalIdsAsync(List<int> externalIds);
+        Task<RAWGGameDetailsDto> GetGameDetailsAsync(int externalId);
         Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games);
         Task<bool> ToggleFavoriteAsync(string userId, int externalId);
         Task<bool> AddToLibraryAsync(string userId, int externalId);

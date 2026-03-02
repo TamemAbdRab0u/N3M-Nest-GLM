@@ -18,6 +18,29 @@
     letter-spacing: 2px;
 }
 
+.flicker-pipe {
+    display: inline-block;
+    animation: flicker-bulb 6s linear infinite;
+}
+@keyframes flicker-bulb {
+    0%,  8%,  10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 4px #fff, 0 0 12px #0df2f2, 0 0 28px #0df2f2;
+    }
+    9%,  11%, 41%, 67% {
+        opacity: 0.08;
+        text-shadow: none;
+    }
+    13%, 39% {
+        opacity: 0.5;
+        text-shadow: 0 0 4px #fff;
+    }
+    64%, 69% {
+        opacity: 0.15;
+        text-shadow: none;
+    }
+}
+
 .neon-username {
     font-family: 'Xirod', sans-serif;
     color: #fff;

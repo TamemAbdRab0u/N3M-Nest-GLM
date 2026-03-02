@@ -54,6 +54,29 @@
             letter-spacing: 2px;
         }
 
+        .flicker-pipe {
+            display: inline-block;
+            animation: flicker-bulb 6s linear infinite;
+        }
+        @keyframes flicker-bulb {
+            0%,  8%,  10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+                opacity: 1;
+                text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
+            }
+            9%,  11%, 41%, 67% {
+                opacity: 0.08;
+                text-shadow: none;
+            }
+            13%, 39% {
+                opacity: 0.5;
+                text-shadow: 0 0 4px #fff;
+            }
+            64%, 69% {
+                opacity: 0.15;
+                text-shadow: none;
+            }
+        }
+
         .animate-pop {
             animation: pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -199,10 +222,10 @@
         <!-- Logo -->
         <div class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-[#1e293b]">
             <div class="h-8 w-8 relative">
-                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain">
+                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain scale-125">
             </div>
             <span class="hidden lg:block ml-3 neon-xirod font-bold text-lg tracking-wide">
-                N3M<span class="mx-0.5">|</span>Nest
+                N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
             </span>
         </div>
 
