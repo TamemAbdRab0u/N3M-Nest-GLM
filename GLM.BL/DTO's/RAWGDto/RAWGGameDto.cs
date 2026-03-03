@@ -12,6 +12,8 @@ namespace Game_Library_Management_BL.DTO_s.RAWGDto
         public string Name { get; set; }
         public string Background_Image { get; set; }
         public double Rating { get; set; }
+        public int? Metacritic { get; set; }
+        public int Added { get; set; }
         public string Released { get; set; }
         public List<RAWGGenreDto> Genres { get; set; }
         public List<RAWGParentPlatformWrapper> Parent_Platforms { get; set; }
