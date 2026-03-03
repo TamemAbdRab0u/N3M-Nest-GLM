@@ -214,6 +214,46 @@
                         </div>
                     </div>
                     </div>
+
+                    <!-- Reviews Section -->
+                    <div class="space-y-6 pt-8" id="reviews-section">
+                        <h2 class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
+                            <span class="w-8 h-1 bg-primary rounded-full"></span>
+                            Community Reviews
+                        </h2>
+
+                        <!-- Write a Review Form -->
+                        <div id="review-form-card" class="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-4">
+                            <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest">Write a Review</h3>
+
+                            <!-- Star Rating Picker -->
+                            <div class="flex items-center gap-1" id="star-picker">
+                                <span data-val="1" onclick="setRating(1)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
+                                <span data-val="2" onclick="setRating(2)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
+                                <span data-val="3" onclick="setRating(3)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
+                                <span data-val="4" onclick="setRating(4)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
+                                <span data-val="5" onclick="setRating(5)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
+                                <span id="rating-label" class="ml-3 text-xs text-slate-500"></span>
+                            </div>
+
+                            <!-- Comment -->
+                            <textarea id="review-comment" rows="3" placeholder="Share your thoughts…"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-primary/50 transition-colors">
+                            </textarea>
+
+                            <button onclick="submitReview()"
+                                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all">
+                                <span class="material-symbols-outlined text-[16px]">rate_review</span>
+                                Post Review
+                            </button>
+                        </div>
+
+                        <!-- Reviews List -->
+                        <div id="reviews-list" class="space-y-4">
+                            <p id="reviews-empty" class="text-sm text-slate-600 italic">No reviews yet — be the first!</p>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Right Column: Sidebar (Col 9-12) -->
@@ -294,17 +334,8 @@
             </div>
         </div>
 
-        <!-- Notification Toast -->
-        <div id="notification-toast" class="fixed bottom-8 right-8 z-[100] transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-            <div class="bg-surface-dark border border-white/10 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
-                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                    <span id="toast-icon" class="material-symbols-outlined">info</span>
-                </div>
-                <div>
-                    <p id="toast-msg" class="text-white font-bold text-sm"></p>
-                </div>
-            </div>
-        </div>
+        <!-- Toast Container -->
+        <div id="toast-container" class="fixed bottom-8 right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     </main>
 

@@ -9,7 +9,7 @@ namespace Game_Library_Management_BL.DTO_s.ReviewDto
     public class CreateReviewDto
     {
         public int ExternalId { get; set; }
-        public double Rating { get; set; }
+        public int Rating { get; set; }
         public string Comment { get; set; }
     }
 }

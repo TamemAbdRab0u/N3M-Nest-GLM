@@ -2,7 +2,6 @@
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -22,46 +21,47 @@ namespace Game_Library_Management_BL.Services.Services
 
         public async Task<ReviewResponseDto> CreateReviewAsync(string UserId, CreateReviewDto dto)
         {
-           if (string.IsNullOrWhiteSpace(UserId))
-            {
+            if (string.IsNullOrWhiteSpace(UserId))
                 throw new UnauthorizedAccessException("User not authenticated.");
+
+            var existing = await unitofwork.Reviews.Query()
+                .FirstOrDefaultAsync(r => r.ExternalId == dto.ExternalId && r.UserId == UserId);
+
+            if (existing != null)
+            {
+                existing.Rating = dto.Rating;
+                existing.Comment = dto.Comment;
+                existing.CreatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                var review = new Review
+                {
+                    UserId = UserId,
+                    ExternalId = dto.ExternalId,
+                    Rating = dto.Rating,
+                    Comment = dto.Comment,
+                    CreatedAt = DateTime.UtcNow,
+                };
+                await unitofwork.Reviews.Add(review);
             }
 
-            var review = new Review
-            {
-                UserId = UserId,
-                ExternalId = dto.ExternalId,
-                Rating = dto.Rating,
-                Comment = dto.Comment,
-                CreatedAt = DateTime.UtcNow,
-            };
-
-            if(review == null)
-                {
-                    throw new Exception("Failed to create review.");
-                }
-
-            await unitofwork.Reviews.Add(review);
             unitofwork.Save();
+
+            var user = await unitofwork.Users.Query().FirstOrDefaultAsync(u => u.Id == UserId);
 
             return new ReviewResponseDto
             {
-                UserName = review.User.Username,
-                ImageUrl = review.User.ImageUrl,
-                Rating = review.Rating,
-                Comment = review.Comment,
-                CreatedAt = review.CreatedAt
+                UserName = user?.Username ?? "Unknown",
+                ImageUrl = user?.ImageUrl,
+                Rating = dto.Rating,
+                Comment = dto.Comment,
+                CreatedAt = DateTime.UtcNow
             };
         }
 
         public async Task<IEnumerable<ReviewResponseDto>> GetReviewsAsync(int externalId)
         {
-            var gameExists = await unitofwork.Games.Query().AnyAsync(x => x.ExternalId == externalId);
-            if (!gameExists)
-            {
-                throw new Exception("Game not found.");
-            }
-
             var reviews = await unitofwork.Reviews.Query()
                 .Where(x => x.ExternalId == externalId)
                 .Include(x => x.User)

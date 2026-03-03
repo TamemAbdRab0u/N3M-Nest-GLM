@@ -1,5 +1,6 @@
 ﻿using Game_Library_Management_BL.DTO_s.ReviewDto;
 using Game_Library_Management_BL.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,14 +42,15 @@ namespace Game_Library_Management.Controllers
         /// </summary>
         /// <param name="dto">Review Details</param>
         [HttpPost("CreateReview")]
-        public async Task<IActionResult> CreateReview(CreateReviewDto dto)
+        [Authorize]
+        public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
         {
             if (dto == null)
             {
                 return BadRequest("Review data is required.");
             }
 
-            var userId = User.FindFirst("sub")?.Value;
+            var userId = User.FindFirst("uid")?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("User not authenticated.");

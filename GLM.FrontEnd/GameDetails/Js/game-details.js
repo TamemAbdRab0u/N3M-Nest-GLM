@@ -10,6 +10,7 @@ let descriptionExpanded = false; // Description expand/collapse
 let currentMediaIndex = 0;       // For automatic sliding
 let slideInterval = null;        // Interval timer for sliding
 let isVideoMain = false;         // Is the video currently in the main container
+let currentRating = 0;           // Selected star rating for review form
 
 /* ──────────────────────────────────────────────
    Initialisation
@@ -241,6 +242,9 @@ function renderGame(g) {
     if (tagsRow && g.genres) {
         tagsRow.innerHTML = g.genres.map(genre => `<span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-primary transition-all cursor-pointer">${genre}</span>`).join('');
     }
+
+    // ── Reviews ──────────────────────────────
+    loadReviews(g.externalId);
 
     // ── Show page ────────────────────────────
     const skeleton = document.getElementById('loading-skeleton');
@@ -815,4 +819,121 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+/* ──────────────────────────────────────────────
+   Reviews
+────────────────────────────────────────────── */
+async function loadReviews(externalId) {
+    try {
+        const res = await apiRequest(`/api/Reviews/GetAllReviews?ExternalId=${externalId}`);
+        if (!res.ok) return;
+        const reviews = await res.json();
+        renderReviews(reviews);
+    } catch (err) {
+        console.error('Failed to load reviews:', err);
+    }
+}
+
+function renderReviews(reviews) {
+    const list = document.getElementById('reviews-list');
+    const empty = document.getElementById('reviews-empty');
+    if (!list) return;
+
+    if (!reviews || reviews.length === 0) {
+        if (empty) empty.classList.remove('hidden');
+        return;
+    }
+    if (empty) empty.classList.add('hidden');
+
+    const html = reviews.map(r => {
+        const stars = Array.from({ length: 5 }, (_, i) =>
+            `<span class="material-symbols-outlined text-base ${i < Math.round(r.rating) ? 'text-yellow-400 fill-icon' : 'text-slate-700'}">star</span>`
+        ).join('');
+
+        const avatar = r.imageUrl
+            ? `<img src="${API_URL}/Uploads/${r.imageUrl}" class="w-full h-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+               <span style="display:none" class="w-full h-full flex items-center justify-center text-white font-bold">${r.userName?.charAt(0).toUpperCase() || 'U'}</span>`
+            : `<span class="text-white font-bold text-sm">${r.userName?.charAt(0).toUpperCase() || 'U'}</span>`;
+
+        const date = new Date(r.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+        return `
+        <div class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden flex-shrink-0">
+                    ${avatar}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-white truncate">${escapeHtml(r.userName || 'Anonymous')}</p>
+                    <p class="text-[10px] text-slate-500">${date}</p>
+                </div>
+                <div class="flex items-center gap-0.5">${stars}</div>
+            </div>
+            ${r.comment ? `<p class="text-sm text-slate-400 leading-relaxed">${escapeHtml(r.comment)}</p>` : ''}
+        </div>`;
+    }).join('');
+
+    list.innerHTML = html;
+}
+
+function setRating(val) {
+    currentRating = val;
+    const stars = document.querySelectorAll('#star-picker .star-btn');
+    stars.forEach((s, i) => {
+        if (i < val) {
+            s.classList.add('text-yellow-400', 'fill-icon');
+            s.classList.remove('text-slate-600');
+        } else {
+            s.classList.remove('text-yellow-400', 'fill-icon');
+            s.classList.add('text-slate-600');
+        }
+    });
+    const labels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
+    const labelEl = document.getElementById('rating-label');
+    if (labelEl) labelEl.textContent = labels[val] || '';
+}
+
+async function submitReview() {
+    if (!currentGame) return;
+
+    const comment = document.getElementById('review-comment')?.value.trim();
+    if (currentRating === 0) {
+        showToast('Please select a star rating first', 'error');
+        return;
+    }
+
+    const dto = {
+        externalId: currentGame.externalId,
+        rating: currentRating,
+        comment: comment || ''
+    };
+
+    try {
+        const res = await apiRequest('/api/Reviews/CreateReview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dto)
+        });
+
+        if (!res.ok) {
+            const err = await res.text();
+            showToast(err || 'Failed to post review', 'error');
+            return;
+        }
+
+        // Reset form
+        setRating(0);
+        currentRating = 0;
+        const textarea = document.getElementById('review-comment');
+        if (textarea) textarea.value = '';
+
+        showToast('Review saved!', 'success');
+
+        // Reload reviews to show the new one
+        loadReviews(currentGame.externalId);
+    } catch (err) {
+        console.error('Submit review error:', err);
+        showToast('Something went wrong', 'error');
+    }
 }
