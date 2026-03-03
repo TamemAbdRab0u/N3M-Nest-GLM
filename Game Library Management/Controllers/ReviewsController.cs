@@ -28,7 +28,8 @@ namespace Game_Library_Management.Controllers
                 return BadRequest("Game Not Found");
             }
 
-            var reviews = await reviewServices.GetReviewsAsync(ExternalId);
+            var userId = User.FindFirst("uid")?.Value;
+            var reviews = await reviewServices.GetReviewsAsync(ExternalId, userId);
 
             if (!reviews.Any())
                 return Ok(new List<ReviewResponseDto>());
@@ -103,6 +104,24 @@ namespace Game_Library_Management.Controllers
                 return NotFound("Review not found or you do not have permission to delete it.");
 
             return NoContent();
+        }
+
+
+        /// <summary>
+        /// Like or Dislike a Review.
+        /// </summary>
+        /// <param name="dto">Vote Details (ReviewId, IsLike: true/false/null)</param>
+        [HttpPost("VoteReview")]
+        [Authorize]
+        public async Task<IActionResult> VoteReview([FromBody] VoteReviewDto dto)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated.");
+
+            var result = await reviewServices.VoteReviewAsync(dto.ReviewId, userId, dto.IsLike);
+            return Ok(result);
         }
     }
 }

@@ -892,6 +892,20 @@ function renderReviews(reviews) {
                 <div class="flex items-center gap-0.5">${stars}</div>
             </div>
             ${r.comment ? `<p class="text-sm text-slate-400 leading-relaxed">${escapeHtml(r.comment)}</p>` : ''}
+            <div class="flex items-center gap-3 pt-1">
+                <button id="like-btn-${r.reviewId}"
+                    onclick="voteReview(${r.reviewId}, true)"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${r.userVote === true ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400' : 'bg-white/5 border border-white/10 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30'}">
+                    <span class="material-symbols-outlined text-[14px] ${r.userVote === true ? 'fill-icon' : ''}">thumb_up</span>
+                    <span id="like-count-${r.reviewId}">${r.likes || 0}</span>
+                </button>
+                <button id="dislike-btn-${r.reviewId}"
+                    onclick="voteReview(${r.reviewId}, false)"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${r.userVote === false ? 'bg-red-500/20 border border-red-500/40 text-red-400' : 'bg-white/5 border border-white/10 text-slate-500 hover:text-red-400 hover:border-red-500/30'}">
+                    <span class="material-symbols-outlined text-[14px] ${r.userVote === false ? 'fill-icon' : ''}">thumb_down</span>
+                    <span id="dislike-count-${r.reviewId}">${r.dislikes || 0}</span>
+                </button>
+            </div>
         </div>`;
     }).join('');
 
@@ -914,6 +928,73 @@ function renderReviews(reviews) {
             btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">rate_review</span> Post Review';
             btn.className = 'btn-shimmer relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all';
         }
+    }
+}
+
+/* ── Review Voting ───────────────────────────────────────────── */
+async function voteReview(reviewId, isLike) {
+    if (!isLoggedIn()) {
+        showToast('Please log in to vote on reviews', 'error');
+        return;
+    }
+
+    // Determine the current vote state from button classes to support toggle
+    const likeBtn    = document.getElementById(`like-btn-${reviewId}`);
+    const dislikeBtn = document.getElementById(`dislike-btn-${reviewId}`);
+    const alreadyLiked    = likeBtn    && likeBtn.classList.contains('text-emerald-400');
+    const alreadyDisliked = dislikeBtn && dislikeBtn.classList.contains('text-red-400');
+
+    // Toggle logic: clicking the active button removes the vote
+    let sendIsLike = isLike;
+    if (isLike === true  && alreadyLiked)    sendIsLike = null;
+    if (isLike === false && alreadyDisliked) sendIsLike = null;
+
+    try {
+        const res = await apiRequest('/api/Reviews/VoteReview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reviewId, isLike: sendIsLike })
+        });
+
+        if (!res.ok) {
+            showToast('Failed to save vote', 'error');
+            return;
+        }
+
+        const updated = await res.json();
+
+        // Update counts
+        const likeCount    = document.getElementById(`like-count-${reviewId}`);
+        const dislikeCount = document.getElementById(`dislike-count-${reviewId}`);
+        if (likeCount)    likeCount.textContent    = updated.likes    ?? 0;
+        if (dislikeCount) dislikeCount.textContent = updated.dislikes ?? 0;
+
+        // Update button styles
+        if (likeBtn) {
+            const active = updated.userVote === true;
+            likeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                active
+                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
+                    : 'bg-white/5 border border-white/10 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30'
+            }`;
+            const icon = likeBtn.querySelector('.material-symbols-outlined');
+            if (icon) icon.className = `material-symbols-outlined text-[14px] ${active ? 'fill-icon' : ''}`;
+        }
+
+        if (dislikeBtn) {
+            const active = updated.userVote === false;
+            dislikeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                active
+                    ? 'bg-red-500/20 border border-red-500/40 text-red-400'
+                    : 'bg-white/5 border border-white/10 text-slate-500 hover:text-red-400 hover:border-red-500/30'
+            }`;
+            const icon = dislikeBtn.querySelector('.material-symbols-outlined');
+            if (icon) icon.className = `material-symbols-outlined text-[14px] ${active ? 'fill-icon' : ''}`;
+        }
+
+    } catch (err) {
+        console.error('Vote error:', err);
+        showToast('Failed to save vote', 'error');
     }
 }
 

@@ -18,5 +18,7 @@ namespace Game_Library_Management_DAL.Models
         public User User { get; set; }
 
         public int ExternalId { get; set; }
+
+        public ICollection<ReviewVote> Votes { get; set; } = new List<ReviewVote>();
     }
 }

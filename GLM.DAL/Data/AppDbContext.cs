@@ -52,6 +52,10 @@ namespace Game_Library_Management_DAL.Data
 
             modelBuilder.Entity<Review>().HasIndex(x => new { x.ExternalId, x.UserId }).IsUnique();
 
+            modelBuilder.Entity<ReviewVote>().HasIndex(x => new { x.ReviewId, x.UserId }).IsUnique();
+            modelBuilder.Entity<ReviewVote>().HasOne(x => x.Review).WithMany(x => x.Votes).HasForeignKey(x => x.ReviewId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<ReviewVote>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<IdentityRole>().HasData(
                new IdentityRole
                {

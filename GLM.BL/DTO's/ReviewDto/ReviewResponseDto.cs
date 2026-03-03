@@ -14,5 +14,8 @@ namespace Game_Library_Management_BL.DTO_s.ReviewDto
         public int Rating { get; set; }
         public string Comment { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int Likes { get; set; }
+        public int Dislikes { get; set; }
+        public bool? UserVote { get; set; }
     }
 }

@@ -62,22 +62,28 @@ namespace Game_Library_Management_BL.Services.Services
         }
 
 
-        public async Task<IEnumerable<ReviewResponseDto>> GetReviewsAsync(int externalId)
+        public async Task<IEnumerable<ReviewResponseDto>> GetReviewsAsync(int externalId, string userId = null)
         {
             var reviews = await unitofwork.Reviews.Query()
                 .Where(x => x.ExternalId == externalId)
                 .Include(x => x.User)
-                .Select(x => new ReviewResponseDto
-                {
-                    ReviewId = x.ReviewId,
-                    UserName = x.User.Username,
-                    ImageUrl = x.User.ImageUrl,
-                    Rating = x.Rating,
-                    Comment = x.Comment,
-                    CreatedAt = x.CreatedAt
-                }).ToListAsync();
+                .Include(x => x.Votes)
+                .ToListAsync();
 
-            return reviews;
+            return reviews.Select(x => new ReviewResponseDto
+            {
+                ReviewId = x.ReviewId,
+                UserName = x.User.Username,
+                ImageUrl = x.User.ImageUrl,
+                Rating = x.Rating,
+                Comment = x.Comment,
+                CreatedAt = x.CreatedAt,
+                Likes = x.Votes.Count(v => v.IsLike),
+                Dislikes = x.Votes.Count(v => !v.IsLike),
+                UserVote = userId != null
+                    ? x.Votes.FirstOrDefault(v => v.UserId == userId)?.IsLike
+                    : null
+            }).ToList();
         }
 
         public async Task<ReviewResponseDto> UpdateReviewAsync(string UserId, int ReviewId, UpdateReviewDto dto)
@@ -122,6 +128,77 @@ namespace Game_Library_Management_BL.Services.Services
             await unitofwork.Reviews.DeleteAsync(review);
             unitofwork.Save();
             return true;
+        }
+
+        public async Task<ReviewResponseDto> VoteReviewAsync(int ReviewId, string UserId, bool? isLike)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+                throw new UnauthorizedAccessException("User not authenticated.");
+
+            var review = await unitofwork.Reviews.Query()
+                .Include(r => r.Votes)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.ReviewId == ReviewId);
+
+            if (review == null)
+                throw new KeyNotFoundException("Review not found.");
+
+            var existing = review.Votes.FirstOrDefault(v => v.UserId == UserId);
+
+            if (isLike == null)
+            {
+                if (existing != null)
+                {
+                    await unitofwork.ReviewVotes.DeleteAsync(existing);
+                    unitofwork.Save();
+                }
+            }
+            else if (existing != null)
+            {
+                if (existing.IsLike == isLike.Value)
+                {
+                    await unitofwork.ReviewVotes.DeleteAsync(existing);
+                    unitofwork.Save();
+                }
+                else
+                {
+                    existing.IsLike = isLike.Value;
+                    await unitofwork.ReviewVotes.Update(existing);
+                    unitofwork.Save();
+                }
+            }
+            else
+            {
+                var vote = new ReviewVote
+                {
+                    ReviewId = ReviewId,
+                    UserId = UserId,
+                    IsLike = isLike.Value,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await unitofwork.ReviewVotes.Add(vote);
+                unitofwork.Save();
+            }
+
+            var updatedReview = await unitofwork.Reviews.Query()
+                .Include(r => r.Votes)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.ReviewId == ReviewId);
+
+            var userVoteAfter = updatedReview?.Votes.FirstOrDefault(v => v.UserId == UserId);
+
+            return new ReviewResponseDto
+            {
+                ReviewId = updatedReview.ReviewId,
+                UserName = updatedReview.User?.Username,
+                ImageUrl = updatedReview.User?.ImageUrl,
+                Rating = updatedReview.Rating,
+                Comment = updatedReview.Comment,
+                CreatedAt = updatedReview.CreatedAt,
+                Likes = updatedReview.Votes.Count(v => v.IsLike),
+                Dislikes = updatedReview.Votes.Count(v => !v.IsLike),
+                UserVote = userVoteAfter?.IsLike
+            };
         }
     }
 }
