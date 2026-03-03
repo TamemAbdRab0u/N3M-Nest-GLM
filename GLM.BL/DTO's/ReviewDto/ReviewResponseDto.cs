@@ -8,6 +8,7 @@ namespace Game_Library_Management_BL.DTO_s.ReviewDto
 {
     public class ReviewResponseDto
     {
+        public int ReviewId { get; set; }
         public string UserName { get; set; }
         public string ImageUrl { get; set; }
         public int Rating { get; set; }

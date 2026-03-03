@@ -227,22 +227,22 @@
                             <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest">Write a Review</h3>
 
                             <!-- Star Rating Picker -->
-                            <div class="flex items-center gap-1" id="star-picker">
-                                <span data-val="1" onclick="setRating(1)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
-                                <span data-val="2" onclick="setRating(2)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
-                                <span data-val="3" onclick="setRating(3)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
-                                <span data-val="4" onclick="setRating(4)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
-                                <span data-val="5" onclick="setRating(5)" class="star-btn material-symbols-outlined text-2xl text-slate-600 cursor-pointer hover:text-yellow-400 transition-colors select-none">star</span>
-                                <span id="rating-label" class="ml-3 text-xs text-slate-500"></span>
+                            <div class="rating-stars-picker" id="star-picker" onmouseleave="previewRating(0)">
+                                <input type="radio" name="rating" id="rs1" onchange="setRating(1)"><label for="rs1" onmouseenter="previewRating(1)"></label>
+                                <input type="radio" name="rating" id="rs2" onchange="setRating(2)"><label for="rs2" onmouseenter="previewRating(2)"></label>
+                                <input type="radio" name="rating" id="rs3" onchange="setRating(3)"><label for="rs3" onmouseenter="previewRating(3)"></label>
+                                <input type="radio" name="rating" id="rs4" onchange="setRating(4)"><label for="rs4" onmouseenter="previewRating(4)"></label>
+                                <input type="radio" name="rating" id="rs5" onchange="setRating(5)"><label for="rs5" onmouseenter="previewRating(5)"></label>
                             </div>
 
                             <!-- Comment -->
                             <textarea id="review-comment" rows="3" placeholder="Share your thoughts…"
-                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-primary/50 transition-colors">
+                                onmousedown="if(!this.value.trim()){event.preventDefault();this.focus();this.setSelectionRange(0,0);}"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none transition-all neon-focus">
                             </textarea>
 
-                            <button onclick="submitReview()"
-                                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all">
+                            <button id="review-submit-btn" onclick="submitReview()"
+                                class="btn-shimmer relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all">
                                 <span class="material-symbols-outlined text-[16px]">rate_review</span>
                                 Post Review
                             </button>
@@ -333,6 +333,198 @@
                 </div>
             </div>
         </div>
+
+        <!-- Edit Review Modal -->
+        <div id="edit-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="cancelEdit()"></div>
+            <div class="relative z-10 w-full max-w-md mx-4 rounded-3xl bg-[#13151f] border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden"
+                 style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
+                <!-- Accent bar -->
+                <div class="h-1 w-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500/60"></div>
+
+                <!-- X button absolutely positioned -->
+                <button onclick="cancelEdit()" class="absolute top-4 right-5 text-slate-600 hover:text-white transition-colors z-10">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+
+                <!-- Form body -->
+                <div class="px-7 pt-6 pb-4 space-y-5">
+                    <!-- Stars -->
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3">Your Rating</p>
+                        <div class="rating-stars-picker" id="edit-modal-stars" onmouseleave="previewEditModalRating(0)">
+                            <input type="radio" name="edit-rating" id="ers1" onchange="setEditModalRating(1)"><label for="ers1" onmouseenter="previewEditModalRating(1)"></label>
+                            <input type="radio" name="edit-rating" id="ers2" onchange="setEditModalRating(2)"><label for="ers2" onmouseenter="previewEditModalRating(2)"></label>
+                            <input type="radio" name="edit-rating" id="ers3" onchange="setEditModalRating(3)"><label for="ers3" onmouseenter="previewEditModalRating(3)"></label>
+                            <input type="radio" name="edit-rating" id="ers4" onchange="setEditModalRating(4)"><label for="ers4" onmouseenter="previewEditModalRating(4)"></label>
+                            <input type="radio" name="edit-rating" id="ers5" onchange="setEditModalRating(5)"><label for="ers5" onmouseenter="previewEditModalRating(5)"></label>
+                        </div>
+                    </div>
+
+                    <!-- Comment -->
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3">Your Review</p>
+                        <textarea id="edit-modal-comment" rows="4" placeholder="Share your thoughts…"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none transition-all neon-focus"></textarea>
+                    </div>
+                </div>
+
+                <div class="h-px bg-white/[0.06] mx-7"></div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-center gap-4 px-7 py-6">
+                    <button onclick="cancelEdit()"
+                        class="flex-1 py-3 rounded-2xl text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-150">
+                        Cancel
+                    </button>
+                    <button onclick="saveEditModal()"
+                        class="btn-shimmer relative overflow-hidden flex-1 py-3 rounded-2xl text-sm font-bold text-black bg-gradient-to-r from-amber-400 to-yellow-300 hover:opacity-90 shadow-lg shadow-amber-500/20 transition-all duration-150">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Confirm Modal -->
+        <div id="confirm-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="confirmModalReject()"></div>
+            <!-- Dialog -->
+            <div class="relative z-10 w-full max-w-md mx-4 rounded-3xl bg-[#13151f] border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden"
+                 style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
+                <!-- Red accent bar -->
+                <div class="h-1 w-full bg-gradient-to-r from-red-600 via-red-400 to-rose-500"></div>
+
+                <!-- Icon + text -->
+                <div class="px-8 pt-8 pb-6 flex flex-col items-center text-center gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-red-400 text-[34px]">delete_forever</span>
+                    </div>
+                    <div>
+                        <p class="text-lg font-black text-white mb-2 tracking-tight">Delete Review?</p>
+                        <p class="text-sm text-slate-400 leading-relaxed max-w-xs">
+                            Your review will be permanently removed. This action <span class="text-red-400 font-semibold">cannot be undone</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="h-px bg-white/[0.06] mx-8"></div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-center gap-4 px-8 py-6">
+                    <button onclick="confirmModalReject()"
+                        class="flex-1 py-3 rounded-2xl text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-150">
+                        Cancel
+                    </button>
+                    <button onclick="confirmModalResolve()"
+                        class="btn-shimmer relative overflow-hidden flex-1 py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-900/30 transition-all duration-150">
+                        Yes, Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes modalPop {
+                from { opacity: 0; transform: scale(.92) translateY(12px); }
+                to   { opacity: 1; transform: scale(1)  translateY(0); }
+            }
+            @keyframes shimmerSweep {
+                0%   { left: -80%; }
+                100% { left: 130%; }
+            }
+            .btn-shimmer::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -80%;
+                width: 55%;
+                height: 100%;
+                background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%);
+                transform: skewX(-20deg);
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.15s;
+            }
+            .btn-shimmer:hover::before {
+                opacity: 1;
+                animation: shimmerSweep 0.55s ease forwards;
+            }
+            .neon-focus:focus {
+                outline: none;
+                border-color: rgba(251,191,36,0.6);
+                box-shadow: 0 0 10px rgba(251,191,36,0.12), inset 0 0 8px rgba(251,191,36,0.03);
+            }
+
+            /* === 3D Star Rating Picker === */
+            .rating-stars-picker {
+                display: inline-flex;
+                align-items: center;
+                padding: 4px 2px;
+                position: relative;
+            }
+            .rating-stars-picker input { display: none; }
+
+            .rating-stars-picker label {
+                width: 32px;
+                height: 36px;
+                cursor: pointer;
+                margin: 0 1px;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.4s ease;
+            }
+
+            /* Default: empty/dim stars */
+            .rating-stars-picker label:before {
+                content: "\2605";
+                font-size: 27px;
+                line-height: 1;
+                color: rgba(255,255,255,0.12);
+                text-align: center;
+                transform: translateY(3px);
+                transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease, text-shadow 0.3s ease;
+                text-shadow: 0px 1px 1px rgba(0,0,0,0.5);
+                filter: none;
+            }
+
+            /* Selected state */
+            .rating-stars-picker label.star-filled:before {
+                color: #fbbf24;
+                transform: translateY(0px);
+                text-shadow:
+                    0px 1px 0px #d97706,
+                    0px 2px 0px #b45309,
+                    0px 3px 0px #92400e,
+                    0px 4px 0px #78350f,
+                    0px 5px 1px rgba(69,26,3,0.55),
+                    0px 6px 3px rgba(0,0,0,0.45);
+                filter: drop-shadow(0px 0px 5px rgba(251,191,36,0.55)) drop-shadow(0px 3px 10px rgba(251,191,36,0.35));
+            }
+
+            /* Hover preview */
+            .rating-stars-picker label.star-hover:before {
+                color: #fef08a;
+                transform: translateY(0px);
+                text-shadow:
+                    0px 1px 0px #f59e0b,
+                    0px 2px 0px #d97706,
+                    0px 3px 0px #b45309,
+                    0px 4px 0px #92400e,
+                    0px 5px 1px rgba(69,26,3,0.45),
+                    0px 6px 3px rgba(0,0,0,0.35);
+                filter: drop-shadow(0px 0px 9px rgba(254,240,138,0.75)) drop-shadow(0px 3px 14px rgba(251,191,36,0.55));
+            }
+
+            /* Staggered transition delays for wave effect */
+            .rating-stars-picker label:nth-child(2):before  { transition-delay: 0.04s; }
+            .rating-stars-picker label:nth-child(4):before  { transition-delay: 0.08s; }
+            .rating-stars-picker label:nth-child(6):before  { transition-delay: 0.12s; }
+            .rating-stars-picker label:nth-child(8):before  { transition-delay: 0.16s; }
+            .rating-stars-picker label:nth-child(10):before { transition-delay: 0.20s; }
+        </style>
 
         <!-- Toast Container -->
         <div id="toast-container" class="fixed bottom-8 right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>

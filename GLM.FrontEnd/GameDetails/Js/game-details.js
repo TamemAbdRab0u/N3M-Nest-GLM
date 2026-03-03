@@ -11,6 +11,8 @@ let currentMediaIndex = 0;       // For automatic sliding
 let slideInterval = null;        // Interval timer for sliding
 let isVideoMain = false;         // Is the video currently in the main container
 let currentRating = 0;           // Selected star rating for review form
+let editingReviewId = null;      // null = create mode, number = edit mode
+let editModalRating = 0;         // Rating selected inside the edit modal
 
 /* ──────────────────────────────────────────────
    Initialisation
@@ -846,6 +848,8 @@ function renderReviews(reviews) {
     }
     if (empty) empty.classList.add('hidden');
 
+    const currentUser = getUserInfo()?.userName;
+
     const html = reviews.map(r => {
         const stars = Array.from({ length: 5 }, (_, i) =>
             `<span class="material-symbols-outlined text-base ${i < Math.round(r.rating) ? 'text-yellow-400 fill-icon' : 'text-slate-700'}">star</span>`
@@ -858,14 +862,31 @@ function renderReviews(reviews) {
 
         const date = new Date(r.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
+        const commentEscaped = (r.comment || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const isOwn = currentUser && r.userName === currentUser;
+        const actionBtns = isOwn ? `
+            <span class="mx-1.5 text-slate-700">·</span>
+            <button onclick="editReview(${r.reviewId}, ${r.rating}, '${commentEscaped}')"
+                class="text-[10px] text-slate-500 hover:text-primary flex items-center gap-0.5 transition-colors">
+                <span class="material-symbols-outlined text-[12px]">edit</span>Edit
+            </button>
+            <span class="mx-1 text-slate-700">·</span>
+            <button onclick="deleteReview(${r.reviewId})"
+                class="text-[10px] text-slate-500 hover:text-red-400 flex items-center gap-0.5 transition-colors">
+                <span class="material-symbols-outlined text-[12px]">delete</span>Delete
+            </button>` : '';
+
         return `
-        <div class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+        <div id="review-card-${r.reviewId}" class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden flex-shrink-0">
                     ${avatar}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-white truncate">${escapeHtml(r.userName || 'Anonymous')}</p>
+                    <div class="flex items-center gap-0 flex-wrap">
+                        <p class="text-sm font-bold text-white xirod-font">${escapeHtml(r.userName || 'Anonymous')}</p>
+                        ${actionBtns}
+                    </div>
                     <p class="text-[10px] text-slate-500">${date}</p>
                 </div>
                 <div class="flex items-center gap-0.5">${stars}</div>
@@ -875,23 +896,66 @@ function renderReviews(reviews) {
     }).join('');
 
     list.innerHTML = html;
+
+    // Pre-fill the inline form with the current user's existing review so
+    // partial edits (e.g. rating-only) never accidentally clear the comment.
+    const ownReview = reviews.find(r => r.userName === currentUser);
+    const btn = document.getElementById('review-submit-btn');
+    if (ownReview) {
+        setRating(ownReview.rating);
+        const textarea = document.getElementById('review-comment');
+        if (textarea && !textarea.value.trim()) textarea.value = ownReview.comment || '';
+        if (btn) {
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">sync</span> Update Review';
+            btn.className = 'btn-shimmer relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-black uppercase tracking-widest hover:bg-amber-500/40 transition-all';
+        }
+    } else {
+        if (btn) {
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">rate_review</span> Post Review';
+            btn.className = 'btn-shimmer relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all';
+        }
+    }
+}
+
+function _setStarClasses(containerSel, filledCount, hoverCount) {
+    const labels = document.querySelectorAll(`${containerSel} label`);
+    labels.forEach((label, i) => {
+        label.classList.toggle('star-filled', i < filledCount);
+        label.classList.toggle('star-hover',  i < hoverCount);
+    });
+}
+
+function _applyStarPicker(radioPrefix, val) {
+    if (val > 0) {
+        const radio = document.getElementById(`${radioPrefix}${val}`);
+        if (radio) radio.checked = true;
+    } else {
+        for (let i = 1; i <= 5; i++) {
+            const r = document.getElementById(`${radioPrefix}${i}`);
+            if (r) r.checked = false;
+        }
+    }
 }
 
 function setRating(val) {
     currentRating = val;
-    const stars = document.querySelectorAll('#star-picker .star-btn');
-    stars.forEach((s, i) => {
-        if (i < val) {
-            s.classList.add('text-yellow-400', 'fill-icon');
-            s.classList.remove('text-slate-600');
-        } else {
-            s.classList.remove('text-yellow-400', 'fill-icon');
-            s.classList.add('text-slate-600');
-        }
-    });
-    const labels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
-    const labelEl = document.getElementById('rating-label');
-    if (labelEl) labelEl.textContent = labels[val] || '';
+    _applyStarPicker('rs', val);
+    _setStarClasses('#star-picker', val, 0);
+}
+
+function previewRating(val) {
+    // On hover show glow up to hovered star; keep filled stars as-is
+    _setStarClasses('#star-picker', currentRating, val);
+}
+
+function setEditModalRating(val) {
+    editModalRating = val;
+    _applyStarPicker('ers', val);
+    _setStarClasses('#edit-modal-stars', val, 0);
+}
+
+function previewEditModalRating(val) {
+    _setStarClasses('#edit-modal-stars', editModalRating, val);
 }
 
 async function submitReview() {
@@ -903,11 +967,7 @@ async function submitReview() {
         return;
     }
 
-    const dto = {
-        externalId: currentGame.externalId,
-        rating: currentRating,
-        comment: comment || ''
-    };
+    const dto = { externalId: currentGame.externalId, rating: currentRating, comment: comment || '' };
 
     try {
         const res = await apiRequest('/api/Reviews/CreateReview', {
@@ -922,18 +982,113 @@ async function submitReview() {
             return;
         }
 
-        // Reset form
         setRating(0);
-        currentRating = 0;
         const textarea = document.getElementById('review-comment');
         if (textarea) textarea.value = '';
-
-        showToast('Review saved!', 'success');
-
-        // Reload reviews to show the new one
+        showToast('Review posted!', 'success');
         loadReviews(currentGame.externalId);
     } catch (err) {
         console.error('Submit review error:', err);
+        showToast('Something went wrong', 'error');
+    }
+}
+
+function editReview(reviewId, rating, comment) {
+    editingReviewId = reviewId;
+    setEditModalRating(rating);
+    const textarea = document.getElementById('edit-modal-comment');
+    if (textarea) { textarea.value = comment; textarea.focus(); }
+    document.getElementById('edit-modal')?.classList.remove('hidden');
+}
+
+function cancelEdit() {
+    editingReviewId = null;
+    editModalRating = 0;
+    const textarea = document.getElementById('edit-modal-comment');
+    if (textarea) textarea.value = '';
+    setEditModalRating(0);
+    document.getElementById('edit-modal')?.classList.add('hidden');
+}
+
+async function saveEditModal() {
+    if (!editingReviewId) return;
+
+    const comment = document.getElementById('edit-modal-comment')?.value.trim();
+    if (editModalRating === 0) {
+        showToast('Please select a star rating', 'error');
+        return;
+    }
+
+    const dto = { reviewId: editingReviewId, rating: editModalRating, comment: comment || '' };
+
+    try {
+        const res = await apiRequest(`/api/Reviews/UpdateReview?ReviewId=${editingReviewId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dto)
+        });
+
+        if (!res.ok) {
+            const err = await res.text();
+            showToast(err || 'Failed to update review', 'error');
+            return;
+        }
+
+        showToast('Review updated!', 'success');
+        cancelEdit();
+        loadReviews(currentGame.externalId);
+    } catch (err) {
+        console.error('Save edit error:', err);
+        showToast('Something went wrong', 'error');
+    }
+}
+
+/* ── Custom confirm dialog ───────────────────────────── */
+let _confirmResolve = null;
+function showConfirmModal() {
+    return new Promise(resolve => {
+        _confirmResolve = resolve;
+        document.getElementById('confirm-modal')?.classList.remove('hidden');
+    });
+}
+function confirmModalResolve() {
+    document.getElementById('confirm-modal')?.classList.add('hidden');
+    if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+}
+function confirmModalReject() {
+    document.getElementById('confirm-modal')?.classList.add('hidden');
+    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+}
+
+async function deleteReview(reviewId) {
+    const confirmed = await showConfirmModal();
+    if (!confirmed) return;
+    try {
+        const res = await apiRequest(`/api/Reviews/DeleteReview?ReviewId=${reviewId}`, { method: 'DELETE' });
+        if (!res.ok) {
+            showToast('Failed to delete review', 'error');
+            return;
+        }
+        // Remove card from DOM instantly — no reload needed
+        const card = document.getElementById(`review-card-${reviewId}`);
+        if (card) card.remove();
+        // Show empty state if no cards left
+        const list = document.getElementById('reviews-list');
+        const empty = document.getElementById('reviews-empty');
+        if (list && empty && list.children.length === 0) empty.classList.remove('hidden');
+        if (editingReviewId === reviewId) cancelEdit();
+        // Reset the inline form
+        setRating(0);
+        const textarea = document.getElementById('review-comment');
+        if (textarea) textarea.value = '';
+        const btn = document.getElementById('review-submit-btn');
+        if (btn) {
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">rate_review</span> Post Review';
+            btn.className = 'btn-shimmer relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all';
+        }
+        showToast('Review deleted', 'success');
+    } catch (err) {
+        console.error('Delete review error:', err);
         showToast('Something went wrong', 'error');
     }
 }

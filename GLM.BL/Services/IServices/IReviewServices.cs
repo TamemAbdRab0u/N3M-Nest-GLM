@@ -11,5 +11,7 @@ namespace Game_Library_Management_BL.Services.IServices
     {
         Task<IEnumerable<ReviewResponseDto>> GetReviewsAsync(int ExternalId);
         Task<ReviewResponseDto> CreateReviewAsync(string UserId, CreateReviewDto dto);
+        Task<ReviewResponseDto> UpdateReviewAsync(string UserId, int ReviewId, UpdateReviewDto dto);
+        Task<bool> DeleteReviewAsync(int ReviewId);
     }
 }

@@ -35,7 +35,7 @@ namespace Game_Library_Management_BL.Services.Services
             }
             else
             {
-                var review = new Review
+                existing = new Review
                 {
                     UserId = UserId,
                     ExternalId = dto.ExternalId,
@@ -43,7 +43,7 @@ namespace Game_Library_Management_BL.Services.Services
                     Comment = dto.Comment,
                     CreatedAt = DateTime.UtcNow,
                 };
-                await unitofwork.Reviews.Add(review);
+                await unitofwork.Reviews.Add(existing);
             }
 
             unitofwork.Save();
@@ -52,13 +52,15 @@ namespace Game_Library_Management_BL.Services.Services
 
             return new ReviewResponseDto
             {
+                ReviewId = existing.ReviewId,
                 UserName = user?.Username ?? "Unknown",
                 ImageUrl = user?.ImageUrl,
                 Rating = dto.Rating,
                 Comment = dto.Comment,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = existing.CreatedAt
             };
         }
+
 
         public async Task<IEnumerable<ReviewResponseDto>> GetReviewsAsync(int externalId)
         {
@@ -67,6 +69,7 @@ namespace Game_Library_Management_BL.Services.Services
                 .Include(x => x.User)
                 .Select(x => new ReviewResponseDto
                 {
+                    ReviewId = x.ReviewId,
                     UserName = x.User.Username,
                     ImageUrl = x.User.ImageUrl,
                     Rating = x.Rating,
@@ -75,6 +78,50 @@ namespace Game_Library_Management_BL.Services.Services
                 }).ToListAsync();
 
             return reviews;
+        }
+
+        public async Task<ReviewResponseDto> UpdateReviewAsync(string UserId, int ReviewId, UpdateReviewDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+                throw new UnauthorizedAccessException("User not authenticated.");
+
+            var userReview = await unitofwork.Reviews.Query().FirstOrDefaultAsync(x => x.ReviewId == ReviewId);
+
+            if(userReview == null || userReview.UserId != UserId)
+                throw new UnauthorizedAccessException("you not allowed to update this review.");
+
+            userReview.Rating = dto.Rating;
+            userReview.Comment = dto.Comment;
+
+            await unitofwork.Reviews.Update(userReview);
+            unitofwork.Save();
+
+            var user = await unitofwork.Users.Query().FirstOrDefaultAsync(u => u.Id == UserId);
+
+            return new ReviewResponseDto
+            {
+                ReviewId = userReview.ReviewId,
+                UserName = user?.Username ?? "Unknown",
+                ImageUrl = user?.ImageUrl,
+                Rating = dto.Rating,
+                Comment = dto.Comment,
+                CreatedAt = userReview.CreatedAt
+            };
+        }
+
+        public async Task<bool> DeleteReviewAsync(int ReviewId)
+        {
+            if (ReviewId <= 0)
+                return false;
+
+            var review = unitofwork.Reviews.Query().FirstOrDefault(r => r.ReviewId == ReviewId);
+
+            if (review == null)
+                return false;
+
+            await unitofwork.Reviews.DeleteAsync(review);
+            unitofwork.Save();
+            return true;
         }
     }
 }
