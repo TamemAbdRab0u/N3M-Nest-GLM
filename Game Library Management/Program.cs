@@ -48,6 +48,7 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IStatsService, StatsService>();
             builder.Services.AddScoped<IProfileService, ProfileService>();
             builder.Services.AddHttpClient<IRAWGService, RAWGService>();
+            builder.Services.AddScoped<IReviewServices,ReviewServices>();
 
             builder.Services.AddSignalR();
             #endregion

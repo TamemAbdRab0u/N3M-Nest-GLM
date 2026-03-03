@@ -50,6 +50,8 @@ namespace Game_Library_Management_DAL.Data
 
             modelBuilder.Entity<UserGame>().Property(x => x.AddedAt).HasDefaultValueSql("GETUTCDATE()");
 
+            modelBuilder.Entity<Review>().HasIndex(x => new { x.ExternalId, x.UserId }).IsUnique();
+
             modelBuilder.Entity<IdentityRole>().HasData(
                new IdentityRole
                {
