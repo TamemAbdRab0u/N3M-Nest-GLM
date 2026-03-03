@@ -1459,7 +1459,16 @@ function updateWishlistUI(gameId, isInWishlist) {
     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
     if (cachedGame) {
         cachedGame.isInWishlist = isInWishlist;
-        // isFavorite and isInLibrary are untouched — all three are independent
+        // If on wishlist, it cannot be favorite
+        if (isInWishlist) {
+            cachedGame.isFavorite = false;
+            cachedGame.gamestatus = 'whishlist'; // Ensure the blue badge appears
+        } else {
+            // Only clear status if it was wishlist (don't clear if it was in library)
+            if (cachedGame.gamestatus === 'whishlist' || cachedGame.gamestatus === 2) {
+                cachedGame.gamestatus = null;
+            }
+        }
         updateStatusIndicators(gameId, cachedGame);
     }
 
@@ -1483,21 +1492,6 @@ function updateWishlistUI(gameId, isInWishlist) {
             }
         }
     });
-
-    // Handle view-specific item removal
-        // If on wishlist, it cannot be favorite
-        if (isInWishlist) {
-            cachedGame.isFavorite = false;
-            cachedGame.gamestatus = 'whishlist'; // Ensure the blue badge appears
-        } else {
-            // Only clear status if it was wishlist (don't clear if it was in library)
-            if (cachedGame.gamestatus === 'whishlist' || cachedGame.gamestatus === 2) {
-                cachedGame.gamestatus = null;
-            }
-        }
-        
-        updateStatusIndicators(gameId, cachedGame);
-    }
 
     // Handle view-specific item removal (if on wishlist page)
     if (currentView === 'wishlist' && !isInWishlist) {

@@ -48,6 +48,17 @@ namespace Game_Library_Management.Controllers
         }
 
         /// <summary>
+        /// Return all games for a public user profile (by username).
+        /// </summary>
+        /// <param name="username">Username</param>
+        [HttpGet("GetPublicGames/{username}")]
+        public async Task<IActionResult> GetPublicGames([FromRoute] string username)
+        {
+            var result = await usergameService.GetPublicUserGamesAsync(username);
+            return Ok(result ?? new List<UserGamesResponseDto>());
+        }
+
+        /// <summary>
         /// Return a Single User Game.
         /// </summary>
         /// <param name="gameId">Game Id</param>

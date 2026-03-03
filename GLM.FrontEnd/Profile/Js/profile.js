@@ -10,22 +10,30 @@ let currentCategory = 'favorite';
 let isGenreReportExpanded = false;
 let allGenresData = [];
 
+// Visitor mode — set when viewing another user's profile via ?user=<username>
+const _urlParams = new URLSearchParams(window.location.search);
+const _visitedUser = _urlParams.get('user');
+const isVisitorMode = !!_visitedUser && _visitedUser !== (getUserInfo()?.userName);
+
 document.addEventListener("DOMContentLoaded", () => {
     // Check authentication
     if (!isLoggedIn()) {
         window.location.href = "../../Auth/Html/login.html";
         return;
     }
-    
-    // Initial display from local storage for instant feedback
-    displayUserInfo();
-    
-    // Fetch full data from API
-    fetchProfile(); 
-    loadInitialData(); // Renamed from loadFavorites
-    
-    // Initialize logic
-    initializeEventListeners();
+
+    if (isVisitorMode) {
+        // Visiting another user's profile — hide all edit controls
+        applyVisitorMode();
+        fetchPublicProfile(_visitedUser);
+        loadPublicGames(_visitedUser);
+    } else {
+        // Own profile
+        displayUserInfo();
+        fetchProfile();
+        loadInitialData();
+        initializeEventListeners();
+    }
 });
 
 // Display information from local storage initially (Fast)
@@ -73,6 +81,119 @@ function initializeEventListeners() {
                 reader.readAsDataURL(file);
             }
         });
+    }
+}
+
+// Hide all edit controls when in visitor mode
+function applyVisitorMode() {
+    // Only populate the sidebar elements — NOT #profile-username (that belongs to the visited user)
+    const userInfo = getUserInfo();
+    const sidebarUsername = document.getElementById('display-username');
+    if (sidebarUsername) sidebarUsername.textContent = userInfo.userName || 'User';
+    const displayAvatar = document.getElementById('display-avatar');
+    if (displayAvatar) displayAvatar.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
+
+    // Then fetch the real avatar for the sidebar
+    fetchOwnSidebarAvatar();
+
+    // Hide edit button
+    const editBtn = document.getElementById('edit-profile-btn');
+    if (editBtn) editBtn.style.display = 'none';
+
+    // Hide bell/notification button
+    const notifBtn = document.getElementById('notification-btn');
+    if (notifBtn) notifBtn.style.display = 'none';
+
+    // Hide avatar upload overlay
+    const avatarOverlay = document.getElementById('avatar-edit-icon');
+    if (avatarOverlay) avatarOverlay.classList.add('hidden');
+    const avatarInput = document.getElementById('avatar-input');
+    if (avatarInput) avatarInput.remove();
+
+    // Hide name/bio inline edit icons
+    const nameEditIcon = document.getElementById('name-edit-icon');
+    if (nameEditIcon) nameEditIcon.classList.add('hidden');
+    const bioEditIcon = document.getElementById('bio-edit-icon');
+    if (bioEditIcon) bioEditIcon.classList.add('hidden');
+
+    // Ensure fields are not editable
+    const nameDisplay = document.getElementById('profile-username');
+    if (nameDisplay) nameDisplay.contentEditable = 'false';
+    const bioDisplay = document.getElementById('profile-bio');
+    if (bioDisplay) bioDisplay.contentEditable = 'false';
+
+    // Update page title
+    document.title = `${_visitedUser}'s Profile - N3M|Nest`;
+}
+
+// Fetch logged-in user's own avatar to display in the sidebar while visiting another profile
+async function fetchOwnSidebarAvatar() {
+    try {
+        const response = await apiRequest('/api/Profile');
+        if (!response.ok) return;
+        const profile = await response.json();
+        if (!profile.avatarUrl) return;
+
+        const displayAvatar = document.getElementById('display-avatar');
+        if (!displayAvatar) return;
+
+        const timestamp = new Date().getTime();
+        displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${(profile.displayName || 'U').charAt(0).toUpperCase()}'">`;
+
+        // Remove gradient background so the image shows cleanly
+        const parent = displayAvatar.parentElement;
+        if (parent && parent.classList.contains('bg-gradient-to-tr')) {
+            parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
+            parent.classList.add('bg-transparent');
+        }
+    } catch (e) {
+        // Sidebar just stays as the initial letter — no problem
+    }
+}
+
+// Fetch public profile of another user
+async function fetchPublicProfile(username) {
+    try {
+        const response = await apiRequest(`/api/Profile/${encodeURIComponent(username)}`);
+        if (!response.ok) throw new Error('Profile not found');
+        const profile = await response.json();
+
+        // Only update profile-specific elements — don't touch the sidebar (#display-username)
+        const nameEl = document.getElementById('profile-username');
+        if (nameEl) nameEl.textContent = profile.displayName || username;
+
+        const bioEl = document.getElementById('profile-bio');
+        if (bioEl) bioEl.textContent = profile.bio || '...';
+
+        const avatarImg = document.getElementById('profile-avatar-img');
+        const timestamp = new Date().getTime();
+        if (avatarImg) {
+            avatarImg.src = profile.avatarUrl
+                ? `${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}`
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName || username)}&background=080f0f&color=0df2f2&size=200`;
+        }
+    } catch (error) {
+        console.error('Error fetching public profile:', error);
+    }
+}
+
+// Load public games for another user's profile page
+async function loadPublicGames(username) {
+    const carouselWrapper = document.getElementById('carousel-wrapper');
+    if (!carouselWrapper) return;
+
+    try {
+        const response = await apiRequest(`/api/UserGames/GetPublicGames/${encodeURIComponent(username)}`);
+        if (!response.ok) throw new Error('Failed to load games');
+
+        allUserGames = await response.json();
+        updateLibraryStats(allUserGames);
+        loadRecentActivity();
+        loadRecentFavorites();
+        loadRecentWishlist();
+        switchCarouselView('owned');
+    } catch (error) {
+        console.error('Error loading public games:', error);
     }
 }
 

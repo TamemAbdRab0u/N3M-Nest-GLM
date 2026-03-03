@@ -61,6 +61,26 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
+        public async Task<ProfileResponseDto> GetPublicProfileAsync(string username)
+        {
+            // Look up user by Username (display name kept in sync)
+            var user = await unitOfWork.Users.Query().FirstOrDefaultAsync(x => x.Username == username);
+            if (user == null) return null;
+
+            var profile = await unitOfWork.Profiles.Query().FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+            var avatarUrl = user.ImageUrl ?? profile?.AvatarUrl;
+
+            return new ProfileResponseDto
+            {
+                DisplayName = profile?.DisplayName ?? user.Username,
+                Bio = profile?.Bio,
+                AvatarUrl = avatarUrl,
+                CoverUrl = profile?.CoverUrl
+                // Email intentionally omitted for public view
+            };
+        }
+
         public async Task<ProfileResponseDto> UpdateProfileAsync(string userId, ProfileUpdateDto model)
         {
             var profile = await unitOfWork.Profiles.Query().FirstOrDefaultAsync(p => p.UserId == userId);

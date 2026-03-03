@@ -876,19 +876,23 @@ function renderReviews(reviews) {
                 <span class="material-symbols-outlined text-[12px]">delete</span>Delete
             </button>` : '';
 
+        const profileUrl = `../../Profile/Html/profile.html?user=${encodeURIComponent(r.userName || '')}`;
+
         return `
         <div id="review-card-${r.reviewId}" class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden flex-shrink-0">
-                    ${avatar}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-0 flex-wrap">
-                        <p class="text-sm font-bold text-white xirod-font">${escapeHtml(r.userName || 'Anonymous')}</p>
-                        ${actionBtns}
+                <a href="${profileUrl}" class="flex items-center gap-3 flex-1 min-w-0 group/user hover:opacity-80 transition-opacity cursor-pointer no-underline">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-transparent group-hover/user:ring-primary/40 transition-all">
+                        ${avatar}
                     </div>
-                    <p class="text-[10px] text-slate-500">${date}</p>
-                </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-0 flex-wrap">
+                            <p class="text-sm font-bold text-white xirod-font group-hover/user:text-primary transition-colors">${escapeHtml(r.userName || 'Anonymous')}</p>
+                            ${actionBtns}
+                        </div>
+                        <p class="text-[10px] text-slate-500">${date}</p>
+                    </div>
+                </a>
                 <div class="flex items-center gap-0.5">${stars}</div>
             </div>
             ${r.comment ? `<p class="text-sm text-slate-400 leading-relaxed">${escapeHtml(r.comment)}</p>` : ''}
