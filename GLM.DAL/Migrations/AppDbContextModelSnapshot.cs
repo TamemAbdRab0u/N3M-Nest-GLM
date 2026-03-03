@@ -185,6 +185,104 @@ namespace Game_Library_Management_DAL.Migrations
                     b.ToTable("Messages");
                 });
 
+            modelBuilder.Entity("Game_Library_Management_DAL.Models.Profile", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CoverUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("profiles");
+                });
+
+            modelBuilder.Entity("Game_Library_Management_DAL.Models.Review", b =>
+                {
+                    b.Property<int>("ReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExternalId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ReviewId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ExternalId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("Review");
+                });
+
+            modelBuilder.Entity("Game_Library_Management_DAL.Models.ReviewVote", b =>
+                {
+                    b.Property<int>("ReviewVoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewVoteId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsLike")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ReviewVoteId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ReviewId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ReviewVote");
+                });
+
             modelBuilder.Entity("Game_Library_Management_DAL.Models.Tag", b =>
                 {
                     b.Property<int>("Id")
@@ -214,6 +312,10 @@ namespace Game_Library_Management_DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -235,6 +337,11 @@ namespace Game_Library_Management_DAL.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime>("AddedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
@@ -242,6 +349,9 @@ namespace Game_Library_Management_DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsFavorite")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInWishlist")
                         .HasColumnType("bit");
 
                     b.Property<int?>("Rating")
@@ -303,15 +413,15 @@ namespace Game_Library_Management_DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "27f1261c-6f18-430e-89b6-3abbfbca2626",
+                            Id = "24620023-ec75-4764-8841-f67f62d8544d",
                             Name = "Admin",
-                            NormalizedName = "Admin"
+                            NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "3790d42f-75f3-464f-b13b-8795cfdda824",
+                            Id = "8fada92e-503c-4dee-8a7e-1316f73db59f",
                             Name = "User",
-                            NormalizedName = "User"
+                            NormalizedName = "USER"
                         });
                 });
 
@@ -496,6 +606,47 @@ namespace Game_Library_Management_DAL.Migrations
                     b.Navigation("Tag");
                 });
 
+            modelBuilder.Entity("Game_Library_Management_DAL.Models.Profile", b =>
+                {
+                    b.HasOne("Game_Library_Management_DAL.Models.User", "user")
+                        .WithOne("Profile")
+                        .HasForeignKey("Game_Library_Management_DAL.Models.Profile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Game_Library_Management_DAL.Models.Review", b =>
+                {
+                    b.HasOne("Game_Library_Management_DAL.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Game_Library_Management_DAL.Models.ReviewVote", b =>
+                {
+                    b.HasOne("Game_Library_Management_DAL.Models.Review", "Review")
+                        .WithMany("Votes")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Game_Library_Management_DAL.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Game_Library_Management_DAL.Models.UserGame", b =>
                 {
                     b.HasOne("Game_Library_Management_DAL.Models.Game", "Game")
@@ -575,6 +726,11 @@ namespace Game_Library_Management_DAL.Migrations
                     b.Navigation("UserGames");
                 });
 
+            modelBuilder.Entity("Game_Library_Management_DAL.Models.Review", b =>
+                {
+                    b.Navigation("Votes");
+                });
+
             modelBuilder.Entity("Game_Library_Management_DAL.Models.Tag", b =>
                 {
                     b.Navigation("GameTags");
@@ -582,6 +738,9 @@ namespace Game_Library_Management_DAL.Migrations
 
             modelBuilder.Entity("Game_Library_Management_DAL.Models.User", b =>
                 {
+                    b.Navigation("Profile")
+                        .IsRequired();
+
                     b.Navigation("UserGames");
                 });
 

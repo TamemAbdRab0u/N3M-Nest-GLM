@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Profile - N3M|Nest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0df2f2",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#080f0f",
+                        "surface-dark": "#121d1d",
+                        "surface-light": "#ffffff",
+                        "input-bg": "#1e292b",
+                        "input-border": "#2e616b",
+                        "accent-glow": "rgba(13, 242, 242, 0.15)"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="../Css/profile.css">
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-20 lg:w-64 flex-shrink-0 bg-[#0a1618] border-r border-[#1e293b] flex flex-col transition-all duration-300 z-20">
+        <!-- Logo -->
+        <div class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-[#1e293b]">
+            <div class="h-8 w-8 relative">
+                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain scale-125">
+            </div>
+            <span class="hidden lg:block ml-3 neon-xirod font-bold text-lg tracking-wide">
+                N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
+            </span>
+        </div>
+
+        <!-- Nav - Shared links back to Dashboard -->
+        <nav class="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
+            <a href="../../Dashboard/Html/dashboard.html?view=catalog" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="hidden lg:block font-medium">Dashboard</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=library" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">stadia_controller</span>
+                <span class="hidden lg:block font-medium">My Library</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">favorite</span>
+                <span class="hidden lg:block font-medium">Favorites</span>
+            </a>
+            <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">bookmark</span>
+                <span class="hidden lg:block font-medium">Wishlist</span>
+            </a>
+            <a href="../../Community/Html/community.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">group</span>
+                <span class="hidden lg:block font-medium">Community</span>
+            </a>
+            <div class="my-2 border-t border-[#1e293b]"></div>
+            <a href="../../Dashboard/Html/dashboard.html?view=settings" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="hidden lg:block font-medium">Settings</span>
+            </a>
+        </nav>
+
+        <!-- User Profile (Bottom Sidebar) -->
+        <div class="p-4 border-t border-[#1e293b]">
+            <div class="user-profile flex items-center gap-3 cursor-pointer p-2 rounded-xl transition-all border border-primary/40 bg-primary/10">
+                <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold shadow-lg overflow-hidden">
+                    <span id="display-avatar" class="flex items-center justify-center w-full h-full">U</span>
+                </div>
+                <div class="hidden lg:block overflow-hidden">
+                    <p id="display-username" class="text-xs xirod-font text-white truncate">User</p>
+                    <p class="text-xs text-slate-400 truncate">Online</p>
+                </div>
+                <button onclick="logout();" class="ml-auto text-slate-400 hover:text-error transition-colors lg:block hidden" title="Logout">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                </button>
+            </div>
+            <!-- Mobile Logout (only icon) -->
+            <button onclick="logout()" class="lg:hidden mt-4 w-full flex justify-center text-slate-400 hover:text-error">
+                 <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+        <!-- Background Image with Overlay -->
+        <div class="absolute inset-0 z-0 pointer-events-none">
+             <div class="absolute inset-0 bg-[#0f2023]/90 z-10"></div>
+             <img src="../../Assets/Images/Bg1.jpg" class="w-full h-full object-cover opacity-30">
+        </div>
+
+        <!-- Profile View -->
+        <div id="profile-view" class="flex-1 overflow-y-auto flex flex-col z-10 relative">
+            <!-- Hidden File Input for Avatar -->
+            <input type="file" id="avatar-input" class="hidden" accept="image/*">
+            
+            <!-- Upper Part (Profile Header) -->
+            <div class="w-full flex items-start px-10 pt-16 pb-12 relative z-20">
+                 <!-- Background Profile Pattern/Image -->
+                 <div class="absolute inset-0 z-0">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a1618] via-[#0a1618]/40 to-transparent"></div>
+                    <div class="absolute top-0 left-0 w-full h-full opacity-25 bg-[radial-gradient(circle_at_50%_50%,rgba(74,125,255,0.4),transparent_70%)]"></div>
+                 </div>
+                 
+                 <div class="flex flex-col md:flex-row items-end gap-10 relative z-10 w-full max-w-7xl mx-auto mb-4">
+                    <!-- Avatar Container -->
+                    <div class="relative group shrink-0 profile-view-container">
+                        <div class="h-44 w-44 rounded-3xl overflow-hidden border-2 border-primary shadow-[0_0_30px_rgba(74,125,255,0.5)] backdrop-blur-md bg-[#1e292b]/40 relative">
+                             <img src="../../Assets/Images/avatar-placeholder.jpg" id="profile-avatar-img" class="h-full w-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=User&background=080f0f&color=0df2f2&size=200'">
+                             <!-- Edit Overlay for Avatar -->
+                             <div id="avatar-edit-icon" class="hidden absolute inset-0 bg-black/40 items-center justify-center cursor-pointer group-hover:bg-black/60 transition-all" onclick="document.getElementById('avatar-input').click()">
+                                <span class="material-symbols-outlined text-white text-4xl">photo_camera</span>
+                             </div>
+                        </div>
+                        <!-- Level Badge -->
+                        <div class="absolute -bottom-3 -right-3 h-[42px] px-4 bg-primary rounded-lg flex items-center justify-center border-2 border-[#0a1618] shadow-lg shadow-black/50">
+                            <span class="xirod-font text-[12px] text-white whitespace-nowrap font-bold">LVL 42</span>
+                        </div>
+                    </div>
+
+                    <!-- User Info Section -->
+                    <div class="flex-1 pb-2">
+                        <div class="flex items-center gap-5 mb-3 group/name relative">
+                            <h1 id="profile-username" class="text-6xl font-black neon-username tracking-wide uppercase transition-all duration-300 outline-none" contenteditable="false">USER</h1>
+                            <span id="name-edit-icon" class="hidden material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform text-2xl" title="Edit name" onclick="document.getElementById('profile-username').focus()">edit</span>
+                            <span class="px-4 py-1.5 rounded-full border border-yellow-500/40 text-yellow-500 text-[10px] xirod-font bg-yellow-500/5 shadow-[0_0_15px_rgba(234,179,8,0.1)]">PRO MEMBER</span>
+                        </div>
+                        <div class="group/bio relative mb-8 max-w-3xl">
+                            <p id="profile-bio" class="text-slate-300 font-display text-lg leading-relaxed opacity-90 outline-none transition-all duration-300 tracking-wide" contenteditable="false">
+                                ...
+                            </p>
+                            <span id="bio-edit-icon" class="hidden absolute top-0 -right-8 material-symbols-outlined text-primary/60 cursor-pointer hover:text-primary transition-colors text-xl" title="Edit bio" onclick="document.getElementById('profile-bio').focus()">edit_note</span>
+                        </div>
+                        
+                        <!-- Stats Bar (Integrated) -->
+                        <div class="flex items-center w-full max-w-4xl rounded-2xl bg-[#0a1618]/40 border border-[#1e293b]/50 backdrop-blur-2xl divide-x divide-[#1e293b]/50">
+                            <div id="stat-box-owned" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box rounded-l-2xl" onclick="switchCarouselView('owned')">
+                                <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Owned</p>
+                                <p class="text-3xl font-black text-white" id="stat-owned">0</p>
+                            </div>
+                            <div id="stat-box-favorite" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box" onclick="switchCarouselView('favorite')">
+                                <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Favorite</p>
+                                <p class="text-3xl font-black text-white" id="stat-favorite">0</p>
+                            </div>
+                            <div id="stat-box-wishlist" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box" onclick="switchCarouselView('wishlist')">
+                                <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Wishlisted</p>
+                                <p class="text-3xl font-black text-white" id="stat-wishlisted">0</p>
+                            </div>
+                            <div id="stat-box-others" class="flex-1 text-center relative group rounded-r-2xl">
+                                <div id="stat-box-completed" class="cursor-pointer py-6 hover:bg-white/5 transition-all group/stat stat-box rounded-r-2xl" onclick="switchCarouselView('completed')">
+                                    <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Completed</p>
+                                    <div class="flex items-center justify-center gap-2">
+                                        <p class="text-3xl font-black text-white" id="stat-completed">0</p>
+                                        <span class="material-symbols-outlined text-[18px] text-slate-500 group-hover:text-primary group-hover:rotate-180 transition-all duration-300">expand_circle_down</span>
+                                    </div>
+                                </div>
+
+                                <!-- Others Popup -->
+                                <div id="other-stats-popup" class="opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute top-full left-1/2 -translate-x-1/2 w-52 bg-[#0a1618]/95 border border-[#1e293b] rounded-xl p-5 backdrop-blur-3xl z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 before:content-[''] before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('playing')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-primary transition-colors">PLAYING</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-primary transition-colors" id="stat-playing">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('dropped')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-rose-400 transition-colors">DROPPED</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-rose-400 transition-colors" id="stat-dropped">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-orange-400/10 hover:border-l-2 hover:border-orange-400 hover:pl-4 group/item" onclick="switchCarouselView('onhold')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-orange-400 transition-colors">ON HOLD</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-orange-400 transition-colors" id="stat-onhold">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-slate-400/10 hover:border-l-2 hover:border-slate-400 hover:pl-4 group/item" onclick="switchCarouselView('pending')">
+                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-slate-300 transition-colors">PENDING</span>
+                                            <span class="text-lg font-bold text-white group-hover/item:text-slate-300 transition-colors" id="stat-pending">0</span>
+                                        </div>
+                                    </div>
+                                    <!-- Triangle Arrow -->
+                                    <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#0a1618] border-l border-t border-[#1e293b] rotate-45"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Actions -->
+                    <div class="flex flex-col gap-4 pb-4">
+                        <div class="flex items-center gap-4">
+                             <button class="h-14 w-14 rounded-full bg-[#1e292b]/60 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-[#1e292b] transition-all group overflow-hidden relative">
+                                <span class="material-symbols-outlined text-[24px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                             </button>
+                             <button id="edit-profile-btn" class="h-14 px-10 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider group shadow-lg shadow-primary/5">
+                                <span id="edit-btn-icon" class="material-symbols-outlined text-[20px]">edit</span>
+                                <span id="edit-btn-text">EDIT</span>
+                             </button>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Lower Part -->
+            <div class="p-8 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+                 <div class="max-w-7xl mx-auto">
+                    <!-- Library Snapshot Header -->
+                    <section class="mb-12">
+                        <div class="flex justify-between items-end mb-8">
+                            <div>
+                                <h2 id="carousel-title" class="text-4xl font-black text-slate-100 tracking-tight">a Quick Look To Your Favorite Games</h2>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="glass-panel px-6 py-3 rounded-xl text-center">
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">TOTAL GAMES</p>
+                                    <p class="text-2xl font-bold text-primary" id="snapshot-total-games">40</p>
+                                </div>
+                                <div class="glass-panel px-6 py-3 rounded-xl text-center">
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">TOTAL HOURS</p>
+                                    <p class="text-2xl font-bold text-primary" id="snapshot-total-hours">1,331</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3D Carousel Simulation -->
+                        <div id="carousel-wrapper" class="relative w-full max-w-6xl mx-auto h-[600px] flex items-center justify-center perspective-container py-10 overflow-visible group/carousel">
+                            <!-- Ambient Glow Effect -->
+                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-96 bg-primary/10 blur-[120px] rounded-full -z-10 pointer-events-none"></div>
+
+                            <!-- Cards will be dynamically injected by JS -->
+                            <div class="text-primary/20 flex flex-col items-center">
+                                <div class="w-12 h-12 border-4 border-slate-700 border-t-primary rounded-full animate-spin mb-4"></div>
+                                <p class="xirod-font text-[10px]">Accessing Library Architecture...</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Stats and Breakdown Grid -->
+                    <div class="mb-8">
+                        <!-- Genre Row: Distribution + Radar -->
+                        <div class="grid grid-cols-12 gap-6 mb-8">
+
+                        <!-- Genre Breakdown -->
+                        <div id="genre-breakdown-container" class="col-span-12 lg:col-span-7 glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden">
+                            <div class="flex justify-between items-start mb-5">
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Distribution</h3>
+                                    <p class="text-sm text-slate-500">Breakdown by library volume</p>
+                                </div>
+                                <button id="toggle-genre-report" onclick="toggleGenreReport()" class="text-primary text-[10px] xirod-font font-bold flex items-center gap-2 hover:translate-x-1 transition-all group">
+                                    <span id="genre-report-text">VIEW FULL REPORT</span> <span id="genre-report-icon" class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+                                </button>
+                            </div>
+                            <div id="genre-content" class="flex items-start gap-8 transition-all duration-500">
+                                <!-- Dynamic Donut Chart -->
+                                <div class="relative w-36 h-36 flex-shrink-0 self-start sticky top-0">
+                                    <svg id="genre-donut-svg" class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b" stroke-width="3.5"></circle>
+                                    </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span class="text-2xl font-black text-slate-100 leading-none" id="top-genre-label">—</span>
+                                        <span class="text-[9px] text-slate-500 uppercase tracking-tighter xirod-font">TOP GENRE</span>
+                                    </div>
+                                </div>
+                                <!-- Progress-bar genre list -->
+                                <div id="genre-bar-list" class="flex-1 flex flex-col gap-3">
+                                    <!-- Dynamically populated -->
+                                </div>
+                            </div>
+                            <!-- Full-width breakdown section -->
+                            <div id="genre-full-breakdown" class="mt-1">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+
+                        <!-- Genre Radar -->
+                        <div class="col-span-12 lg:col-span-5 glass-panel rounded-2xl p-6 border border-primary/10 flex flex-col gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Radar</h3>
+                                <p class="text-sm text-slate-500">Top genres visualised</p>
+                            </div>
+                            <div class="flex justify-center flex-1 items-center">
+                                <svg id="genre-radar-svg" viewBox="0 0 310 310" class="w-full max-w-[280px]">
+                                    <!-- Dynamically populated by JS -->
+                                </svg>
+                            </div>
+                            <div id="genre-radar-stats" class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-700/50">
+                                <!-- Dynamically populated by JS -->
+                            </div>
+                        </div>
+
+                        </div><!-- end genre row grid -->
+
+                        <!-- Recently Added — 3 Widgets -->
+                        <div class="flex items-center gap-3 mb-2">
+                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Your Recent Activity</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                            <!-- Library Widget -->
+                            <div class="glass-panel rounded-2xl p-5 glow-border flex flex-col gap-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span class="material-symbols-outlined text-primary text-[18px]">inventory_2</span>
+                                        Library
+                                    </h3>
+                                    <a href="../../Dashboard/Html/dashboard.html?view=library" class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all">
+                                        ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                    </a>
+                                </div>
+                                <div class="flex flex-col gap-2.5" id="recent-activity-list">
+                                    <div class="flex gap-3 items-center opacity-40">
+                                        <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
+                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Favorites Widget -->
+                            <div class="glass-panel rounded-2xl p-5 border border-red-500/10 flex flex-col gap-4 transition-all duration-300 hover:border-red-500/40 hover:shadow-[0_0_24px_rgba(239,68,68,0.12)]">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span class="material-symbols-outlined text-red-400 text-[18px]">favorite</span>
+                                        Favorites
+                                    </h3>
+                                    <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="text-[10px] xirod-font text-red-400/60 hover:text-red-400 flex items-center gap-0.5 transition-all">
+                                        ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                    </a>
+                                </div>
+                                <div class="flex flex-col gap-2.5" id="recent-favorites-list">
+                                    <div class="flex gap-3 items-center opacity-40">
+                                        <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
+                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wishlist Widget -->
+                            <div class="glass-panel rounded-2xl p-5 border border-blue-400/10 flex flex-col gap-4 transition-all duration-300 hover:border-blue-400/40 hover:shadow-[0_0_24px_rgba(96,165,250,0.12)]">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span class="material-symbols-outlined text-blue-400 text-[18px]">bookmark</span>
+                                        Wishlist
+                                    </h3>
+                                    <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="text-[10px] xirod-font text-blue-400/60 hover:text-blue-400 flex items-center gap-0.5 transition-all">
+                                        ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                                    </a>
+                                </div>
+                                <div class="flex flex-col gap-2.5" id="recent-wishlist-list">
+                                    <div class="flex gap-3 items-center opacity-40">
+                                        <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
+                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Backlog Tracker -->
+                    <section class="mb-12">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-slate-100 italic">Protocol Progress</h3>
+                            <div class="flex items-center gap-4 text-[10px] font-bold text-slate-400 xirod-font">
+                                <span class="flex items-center gap-2"><div class="size-2 rounded-full bg-primary shadow-[0_0_5px_#0df2f2]"></div> COMPLETED</span>
+                                <span class="flex items-center gap-2"><div class="size-2 rounded-full bg-slate-700"></div> IN PROGRESS</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="backlog-tracker">
+                            <!-- Cards -->
+                            <div class="glass-panel p-6 rounded-2xl glow-border transition-all">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="font-bold text-slate-200">The Elder Scrolls VI</h4>
+                                    <span class="text-primary font-bold">62%</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-4 shadow-inner">
+                                    <div class="h-full bg-primary" style="width: 62%"></div>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-500 xirod-font">
+                                    <span>MAIN STORY: 45/60 CH</span>
+                                    <span>SIDE: 12%</span>
+                                </div>
+                            </div>
+                            <div class="glass-panel p-6 rounded-2xl glow-border transition-all border-l-4 border-l-primary/40">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="font-bold text-slate-200">MechWarrior: Global War</h4>
+                                    <span class="text-primary font-bold">88%</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-4 shadow-inner">
+                                    <div class="h-full bg-primary" style="width: 88%"></div>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-500 xirod-font">
+                                    <span>MAIN STORY: 22/25 CH</span>
+                                    <span class="text-primary">NEAR COMPLETION</span>
+                                </div>
+                            </div>
+                            <div class="glass-panel p-6 rounded-2xl glow-border transition-all opacity-70">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="font-bold text-slate-200">Baldur's Gate 4</h4>
+                                    <span class="text-slate-500 font-bold">5%</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-4 shadow-inner">
+                                    <div class="h-full bg-primary/30" style="width: 5%"></div>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-500 xirod-font">
+                                    <span>MAIN STORY: 1/20 CH</span>
+                                    <span>JUST STARTED</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                 </div>
+            </div>
+            
+            <!-- Footer -->
+            <footer class="mt-auto py-6 border-t border-[#1e293b]/50 text-center z-10">
+                <p class="text-xs text-slate-600">© 2026 N3M Library. Game data provided by RAWG.</p>
+            </footer>
+        </div>
+    </main>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeEditModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-xl bg-surface-dark border border-slate-800 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white xirod-font tracking-tight">Edit Profile</h2>
+                    <button onclick="closeEditModal()" class="text-slate-500 hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <form id="edit-profile-form" class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest">Display Name</label>
+                        <input type="text" name="displayName" id="edit-display-name" class="w-full h-14 bg-input-bg border border-input-border rounded-xl px-5 text-white focus:outline-none focus:border-primary transition-colors">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest">Bio</label>
+                        <textarea name="bio" id="edit-bio" rows="4" class="w-full bg-input-bg border border-input-border rounded-xl p-5 text-white focus:outline-none focus:border-primary transition-colors resize-none"></textarea>
+                    </div>
+
+                    <div class="flex gap-4 pt-4">
+                        <button type="button" onclick="closeEditModal()" class="flex-1 h-14 rounded-2xl border border-slate-800 text-slate-400 font-bold hover:bg-slate-800 transition-all">
+                            CANCEL
+                        </button>
+                        <button type="submit" id="save-profile-btn" class="flex-[2] h-14 rounded-2xl bg-primary text-[#080f0f] font-bold hover:bg-white transition-all xirod-font text-[12px]">
+                            SAVE CHANGES
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dependencies -->
+    <script src="../../Auth/Js/auth.js"></script>
+    <script src="../Js/profile.js"></script>
+</body>
+</html>

@@ -19,11 +19,14 @@ namespace Game_Library_Management.Controllers
         ///  Return the last 20 messages from the community chat
         /// </summary>
         [HttpGet("History")]
-        public IActionResult Index()
+        public IActionResult Index([FromQuery] int limit = 100)
         {
+            limit = Math.Clamp(limit, 1, 200);
+
             var messages = context.Messages
+                .OrderByDescending(m => m.SentAt)
+                .Take(limit)
                 .OrderBy(m => m.SentAt)
-                .Take(20)
                 .ToList();
 
             return Ok(messages);

@@ -22,10 +22,12 @@ namespace Game_Library_Management_BL.DTO_s.UserGamesDto
         public List<string> Genres { get; set; } = new List<string>();
         public List<string> Platforms { get; set; } = new List<string>();
 
+        public bool IsInWishlist { get; set; }
         public Gamestatus? Gamestatus { get; set; }
         public string? Review { get; set; }
         public double? Rating { get; set; }
         public int? UserRating { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public DateTime AddedAt { get; set; }
     }
 }

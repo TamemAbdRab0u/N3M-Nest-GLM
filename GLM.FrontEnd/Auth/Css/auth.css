@@ -1,3 +1,10 @@
+@font-face {
+    font-family: 'Xirod';
+    src: url('../Fonts/Xirod.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 /* Logo */
 .auth-logo {
     width: 150px;

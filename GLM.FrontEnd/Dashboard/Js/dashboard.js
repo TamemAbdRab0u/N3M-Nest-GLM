@@ -14,6 +14,42 @@ let currentView = 'catalog'; // 'catalog', 'library', 'favorites'
 let activeToast = null;
 let toastTimeout = null;
 
+// Helper function to convert DateTime to relative time
+function getRelativeTime(dateString) {
+    if (!dateString) return '';
+    
+    // Fix C# date format: replace space with T and append Z to treat as UTC
+    // e.g. "2026-02-28 10:53:28" → "2026-02-28T10:53:28Z"
+    const normalized = dateString.toString().replace(' ', 'T').replace(/Z?$/, 'Z');
+    const date = new Date(normalized);
+    
+    if (isNaN(date.getTime())) return '';
+
+    const diffMs = Date.now() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+
+    if (diffSec < 1) return 'just now';
+    if (diffSec < 60) return `${diffSec} sec${diffSec === 1 ? '' : 's'} ago`;
+
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} min${diffMin === 1 ? '' : 's'} ago`;
+
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`;
+
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 7) return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
+
+    const diffWeek = Math.floor(diffDay / 7);
+    if (diffWeek < 4) return `${diffWeek} week${diffWeek === 1 ? '' : 's'} ago`;
+
+    const diffMonth = Math.floor(diffDay / 30);
+    if (diffMonth < 12) return `${diffMonth} month${diffMonth === 1 ? '' : 's'} ago`;
+
+    const diffYear = Math.floor(diffDay / 365);
+    return `${diffYear} year${diffYear === 1 ? '' : 's'} ago`;
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
     // Check authentication
@@ -25,8 +61,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display user info
     displayUserInfo();
     
-    // Check if initial view is requested (e.g. from nav) - simpler to default to catalog
-    selectView('catalog'); // Load intial view
+    // Check for view in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedView = urlParams.get('view') || 'catalog';
+    const requestedGenre = urlParams.get('genre');
+    
+    selectView(requestedView);
+    
+    // Apply genre filter if specified in URL
+    if (requestedGenre && requestedView === 'library') {
+        currentGenre = requestedGenre;
+        
+        // Update category filter UI to show the selected genre
+        const currentCatDisplay = document.getElementById('current-category');
+        const catBtn = document.getElementById('category-filter-btn');
+        if (currentCatDisplay) {
+            currentCatDisplay.textContent = requestedGenre;
+        }
+        if (catBtn) {
+            catBtn.classList.add('active-filter-btn');
+        }
+        
+        // Reload library with genre filter
+        loadGames(1, '', requestedGenre, '', '', '', '');
+    }
     
     initializeNavigation();
     initializePagination();
@@ -40,10 +98,53 @@ document.addEventListener('DOMContentLoaded', () => {
 function displayUserInfo() {
     const userInfo = getUserInfo();
     const usernameElements = document.querySelectorAll('#display-username, #welcome-username');
-    
+    const displayAvatar = document.getElementById('display-avatar');
+
     usernameElements.forEach(el => {
         el.textContent = userInfo.userName || 'User';
     });
+    
+    // Fetch actual profile to update name and avatar if they exist
+    fetchProfileInfo();
+}
+
+async function fetchProfileInfo() {
+    try {
+        const response = await apiRequest('/api/Profile');
+        if (response.ok) {
+            const profile = await response.json();
+            const usernameElements = document.querySelectorAll('#display-username, #welcome-username');
+            const displayAvatar = document.getElementById('display-avatar');
+
+            if (profile.displayName) {
+                usernameElements.forEach(el => {
+                    el.textContent = profile.displayName;
+                });
+                
+                // Update local storage too to keep it consistent
+                const userInfo = getUserInfo();
+                userInfo.userName = profile.displayName;
+                saveAuthData(userInfo);
+            }
+
+            const resolvedAvatar = profile.avatarUrl;
+            if (resolvedAvatar && displayAvatar) {
+                // Remove initial text icon and add image
+                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}" class="h-full w-full object-cover rounded-full">`;
+                
+                // Remove background gradient from parent div if it exists
+                const parent = displayAvatar.parentElement;
+                if (parent && parent.classList.contains('bg-gradient-to-tr')) {
+                    parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
+                    parent.classList.add('bg-transparent');
+                }
+            } else if (displayAvatar && profile.displayName) {
+                displayAvatar.textContent = profile.displayName.charAt(0).toUpperCase();
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching profile into dashboard:', error);
+    }
 }
 
 function selectView(view) {
@@ -106,6 +207,7 @@ function selectView(view) {
 
     // Update Header Text
     const headerTitle = document.querySelector('.header-title') || document.querySelector('h2'); 
+    
     if (headerTitle) {
         if (view === 'catalog') headerTitle.textContent = 'Catalog Games';
         else if (view === 'library') headerTitle.textContent = 'My Library';
@@ -181,7 +283,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                 // Determine if in library based on status
                 // Backend returns enum as string "whishlist" or int 2
                 const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
-                const inWishlist = ug.gamestatus === 'whishlist' || ug.gamestatus === 2;
+                const inWishlist = ug.isInWishlist === true;
                 
                 return {
                     externalId: ug.externalId, 
@@ -195,7 +297,8 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                     isFavorite: ug.isFavorite,
                     isInLibrary: inLibrary,
                     isInWishlist: inWishlist,
-                    gamestatus: ug.gamestatus
+                    gamestatus: ug.gamestatus,
+                    addedAt: ug.addedAt
                 };
             });
 
@@ -308,7 +411,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                                 ...game,
                                 isFavorite: ug.isFavorite,
                                 isInLibrary: ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2,
-                                isInWishlist: ug.gamestatus === 'whishlist' || ug.gamestatus === 2,
+                                isInWishlist: ug.isInWishlist === true,
                                 gamestatus: ug.gamestatus
                             };
                         }
@@ -528,26 +631,26 @@ function createGameCard(game) {
         return null;
     };
 
-    const statusObj = getStatusIcon(game.gamestatus);
+    const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
     
     // Check if status is Pending (either string name or enum ID)
-    const isPending = String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6';
+    const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
     
     const gameStatusIndicator = isPending ? `
-        <div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10 transition-all duration-500">
-            <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
+        <div data-status-for="${gameId}" class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
                 <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
-            </div>
         </div>` : (statusObj ? `
-        <div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10 transition-all duration-500">
-            <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default" title="${statusObj.label}">
+        <div data-status-for="${gameId}" class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
                 <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-            </div>
-        </div>` : `<div data-status-for="${gameId}" class="absolute bottom-3 right-3 z-10"></div>`);
+        </div>` : `<div data-status-for="${gameId}"></div>`);
 
     const inventoryIndicators = `
         <div data-inventory-for="${gameId}" class="flex justify-end gap-2 mt-2">
+            ${game.isInWishlist ? `
+                <div class="h-7 w-7 rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-blue-400/10" title="In Wishlist">
+                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon">bookmark</span>
+                </div>` : ''}
             ${game.isFavorite ? `
                 <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
                     <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
@@ -595,19 +698,22 @@ function createGameCard(game) {
     const libIcon = 'inventory_2';
     const wishlistIcon = 'bookmark';
     
+    // Timestamp for library/favorites views
+    let timestampDisplay = '';
+    
     // Use clearer text colors and remove fill-icon from button context (move to span)
     const favBtnClass = game.isFavorite ? 'text-red-500' : 'text-white/70 hover:text-red-400';
     const libClass = game.isInLibrary ? 'text-green-500' : 'text-white/70 hover:text-primary';
     const wishlistClass = game.isInWishlist ? 'text-blue-400' : 'text-white/70 hover:text-blue-400';
 
-    // Mutual exclusivity and management disabling
-    const isFavDisabled = currentView === 'library' || currentView === 'wishlist' || game.isInWishlist;
-    const isLibDisabled = currentView === 'favorites' || currentView === 'wishlist' || game.isInWishlist;
-    const isWishlistDisabled = currentView === 'favorites' || currentView === 'library' || game.isFavorite || game.isInLibrary;
+    // Wishlist is mutually exclusive with Library and Favorite
+    const isFavDisabled = game.isInWishlist === true;
+    const isLibDisabled = game.isInWishlist === true;
+    const isWishlistDisabled = game.isFavorite === true || game.isInLibrary === true;
 
-    const favTitleMsg = isFavDisabled ? (game.isInWishlist ? 'Cannot favorite wishlisted games' : 'Management disabled in this view') : favTitle;
-    const libTitleMsg = isLibDisabled ? (game.isInWishlist ? 'Cannot add wishlisted games to library' : 'Management disabled in this view') : libTitle;
-    const wishTitleMsg = isWishlistDisabled ? (game.isFavorite ? 'Cannot wishlist favorite games' : (game.isInLibrary ? 'Cannot wishlist games already in library' : 'Management disabled in this view')) : wishlistTitle;
+    const favTitleMsg = isFavDisabled ? 'Remove from Wishlist first' : favTitle;
+    const libTitleMsg = isLibDisabled ? 'Remove from Wishlist first' : libTitle;
+    const wishTitleMsg = isWishlistDisabled ? (game.isInLibrary ? 'Remove from Library first' : 'Remove from Favorites first') : wishlistTitle;
 
     card.innerHTML = `
         <!-- Image & Actions -->
@@ -637,14 +743,24 @@ function createGameCard(game) {
             </div>
 
             ${platformIconsPanel}
-            ${gameStatusIndicator}
+            
+            <!-- Game Status & Added At Group -->
+            <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5">
+                ${gameStatusIndicator}
+                ${game.addedAt ? `
+                    <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg">
+                        <span class="material-symbols-outlined text-[15px] text-primary/70 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">schedule</span>
+                        <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[200px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-primary/90 whitespace-nowrap">added ${getRelativeTime(game.addedAt)}</span>
+                    </div>
+                ` : ''}
+            </div>
         </div>
 
         <!-- Info Section -->
         <div class="p-6">
             <div class="flex items-start justify-between mb-2 gap-3">
                 <div class="overflow-hidden flex-1">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
+                    <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">${category}</p>
                 </div>
                 <div class="flex flex-col items-end">
@@ -1104,28 +1220,39 @@ function updateStatusIndicators(gameId, game) {
         return null;
     };
 
-    const statusObj = getStatusIcon(game.gamestatus);
-    const isPending = String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6';
+    const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
+    const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
 
     // Update Image Status
     statusContainers.forEach(container => {
+        if (!game.isInLibrary) {
+            // Not in library — clear status icon entirely
+            container.className = '';
+            container.innerHTML = '';
+            return;
+        }
         if (isPending) {
+            container.className = 'absolute bottom-3 right-3 z-10 transition-all duration-500';
             container.innerHTML = `
                 <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
                     <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
                 </div>`;
         } else {
+            container.className = 'h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg';
             container.innerHTML = statusObj ? `
-                <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default" title="${statusObj.label}">
                     <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
                     <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-                </div>` : '';
+                ` : '';
         }
     });
 
     // Update Inventory Indicators (Below title)
     inventoryContainers.forEach(container => {
         container.innerHTML = `
+            ${game.isInWishlist ? `
+                <div class="h-7 w-7 rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-blue-400/10" title="In Wishlist">
+                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon">bookmark</span>
+                </div>` : ''}
             ${game.isFavorite ? `
                 <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
                     <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
@@ -1138,66 +1265,60 @@ function updateStatusIndicators(gameId, game) {
     });
 
     // Update Overlay Buttons
+    const favLocked = game.isInWishlist === true;
+    const libLocked = game.isInWishlist === true;
+    const wishLocked = game.isFavorite === true || game.isInLibrary === true;
+
     favButtons.forEach(btn => {
         btn.classList.remove('text-red-500', 'text-white/70', 'hover:text-red-400', 'opacity-40', 'cursor-not-allowed');
-        const isFavLocked = game.isInWishlist;
-        btn.disabled = isFavLocked || (currentView === 'wishlist' || currentView === 'library');
-
+        btn.disabled = favLocked;
         const icon = btn.querySelector('.material-symbols-outlined');
-        if (game.isFavorite) {
+        if (favLocked) {
+            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
+            btn.title = 'Remove from Wishlist first';
+            if (icon) icon.classList.remove('fill-icon');
+        } else if (game.isFavorite) {
             btn.classList.add('text-red-500');
+            btn.title = 'Remove from Favorites';
             if (icon) icon.classList.add('fill-icon');
         } else {
-            btn.classList.add('text-white/70');
-            if (isFavLocked) {
-                btn.classList.add('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Cannot favorite wishlisted games';
-            } else {
-                btn.classList.add('hover:text-red-400', 'hover:text-white');
-            }
+            btn.classList.add('text-white/70', 'hover:text-red-400');
+            btn.title = 'Add to Favorites';
             if (icon) icon.classList.remove('fill-icon');
         }
     });
 
     libButtons.forEach(btn => {
-        // Clean old colors
         btn.classList.remove('text-green-500', 'text-white/70', 'hover:text-primary', 'opacity-40', 'cursor-not-allowed');
-        const isLibLocked = game.isInWishlist;
-        btn.disabled = isLibLocked || (currentView === 'favorites' || currentView === 'wishlist');
-
+        btn.disabled = libLocked;
         const icon = btn.querySelector('.material-symbols-outlined');
-        if (game.isInLibrary) {
+        if (libLocked) {
+            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
+            btn.title = 'Remove from Wishlist first';
+            if (icon) { icon.textContent = 'inventory_2'; icon.classList.remove('fill-icon'); }
+        } else if (game.isInLibrary) {
             btn.classList.add('text-green-500');
             btn.title = 'Remove from Library';
-            if (icon) {
-                icon.textContent = 'inventory_2';
-                icon.classList.add('fill-icon');
-            }
+            if (icon) { icon.textContent = 'inventory_2'; icon.classList.add('fill-icon'); }
         } else {
-            btn.classList.add('text-white/70');
-            if (isLibLocked) {
-                btn.classList.add('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Cannot add wishlisted games to library';
-            } else {
-                btn.classList.add('hover:text-primary', 'hover:text-white');
-            }
+            btn.classList.add('text-white/70', 'hover:text-primary');
             btn.title = 'Add to Library';
-            if (icon) {
-                icon.textContent = 'inventory_2';
-                icon.classList.remove('fill-icon');
-            }
+            if (icon) { icon.textContent = 'inventory_2'; icon.classList.remove('fill-icon'); }
         }
     });
 
     wishButtons.forEach(btn => {
         btn.classList.remove('text-blue-400', 'text-white/70', 'hover:text-blue-400', 'opacity-40', 'cursor-not-allowed');
-        const isWishLocked = game.isFavorite || game.isInLibrary;
-        btn.disabled = isWishLocked || (currentView === 'favorites' || currentView === 'library');
-
+        btn.disabled = wishLocked;
         const icon = btn.querySelector('.material-symbols-outlined');
-        if (game.isInWishlist) {
+        if (wishLocked) {
+            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
+            btn.title = game.isInLibrary ? 'Remove from Library first' : 'Remove from Favorites first';
+            if (icon) { icon.textContent = 'bookmark'; icon.classList.remove('fill-icon'); }
+        } else if (game.isInWishlist) {
             btn.classList.add('text-blue-400');
             btn.title = 'Remove from Wishlist';
+            if (icon) { icon.textContent = 'bookmark'; icon.classList.add('fill-icon'); }
             if (icon) {
                 icon.textContent = 'bookmark';
                 icon.classList.add('fill-icon', 'animate-pop');
@@ -1205,18 +1326,9 @@ function updateStatusIndicators(gameId, game) {
                 setTimeout(() => icon.classList.remove('animate-pop'), 450);
             }
         } else {
-            btn.classList.add('text-white/70');
-            if (isWishLocked) {
-                btn.classList.add('opacity-40', 'cursor-not-allowed');
-                btn.title = game.isFavorite ? 'Cannot wishlist favorite games' : 'Cannot wishlist games already in library';
-            } else {
-                btn.classList.add('hover:text-blue-400', 'hover:text-white');
-            }
+            btn.classList.add('text-white/70', 'hover:text-blue-400');
             btn.title = 'Add to Wishlist';
-            if (icon) {
-                icon.textContent = 'bookmark';
-                icon.classList.remove('fill-icon');
-            }
+            if (icon) { icon.textContent = 'bookmark'; icon.classList.remove('fill-icon'); }
         }
     });
 }
@@ -1310,7 +1422,7 @@ function updateLibraryUI(gameId, isInLibrary) {
          cachedGame.isInLibrary = isInLibrary;
          if (isInLibrary) {
              cachedGame.gamestatus = 6; // Pending
-             cachedGame.isInWishlist = false;
+             // isInWishlist and isFavorite are untouched — independent
          } else {
              cachedGame.gamestatus = null;
          }
@@ -1347,6 +1459,32 @@ function updateWishlistUI(gameId, isInWishlist) {
     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
     if (cachedGame) {
         cachedGame.isInWishlist = isInWishlist;
+        // isFavorite and isInLibrary are untouched — all three are independent
+        updateStatusIndicators(gameId, cachedGame);
+    }
+
+    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
+    wishButtons.forEach(btn => {
+        const iconSpan = btn.querySelector('.material-symbols-outlined');
+        if (iconSpan) {
+            if (isInWishlist) {
+                btn.classList.add('text-blue-400');
+                btn.classList.remove('text-white/70', 'hover:text-blue-400');
+                iconSpan.textContent = 'bookmark';
+                iconSpan.classList.add('fill-icon', 'animate-pop');
+                btn.title = 'Remove from Wishlist';
+                setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
+            } else {
+                btn.classList.remove('text-blue-400');
+                btn.classList.add('text-white/70', 'hover:text-blue-400');
+                iconSpan.textContent = 'bookmark';
+                iconSpan.classList.remove('fill-icon');
+                btn.title = 'Add to Wishlist';
+            }
+        }
+    });
+
+    // Handle view-specific item removal
         // If on wishlist, it cannot be favorite
         if (isInWishlist) {
             cachedGame.isFavorite = false;
@@ -1379,7 +1517,9 @@ function updateWishlistUI(gameId, isInWishlist) {
 
 // Show game details
 function showGameDetails(game) {
-    // Placeholder
+    const gameId = game.externalId || game.id;
+    if (!gameId) return;
+    window.location.href = `../../GameDetails/Html/game-details.html?id=${gameId}`;
 }
 
 // Update game status in database

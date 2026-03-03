@@ -19,6 +19,7 @@ namespace Game_Library_Management_DAL.Data
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Platform> Platforms { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Profile> profiles { get; set; }
 
         // Many-to-Many relationship tables //
         public DbSet<UserGame> UserGames { get; set; }
@@ -45,20 +46,31 @@ namespace Game_Library_Management_DAL.Data
             modelBuilder.Entity<GamePlatform>().HasOne(x => x.Game).WithMany(x => x.GamePlatforms).HasForeignKey(x => x.GameId);
             modelBuilder.Entity<GamePlatform>().HasOne(x => x.Platform).WithMany(x => x.GamePlatforms).HasForeignKey(x => x.PlatformId);
 
+            modelBuilder.Entity<User>().HasOne(x => x.Profile).WithOne(x => x.user).HasForeignKey<Profile>(x => x.UserId);
+
+            modelBuilder.Entity<UserGame>().Property(x => x.AddedAt).HasDefaultValueSql("GETUTCDATE()");
+
+            modelBuilder.Entity<Review>().HasIndex(x => new { x.ExternalId, x.UserId }).IsUnique();
+
+            modelBuilder.Entity<ReviewVote>().HasIndex(x => new { x.ReviewId, x.UserId }).IsUnique();
+            modelBuilder.Entity<ReviewVote>().HasOne(x => x.Review).WithMany(x => x.Votes).HasForeignKey(x => x.ReviewId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<ReviewVote>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<IdentityRole>().HasData(
                new IdentityRole
                {
-                   Id = Guid.NewGuid().ToString(),
+                   Id = "24620023-ec75-4764-8841-f67f62d8544d",
                    Name = "Admin",
-                   NormalizedName = "Admin"
+                   NormalizedName = "ADMIN"
                },
                new IdentityRole
                {
-                   Id = Guid.NewGuid().ToString(),
+                   Id = "8fada92e-503c-4dee-8a7e-1316f73db59f",
                    Name = "User",
-                   NormalizedName = "User"
+
+                   NormalizedName = "USER"
                }
-   );
+            );
         }
     }
 }

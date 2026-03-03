@@ -49,6 +49,7 @@ namespace Game_Library_Management_BL.Services.Services
                     UserName = x.User.Username,
                     ExternalId = x.Game.ExternalId,
                     IsFavorite = x.IsFavorite,
+                    IsInWishlist = x.IsInWishlist,
                     GameTitle = rg?.Title ?? x.Game.Title,
                     GameDescription = x.Game.Description,
                     GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
@@ -59,7 +60,8 @@ namespace Game_Library_Management_BL.Services.Services
                     Review = x.Review,
                     Rating = rg?.Rating ?? 0,
                     UserRating = x.Rating,
-                    CompletedAt = x.CompletedAt
+                    CompletedAt = x.CompletedAt,
+                    AddedAt = x.AddedAt
                 };
             });
         }
@@ -89,6 +91,7 @@ namespace Game_Library_Management_BL.Services.Services
                     UserName = x.User.Username,
                     ExternalId = x.Game.ExternalId,
                     IsFavorite = x.IsFavorite,
+                    IsInWishlist = x.IsInWishlist,
                     GameTitle = rg?.Title ?? x.Game.Title,
                     GameDescription = x.Game.Description,
                     GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
@@ -99,7 +102,8 @@ namespace Game_Library_Management_BL.Services.Services
                     Review = x.Review,
                     Rating = rg?.Rating ?? 0,
                     UserRating = x.Rating,
-                    CompletedAt = x.CompletedAt
+                    CompletedAt = x.CompletedAt,
+                    AddedAt = x.AddedAt
                 };
             });
         }
@@ -138,7 +142,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Review = UserGame.Review,
                 Rating = rg?.Rating ?? 0,
                 UserRating = UserGame.Rating,
-                CompletedAt = UserGame.CompletedAt
+                CompletedAt = UserGame.CompletedAt,
+                AddedAt = UserGame.AddedAt
             };
         }
 
@@ -196,7 +201,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Review = createDto.Review,
                 UserRating = createDto.Rating,
                 Rating = rg?.Rating ?? 0,
-                CompletedAt = createDto.CompletedAt
+                CompletedAt = createDto.CompletedAt,
+                AddedAt = userGame.AddedAt
             };
         }
 
@@ -235,7 +241,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Review = ExistedUserGame.Review,
                 UserRating = ExistedUserGame.Rating,
                 Rating = rg?.Rating ?? 0,
-                CompletedAt = ExistedUserGame.CompletedAt
+                CompletedAt = ExistedUserGame.CompletedAt,
+                AddedAt = ExistedUserGame.AddedAt
             };
         }
 

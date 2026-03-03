@@ -46,7 +46,9 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IPlatformservices, PlatformServices>();
             builder.Services.AddScoped<IUserGamesServices, UserGamesServices>();
             builder.Services.AddScoped<IStatsService, StatsService>();
+            builder.Services.AddScoped<IProfileService, ProfileService>();
             builder.Services.AddHttpClient<IRAWGService, RAWGService>();
+            builder.Services.AddScoped<IReviewServices,ReviewServices>();
 
             builder.Services.AddSignalR();
             #endregion
@@ -85,6 +87,21 @@ namespace Game_Library_Management
                     IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
                     ClockSkew = TimeSpan.Zero
                 };
+
+                
+                o.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chat"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return System.Threading.Tasks.Task.CompletedTask;
+                    }
+                };
             });
  
             #endregion
@@ -99,6 +116,14 @@ namespace Game_Library_Management
 
             // Comment out HTTPS redirection for development
             // app.UseHttpsRedirection();
+
+            app.UseStaticFiles(); // Serve files from wwwroot
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+                    Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+                RequestPath = "/Uploads"
+            });
 
             app.UseCors("AllowFrontend");
 

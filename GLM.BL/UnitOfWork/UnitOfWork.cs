@@ -21,6 +21,9 @@ namespace Game_Library_Management_BL.UnitOfWork
         public IRepo<UserGame> UserGames { get; private set; }
         public IRepo<GameTag> GameTags { get; private set; }
         public IRepo<GamePlatform> GamePlatforms { get; private set; }
+        public IRepo<Profile> Profiles { get; private set; }
+        public IRepo<Review> Reviews { get; private set; }
+        public IRepo<ReviewVote> ReviewVotes { get; private set; }
 
         public UnitOfWork(AppDbContext context)
         {
@@ -31,6 +34,9 @@ namespace Game_Library_Management_BL.UnitOfWork
             UserGames = new Repo<UserGame>(context);
             GameTags = new Repo<GameTag>(context);
             GamePlatforms = new Repo<GamePlatform>(context);
+            Profiles = new Repo<Profile>(context);
+            Reviews = new Repo<Review>(context);
+            ReviewVotes = new Repo<ReviewVote>(context);
             this.context = context;
         }
 

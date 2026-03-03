@@ -15,6 +15,14 @@ namespace Game_Library_Management.Controllers
             _gameCatalogService = gameCatalogService;
         }
 
+        [HttpGet("catalog/{id}")]
+        public async Task<IActionResult> GetGameDetails(int id)
+        {
+            var details = await _gameCatalogService.GetGameDetailsAsync(id);
+            if (details == null) return NotFound();
+            return Ok(details);
+        }
+
         [HttpGet("catalog/GetAll")]
         public async Task<IActionResult> GetAllGames([FromQuery] int page = 1, [FromQuery] string? genre = null, [FromQuery] string? platforms = null, [FromQuery] string? ordering = null, [FromQuery] string? dates = null)
         {

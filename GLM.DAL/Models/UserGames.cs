@@ -18,6 +18,8 @@ namespace Game_Library_Management_DAL.Models
         public string? Review { get; set; }
         public int? Rating { get; set; }
         public bool IsFavorite { get; set; }
+        public bool IsInWishlist { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public DateTime AddedAt { get; set; }
     }
 }

@@ -1,0 +1,103 @@
+@font-face {
+    font-family: 'Xirod';
+    src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+}
+
+.xirod-font  { font-family: 'Xirod', sans-serif; letter-spacing: 1px; }
+.neon-xirod  {
+    font-family: 'Xirod', sans-serif;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(13,242,242,0.8), 0 0 10px rgba(13,242,242,0.5), 0 0 15px rgba(13,242,242,0.3);
+    letter-spacing: 2px;
+}
+
+.flicker-pipe {
+    display: inline-block;
+    animation: flicker-bulb 6s linear infinite;
+}
+@keyframes flicker-bulb {
+    0%,  8%,  10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 4px #fff, 0 0 12px #0df2f2, 0 0 28px #0df2f2;
+    }
+    9%,  11%, 41%, 67% {
+        opacity: 0.08;
+        text-shadow: none;
+    }
+    13%, 39% {
+        opacity: 0.5;
+        text-shadow: 0 0 4px #fff;
+    }
+    64%, 69% {
+        opacity: 0.15;
+        text-shadow: none;
+    }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar              { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track        { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb        { background: #1e3a3d; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover  { background: #2e616b; }
+
+/* ── Message bubbles ─────────────────────────────────────────────────────── */
+.msg-bubble {
+    animation: msgIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Own messages: slightly right-aligned accent */
+.msg-own .msg-content {
+    background: linear-gradient(135deg, #0b2a2a, #0d3535);
+    border-color: rgba(13, 242, 242, 0.2);
+}
+
+/* System / date separators */
+.msg-separator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #334155;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Xirod', sans-serif;
+    margin: 16px 0;
+}
+.msg-separator::before,
+.msg-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1e293b;
+}
+
+/* ── Connection badge states ─────────────────────────────────────────────── */
+.conn-online  { border-color: rgba(52,211,153,0.3); color: #34d399; }
+.conn-online  #conn-dot  { background: #34d399; box-shadow: 0 0 6px #34d399; }
+
+.conn-offline { border-color: rgba(239,68,68,0.3); color: #f87171; }
+.conn-offline #conn-dot  { background: #f87171; }
+
+.conn-loading { border-color: rgba(250,204,21,0.3); color: #facc15; }
+.conn-loading #conn-dot  { background: #facc15; animation: pulse 1s infinite; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+
+/* ── Emoji picker placeholder (future) ──────────────────────────────────── */
+.emoji-btn:hover { color: #0df2f2; transform: scale(1.15); }
+
+/* ── Online user row ─────────────────────────────────────────────────────── */
+.online-user-row {
+    animation: userIn 0.35s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes userIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
