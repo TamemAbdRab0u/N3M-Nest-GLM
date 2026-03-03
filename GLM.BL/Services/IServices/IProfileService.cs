@@ -11,6 +11,6 @@ namespace Game_Library_Management_BL.Services.IServices
     public interface IProfileService
     {
         Task<ProfileResponseDto> GetProfileAsync(string userId);
-        Task<ProfileResponseDto> UpdateProfileAsync(string userId, ProfileUpdateDto model, IFormFile avatarFile);
+        Task<ProfileResponseDto> UpdateProfileAsync(string userId, ProfileUpdateDto model);
     }
 }

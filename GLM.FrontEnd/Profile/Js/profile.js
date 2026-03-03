@@ -113,9 +113,10 @@ function updateProfileUI(profile) {
     }
 
     // Sidebar Avatar / Initial
+    const resolvedAvatar = profile.avatarUrl;
     if (displayAvatar) {
-        if (profile.avatarUrl) {
-            displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+        if (resolvedAvatar) {
+            displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
             const parent = displayAvatar.parentElement;
             if (parent && parent.classList.contains("bg-gradient-to-tr")) {
                 parent.classList.remove("bg-gradient-to-tr", "from-primary", "to-purple-500");
@@ -127,8 +128,8 @@ function updateProfileUI(profile) {
     }
 
     // Update Sidebar Image if exists separately
-    if (sidebarAvatar && profile.avatarUrl) {
-        sidebarAvatar.src = `${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}`;
+    if (sidebarAvatar && resolvedAvatar) {
+        sidebarAvatar.src = `${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}`;
     }
 
     // Update Bio
@@ -140,9 +141,8 @@ function updateProfileUI(profile) {
 
     // Update Profile Header Avatar
     if (avatarImg) {
-        if (profile.avatarUrl) {
-            const timestamp = new Date().getTime();
-            const newSrc = `${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}`;
+        if (resolvedAvatar) {
+            const newSrc = `${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}`;
             
             // Set source
             avatarImg.src = newSrc;
@@ -240,7 +240,7 @@ async function saveProfileChanges() {
     formData.append("DisplayName", name);
     formData.append("Bio", bio);
     if (selectedAvatarFile) {
-        formData.append("Avatar", selectedAvatarFile);
+        formData.append("AvatarUrl", selectedAvatarFile);
     }
 
     try {
@@ -268,8 +268,9 @@ async function saveProfileChanges() {
 
         // Important: Update global storage to match new state
         const userInfo = getUserInfo();
-        if (updatedProfile.avatarUrl) {
-            localStorage.setItem("userAvatar", updatedProfile.avatarUrl);
+        const savedAvatar = updatedProfile.avatarUrl;
+        if (savedAvatar) {
+            localStorage.setItem("userAvatar", savedAvatar);
         }
 
         updateProfileUI(updatedProfile);

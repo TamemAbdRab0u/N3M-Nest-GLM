@@ -30,10 +30,10 @@ namespace Game_Library_Management_BL.Services.Services
         public async Task<ProfileResponseDto> GetProfileAsync(string userId)
         {
             var profile = await unitOfWork.Profiles.Query().FirstOrDefaultAsync(p => p.UserId == userId);
+            var user = await unitOfWork.Users.Query().FirstOrDefaultAsync(x => x.Id == userId);
 
             if (profile == null)
             {
-                var user = await unitOfWork.Users.Query().FirstOrDefaultAsync(x => x.Id == userId);
                 if (user == null) return null;
 
                 profile = new Profile
@@ -47,17 +47,21 @@ namespace Game_Library_Management_BL.Services.Services
                 unitOfWork.Save();
             }
 
+            // Prefer user.ImageUrl as the authoritative avatar source
+            var imageUrl = user?.ImageUrl;
+            var avatarUrl = imageUrl ?? profile.AvatarUrl;
+
             return new ProfileResponseDto
             {
                 DisplayName = profile.DisplayName,
                 Bio = profile.Bio,
                 Email = profile.Email,
-                AvatarUrl = profile.AvatarUrl,
+                AvatarUrl = avatarUrl,
                 CoverUrl = profile.CoverUrl
             };
         }
 
-        public async Task<ProfileResponseDto> UpdateProfileAsync(string userId, ProfileUpdateDto model, IFormFile avatarFile)
+        public async Task<ProfileResponseDto> UpdateProfileAsync(string userId, ProfileUpdateDto model)
         {
             var profile = await unitOfWork.Profiles.Query().FirstOrDefaultAsync(p => p.UserId == userId);
             var appUser = await unitOfWork.Users.Query().FirstOrDefaultAsync(x => x.Id == userId);
@@ -91,19 +95,23 @@ namespace Game_Library_Management_BL.Services.Services
                 }
             }
 
-            // Always update Bio - set default "..." if empty
+            
             profile.Bio = string.IsNullOrWhiteSpace(model.Bio) ? "..." : model.Bio;
 
-            if (avatarFile != null && avatarFile.Length > 0)
+            if (model.AvatarUrl != null && model.AvatarUrl.Length > 0)
             {
                 var originalAvatar = profile.AvatarUrl;
 
-                var fileName = await uploadHandler.UploadAsync(avatarFile);
+                var fileName = await uploadHandler.UploadAsync(model.AvatarUrl);
                 if (!fileName.StartsWith("Invalid") && !fileName.Contains("limit"))
                 {
                     profile.AvatarUrl = fileName;
 
-                    // Delete the old file only after the new one is successfully uploaded and property is set
+                    
+                    if (appUser != null)
+                        appUser.ImageUrl = fileName;
+
+                    
                     if (!string.IsNullOrEmpty(originalAvatar))
                     {
                         try
@@ -114,20 +122,23 @@ namespace Game_Library_Management_BL.Services.Services
                                 System.IO.File.Delete(oldPath);
                             }
                         }
-                        catch { /* Ignore deletion errors to prevent failure */ }
+                        catch { }
                     }
                 }
             }
 
-            // Explicitly mark the profile as modified if it was an update to an existing record
+            
             unitOfWork.Save();
+
+            
+            var updatedImageUrl = appUser?.ImageUrl ?? profile.AvatarUrl;
 
             return new ProfileResponseDto
             {
                 DisplayName = profile.DisplayName,
                 Bio = profile.Bio,
                 Email = profile.Email,
-                AvatarUrl = profile.AvatarUrl,
+                AvatarUrl = updatedImageUrl,
                 CoverUrl = profile.CoverUrl
             };
         }

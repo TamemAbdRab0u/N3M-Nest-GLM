@@ -127,9 +127,10 @@ async function fetchProfileInfo() {
                 saveAuthData(userInfo);
             }
 
-            if (profile.avatarUrl && displayAvatar) {
+            const resolvedAvatar = profile.avatarUrl;
+            if (resolvedAvatar && displayAvatar) {
                 // Remove initial text icon and add image
-                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full">`;
+                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}" class="h-full w-full object-cover rounded-full">`;
                 
                 // Remove background gradient from parent div if it exists
                 const parent = displayAvatar.parentElement;

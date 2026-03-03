@@ -33,13 +33,14 @@ namespace Game_Library_Management.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateDto model, [FromForm(Name = "Avatar")] IFormFile? avatarFile)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateDto model)
         {
             var userId = User.FindFirst("uid")?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var updatedProfile = await profileService.UpdateProfileAsync(userId, model, avatarFile);
+            var updatedProfile = await profileService.UpdateProfileAsync(userId, model);
             if (updatedProfile == null)
                 return BadRequest("Could not update profile");
 
