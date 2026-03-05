@@ -88,5 +88,12 @@ namespace Game_Library_Management.Controllers
             var result = await _gameCatalogService.ToggleWishlistAsync(userId, externalId);
             return Ok(new { Added = result });
         }
+
+        [HttpGet("catalog/{externalId}/similar")]
+        public async Task<IActionResult> GetSimilarGames(int externalId)
+        {
+            var games = await _gameCatalogService.GetSimilarGamesAsync(externalId);
+            return Ok(games);
+        }
     }
 }

@@ -611,5 +611,62 @@ namespace Game_Library_Management_BL.Services.Services
                 return null;
             }
         }
+
+        public async Task<IEnumerable<RAWGCatalogDto>> GetSimilarGamesAsync(int externalId)
+        {
+            var key = _config["RAWG:ApiKey"];
+
+            // RAWG provides a dedicated endpoint for games in the same series / similar titles
+            var url = $"https://api.rawg.io/api/games/{externalId}/suggested?key={key}&page_size=6";
+
+            try
+            {
+                var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
+                if (response?.Results == null || !response.Results.Any())
+                    return Enumerable.Empty<RAWGCatalogDto>();
+
+                var games = response.Results
+                    .Where(g => !string.IsNullOrEmpty(g.Background_Image))
+                    .Take(6)
+                    .Select(g => new RAWGCatalogDto
+                    {
+                        ExternalId = g.Id,
+                        Title = g.Name,
+                        ImageUrl = g.Background_Image,
+                        Rating = g.Rating,
+                        Metacritic = g.Metacritic,
+                        ReleaseDate = g.Released,
+                        Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                        Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
+                    }).ToList();
+
+                var userId = GetCurrentUserId();
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var userGames = await unitofwork.UserGames.Query()
+                        .Include(ug => ug.Game)
+                        .Where(ug => ug.UserId == userId)
+                        .Select(ug => new { ug.Game.ExternalId, ug.IsFavorite, ug.Gamestatus, ug.IsInWishlist })
+                        .ToListAsync();
+
+                    foreach (var game in games)
+                    {
+                        var userGame = userGames.FirstOrDefault(ug => ug.ExternalId == game.ExternalId);
+                        if (userGame != null)
+                        {
+                            game.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+                            game.IsInWishlist = userGame.IsInWishlist;
+                            game.IsFavorite = userGame.IsFavorite;
+                        }
+                    }
+                }
+
+                return games;
+            }
+            catch
+            {
+                return Enumerable.Empty<RAWGCatalogDto>();
+            }
+        }
     }
 }

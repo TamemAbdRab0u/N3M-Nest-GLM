@@ -154,10 +154,68 @@ async function loadGameDetails(id) {
 
         currentGame = await res.json();
         renderGame(currentGame);
+        loadSimilarGames(id);
     } catch (err) {
         console.error('Game details load error:', err);
         showError();
     }
+}
+
+/* ──────────────────────────────────────────────
+   Similar Games
+────────────────────────────────────────────── */
+async function loadSimilarGames(id) {
+    const container = document.getElementById('similar-games-list');
+    if (!container) return;
+
+    // Wait until currentGame is populated
+    if (!currentGame) { hideSimilarGames(); return; }
+
+    // Pick first available genre and turn it into a RAWG slug
+    const genreName = currentGame.genres?.[0];
+    if (!genreName) { hideSimilarGames(); return; }
+    const genreSlug = genreName.toLowerCase().replace(/\s+/g, '-');
+
+    try {
+        const res = await apiRequest(`/api/RAWG/catalog/GetAll?genre=${encodeURIComponent(genreSlug)}&ordering=-rating`);
+        if (!res.ok) { hideSimilarGames(); return; }
+
+        const allGames = await res.json();
+        // Filter out the current game itself
+        const games = (allGames || [])
+            .filter(g => g.externalId !== currentGame.externalId)
+            .slice(0, 6);
+
+        if (games.length === 0) { hideSimilarGames(); return; }
+
+        container.innerHTML = games.map(g => {
+            const rating = g.rating > 0 ? `<span class="text-yellow-400">★</span> ${g.rating.toFixed(1)}` : '';
+            const genre  = g.genres?.[0] ?? '';
+            const meta   = [genre, rating].filter(Boolean).join(' · ');
+            return `
+            <a href="game-details.html?id=${g.externalId}"
+               class="flex gap-3 items-center group/sim hover:bg-white/5 rounded-xl p-1.5 -mx-1.5 transition-colors no-underline">
+                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
+                    <img src="${g.imageUrl || ''}" alt="${escapeHtml(g.title)}"
+                         class="w-full h-full object-cover group-hover/sim:scale-105 transition-transform duration-300"
+                         onerror="this.parentElement.classList.add('flex','items-center','justify-center');this.style.display='none'">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-200 group-hover/sim:text-primary transition-colors truncate leading-snug">${escapeHtml(g.title)}</p>
+                    ${meta ? `<p class="text-[10px] text-slate-500 mt-0.5">${meta}</p>` : ''}
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-slate-700 group-hover/sim:text-primary transition-colors flex-shrink-0">chevron_right</span>
+            </a>`;
+        }).join('');
+    } catch (err) {
+        console.error('Similar games error:', err);
+        hideSimilarGames();
+    }
+}
+
+function hideSimilarGames() {
+    const card = document.getElementById('similar-games-card');
+    if (card) card.classList.add('hidden');
 }
 
 function renderGame(g) {
@@ -881,18 +939,20 @@ function renderReviews(reviews) {
         return `
         <div id="review-card-${r.reviewId}" class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
             <div class="flex items-center gap-3">
-                <a href="${profileUrl}" class="flex items-center gap-3 flex-1 min-w-0 group/user hover:opacity-80 transition-opacity cursor-pointer no-underline">
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-transparent group-hover/user:ring-primary/40 transition-all">
-                        ${avatar}
-                    </div>
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <a href="${profileUrl}" class="flex-shrink-0 group/user hover:opacity-80 transition-opacity no-underline">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden ring-2 ring-transparent group-hover/user:ring-primary/40 transition-all">
+                            ${avatar}
+                        </div>
+                    </a>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-0 flex-wrap">
-                            <p class="text-sm font-bold text-white xirod-font group-hover/user:text-primary transition-colors">${escapeHtml(r.userName || 'Anonymous')}</p>
+                            <a href="${profileUrl}" class="text-sm font-bold text-white xirod-font hover:text-primary transition-colors no-underline">${escapeHtml(r.userName || 'Anonymous')}</a>
                             ${actionBtns}
                         </div>
                         <p class="text-[10px] text-slate-500">${date}</p>
                     </div>
-                </a>
+                </div>
                 <div class="flex items-center gap-0.5">${stars}</div>
             </div>
             ${r.comment ? `<p class="text-sm text-slate-400 leading-relaxed">${escapeHtml(r.comment)}</p>` : ''}
