@@ -14,7 +14,7 @@ let friendshipState = null; // { status, isSentByMe, friendshipId, friendsCount 
 // Visitor mode — set when viewing another user's profile via ?user=<username>
 const _urlParams = new URLSearchParams(window.location.search);
 const _visitedUser = _urlParams.get('user');
-const isVisitorMode = !!_visitedUser && _visitedUser !== (getUserInfo()?.userName);
+const isVisitorMode = !!_visitedUser && _visitedUser.toLowerCase() !== (getUserInfo()?.userName ?? '').toLowerCase();
 
 document.addEventListener("DOMContentLoaded", () => {
     // Check authentication
@@ -1255,7 +1255,7 @@ async function loadFriendsPreview(username) {
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=80`;
             const safeName = encodeURIComponent(f.username);
             return `
-            <div class="flex flex-col items-center gap-1.5 cursor-pointer group" onclick="window.location.href='../Html/profile.html?user=${safeName}'">
+            <div class="flex flex-col items-center gap-1.5 cursor-pointer group" onclick="window.location.href='../Html/visit-profile.html?user=${safeName}'">
                 <div class="h-14 w-14 rounded-full overflow-hidden border-2 border-slate-700 group-hover:border-primary transition-all shadow-lg">
                     <img src="${avatarSrc}" class="h-full w-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=80'">
                 </div>

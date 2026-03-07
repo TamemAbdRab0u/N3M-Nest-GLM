@@ -144,7 +144,23 @@ namespace Game_Library_Management.Controllers
 
             try
             {
-                await friendshipService.RemoveAsync(userId, friendshipId);
+                var result = await friendshipService.RemoveAsync(userId, friendshipId);
+
+                // If it was a pending request (not yet accepted), notify the other party
+                // so they can remove it from their bell dropdown in real-time.
+                if (result.Status == "Pending")
+                {
+                    var notification = new FriendRequestNotificationDto
+                    {
+                        FriendshipId    = friendshipId,
+                        FromUserId      = userId,
+                        FromUsername    = CurrentUsername ?? string.Empty,
+                        EventType       = "Cancelled"
+                    };
+                    await hubContext.Clients.User(result.UserId)
+                        .SendAsync("FriendRequest", notification);
+                }
+
                 return NoContent();
             }
             catch (UnauthorizedAccessException)

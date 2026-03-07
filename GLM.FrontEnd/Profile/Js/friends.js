@@ -130,7 +130,7 @@ function renderFriends(list) {
         const initial = displayName.charAt(0).toUpperCase();
         return `
         <div class="glass-panel rounded-2xl p-5 flex flex-col items-center gap-3 cursor-pointer group transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(13,242,242,0.1)]"
-             onclick="window.location.href='../Html/profile.html?user=${encodeURIComponent(f.username)}'">
+             onclick="window.location.href='../Html/visit-profile.html?user=${encodeURIComponent(f.username)}'">
             <div class="relative">
                 <div class="h-20 w-20 rounded-full overflow-hidden border-2 border-slate-700 group-hover:border-primary transition-all shadow-lg">
                     <img src="${avatarSrc}" class="h-full w-full object-cover"
@@ -169,7 +169,7 @@ function filterFriends() {
 // ── Navigation ─────────────────────────────────────────────
 
 function goBackToProfile() {
-    window.location.href = `../Html/profile.html?user=${encodeURIComponent(_profileUser)}`;
+    window.location.href = `../Html/visit-profile.html?user=${encodeURIComponent(_profileUser)}`;
 }
 
 function logout() {

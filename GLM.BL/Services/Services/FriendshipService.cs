@@ -131,7 +131,7 @@ namespace Game_Library_Management_BL.Services.Services
             return await BuildFriendDtoAsync(friendship, currentUserId);
         }
 
-        public async Task RemoveAsync(string currentUserId, int friendshipId)
+        public async Task<FriendDto> RemoveAsync(string currentUserId, int friendshipId)
         {
             var friendship = await unitOfWork.Friendships.Query()
                 .FirstOrDefaultAsync(f => f.Id == friendshipId)
@@ -140,8 +140,28 @@ namespace Game_Library_Management_BL.Services.Services
             if (friendship.RequesterId != currentUserId && friendship.AddresseeId != currentUserId)
                 throw new UnauthorizedAccessException("Not part of this friendship.");
 
+            // Identify the other party before deleting
+            string otherUserId = friendship.RequesterId == currentUserId
+                ? friendship.AddresseeId
+                : friendship.RequesterId;
+
+            var otherUser = await unitOfWork.Users.Query()
+                .Include(u => u.Profile)
+                .FirstOrDefaultAsync(u => u.Id == otherUserId);
+
             await unitOfWork.Friendships.DeleteAsync(friendship);
             unitOfWork.Save();
+
+            return new FriendDto
+            {
+                FriendshipId = friendshipId,
+                UserId       = otherUserId,
+                Username     = otherUser?.Username ?? string.Empty,
+                DisplayName  = otherUser?.Profile?.DisplayName,
+                AvatarUrl    = otherUser?.Profile?.AvatarUrl,
+                Status       = friendship.Status.ToString(),
+                IsSentByMe   = friendship.RequesterId == currentUserId
+            };
         }
 
         public async Task<IEnumerable<FriendDto>> GetFriendsAsync(string username)

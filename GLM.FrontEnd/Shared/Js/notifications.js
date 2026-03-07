@@ -15,9 +15,12 @@
     let _pendingRequests = []; // { FriendshipId, FromUserId, FromUsername, FromDisplayName, FromAvatarUrl }
     let _initialized     = false;
 
-    // Resolve profile.html path regardless of calling page depth
+    // Build an absolute URL to profile.html regardless of which page we're on.
+    // Strip the last 3 path segments (dir1/dir2/file.html) and re-attach the profile path.
     function _profileUrl(username) {
-        return `../../Profile/Html/profile.html?user=${encodeURIComponent(username)}`;
+        const segs = window.location.href.split('?')[0].split('#')[0].split('/');
+        segs.splice(-3, 3);
+        return segs.join('/') + `/Profile/Html/visit-profile.html?user=${encodeURIComponent(username)}`;
     }
 
     // ── Bell widget HTML (injected only if #notif-wrapper absent) ─
@@ -104,17 +107,21 @@
 
         _notifConnection.on('FriendRequest', (notification) => {
             if (notification.eventType === 'Received') {
-                if (!_pendingRequests.find(r => r.FriendshipId === notification.friendshipId)) {
-                    _pendingRequests.push({
-                        FriendshipId:    notification.friendshipId,
-                        FromUserId:      notification.fromUserId,
-                        FromUsername:    notification.fromUsername,
-                        FromDisplayName: notification.fromDisplayName,
-                        FromAvatarUrl:   notification.fromAvatarUrl
-                    });
-                    _renderDropdown();
-                    _showToast(notification, 'received');
-                }
+                // Replace any existing request from the same sender (handles re-sends)
+                _pendingRequests = _pendingRequests.filter(r => r.FromUserId !== notification.fromUserId);
+                _pendingRequests.push({
+                    FriendshipId:    notification.friendshipId,
+                    FromUserId:      notification.fromUserId,
+                    FromUsername:    notification.fromUsername,
+                    FromDisplayName: notification.fromDisplayName,
+                    FromAvatarUrl:   notification.fromAvatarUrl
+                });
+                _renderDropdown();
+                _showToast(notification, 'received');
+            } else if (notification.eventType === 'Cancelled') {
+                // Sender withdrew their request — remove from bell silently
+                _pendingRequests = _pendingRequests.filter(r => r.FriendshipId !== notification.friendshipId);
+                _renderDropdown();
             } else if (notification.eventType === 'Accepted') {
                 _showToast(notification, 'accepted');
             }
@@ -236,6 +243,13 @@
 
     // ── Toast ──────────────────────────────────────────────────
     function _showToast(notification, type) {
+        const toastKey = `notif-toast-${type}-${notification.friendshipId ?? notification.fromUserId}`;
+        const now = Date.now();
+        const last = parseInt(localStorage.getItem(toastKey) || '0', 10);
+        if (now - last < 10000) return;
+        localStorage.setItem(toastKey, String(now));
+        setTimeout(() => localStorage.removeItem(toastKey), 10000);
+
         const container = document.getElementById('notif-toast-container');
         if (!container) return;
 
