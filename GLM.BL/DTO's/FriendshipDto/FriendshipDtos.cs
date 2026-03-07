@@ -12,17 +12,26 @@ namespace Game_Library_Management_BL.DTO_s.FriendshipDto
         public string Username { get; set; }
         public string? DisplayName { get; set; }
         public string? AvatarUrl { get; set; }
-        public string Status { get; set; }  // "Pending", "Accepted"
+        public string Status { get; set; }
         public bool IsSentByMe { get; set; }
         public int FriendshipId { get; set; }
     }
 
     public class FriendshipStatusDto
     {
-        /// <summary>null = no relationship, "Pending", "Accepted", "Blocked"</summary>
         public string? Status { get; set; }
         public bool IsSentByMe { get; set; }
         public int? FriendshipId { get; set; }
         public int FriendsCount { get; set; }
+    }
+
+    public class FriendRequestNotificationDto
+    {
+        public int FriendshipId { get; set; }
+        public string FromUserId { get; set; } = string.Empty;
+        public string FromUsername { get; set; } = string.Empty;
+        public string? FromDisplayName { get; set; }
+        public string? FromAvatarUrl { get; set; }
+        public string EventType { get; set; } = "Received";
     }
 }

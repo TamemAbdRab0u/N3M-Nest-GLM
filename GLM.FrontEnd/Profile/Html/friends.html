@@ -108,6 +108,24 @@
                             <span class="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
                             <span class="xirod-font text-[11px] uppercase tracking-wider">Back to Profile</span>
                         </button>
+                        <div class="relative ml-auto" id="notif-wrapper">
+                            <button id="notification-btn" onclick="toggleNotifDropdown()"
+                                class="h-10 w-10 rounded-full bg-[#1e292b]/60 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-[#1e292b] transition-all group overflow-visible relative">
+                                <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                                <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(13,242,242,0.8)] animate-pulse">0</span>
+                            </button>
+                            <div id="notif-dropdown" class="hidden absolute top-[calc(100%+10px)] right-0 w-80 bg-[#0a1618] border border-[#1e293b] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[200] overflow-hidden backdrop-blur-xl">
+                                <div class="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between">
+                                    <h3 class="text-xs xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
+                                    <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
+                                </div>
+                                <div id="notif-list" class="overflow-y-auto" style="max-height:360px;scrollbar-width:thin;scrollbar-color:#1e293b transparent"></div>
+                                <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
+                                    <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
+                                    <p class="text-xs xirod-font text-slate-600 uppercase tracking-wider">No pending requests</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Profile Mini Header -->
@@ -180,7 +198,9 @@
         </div>
     </main>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script src="../../Auth/Js/auth.js"></script>
+    <script src="../../Shared/Js/notifications.js"></script>
     <script src="../Js/friends.js"></script>
 </body>
 </html>

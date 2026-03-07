@@ -1,6 +1,10 @@
+using Game_Library_Management.Hubs;
+using Game_Library_Management_BL.DTO_s.FriendshipDto;
 using Game_Library_Management_BL.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Game_Library_Management.Controllers
 {
@@ -10,13 +14,21 @@ namespace Game_Library_Management.Controllers
     public class FriendshipController : ControllerBase
     {
         private readonly IFriendshipService friendshipService;
+        private readonly IProfileService profileService;
+        private readonly IHubContext<NotificationHub> hubContext;
 
-        public FriendshipController(IFriendshipService friendshipService)
+        public FriendshipController(
+            IFriendshipService friendshipService,
+            IProfileService profileService,
+            IHubContext<NotificationHub> hubContext)
         {
             this.friendshipService = friendshipService;
+            this.profileService = profileService;
+            this.hubContext = hubContext;
         }
 
         private string? CurrentUserId => User.FindFirst("uid")?.Value;
+        private string? CurrentUsername => User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
 
         [HttpGet("status/{username}")]
         public async Task<IActionResult> GetStatus([FromRoute] string username)
@@ -61,6 +73,23 @@ namespace Game_Library_Management.Controllers
             try
             {
                 var result = await friendshipService.SendRequestAsync(userId, username);
+
+                // Build real-time notification for the addressee
+                var requesterProfile = await profileService.GetProfileAsync(userId);
+                var notification = new FriendRequestNotificationDto
+                {
+                    FriendshipId = result.FriendshipId,
+                    FromUserId   = userId,
+                    FromUsername = CurrentUsername ?? string.Empty,
+                    FromDisplayName = requesterProfile?.DisplayName,
+                    FromAvatarUrl   = requesterProfile?.AvatarUrl,
+                    EventType = "Received"
+                };
+
+                // result.UserId is the addressee's user ID
+                await hubContext.Clients.User(result.UserId)
+                    .SendAsync("FriendRequest", notification);
+
                 return Ok(result);
             }
             catch (InvalidOperationException ex)
@@ -78,9 +107,26 @@ namespace Game_Library_Management.Controllers
             try
             {
                 var result = await friendshipService.AcceptRequestAsync(userId, friendshipId);
+
+                // Notify the original requester that their request was accepted
+                var accepterProfile = await profileService.GetProfileAsync(userId);
+                var notification = new FriendRequestNotificationDto
+                {
+                    FriendshipId  = friendshipId,
+                    FromUserId    = userId,
+                    FromUsername  = CurrentUsername ?? string.Empty,
+                    FromDisplayName = accepterProfile?.DisplayName,
+                    FromAvatarUrl   = accepterProfile?.AvatarUrl,
+                    EventType = "Accepted"
+                };
+
+                // result.UserId is the original requester's user ID
+                await hubContext.Clients.User(result.UserId)
+                    .SendAsync("FriendRequest", notification);
+
                 return Ok(result);
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 return Forbid();
             }

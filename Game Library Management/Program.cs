@@ -1,4 +1,5 @@
 
+using Game_Library_Management.Helpers;
 using Game_Library_Management.Hubs;
 using Game_Library_Management_BL.Helper;
 using Game_Library_Management_BL.Services.IServices;
@@ -51,6 +52,8 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IReviewServices,ReviewServices>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 
+            builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, NotificationUserIdProvider>();
+
             builder.Services.AddSignalR();
             #endregion
 
@@ -96,7 +99,8 @@ namespace Game_Library_Management
                     {
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chat"))
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/chat") || path.StartsWithSegments("/notifications")))
                         {
                             context.Token = accessToken;
                         }
@@ -134,6 +138,7 @@ namespace Game_Library_Management
 
             app.MapControllers();
             app.MapHub<ChatHub>("/chat");
+            app.MapHub<NotificationHub>("/notifications");
 
             app.Run();
         }
