@@ -21,11 +21,22 @@ namespace Game_Library_Management.Controllers
         [HttpGet]
         public async Task<IActionResult> GetProfile()
         {
+
             var userId = User.FindFirst("uid")?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
             var profile = await profileService.GetProfileAsync(userId);
+            if (profile == null)
+                return NotFound();
+
+            return Ok(profile);
+        }
+
+        [HttpGet("{username}")]
+        public async Task<IActionResult> GetPublicProfile([FromRoute] string username)
+        {
+            var profile = await profileService.GetPublicProfileAsync(username);
             if (profile == null)
                 return NotFound();
 

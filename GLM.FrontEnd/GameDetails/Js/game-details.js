@@ -154,10 +154,56 @@ async function loadGameDetails(id) {
 
         currentGame = await res.json();
         renderGame(currentGame);
+        loadSimilarGames(id);
     } catch (err) {
         console.error('Game details load error:', err);
         showError();
     }
+}
+
+/* ──────────────────────────────────────────────
+   Similar Games
+────────────────────────────────────────────── */
+async function loadSimilarGames(id) {
+    const container = document.getElementById('similar-games-list');
+    if (!container) return;
+
+    try {
+        const res = await apiRequest(`/api/RAWG/catalog/${id}/similar`);
+        if (!res.ok) { hideSimilarGames(); return; }
+
+        const games = ((await res.json()) || []).filter(g => g.externalId !== id).slice(0, 6);
+
+        if (games.length === 0) { hideSimilarGames(); return; }
+
+        container.innerHTML = games.map(g => {
+            const rating = g.rating > 0 ? `<span class="text-yellow-400">★</span> ${g.rating.toFixed(1)}` : '';
+            const genre  = g.genres?.[0] ?? '';
+            const meta   = [genre, rating].filter(Boolean).join(' · ');
+            return `
+            <a href="game-details.html?id=${g.externalId}"
+               class="flex gap-3 items-center group/sim hover:bg-white/5 rounded-xl p-1.5 -mx-1.5 transition-colors no-underline">
+                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
+                    <img src="${g.imageUrl || ''}" alt="${escapeHtml(g.title)}"
+                         class="w-full h-full object-cover group-hover/sim:scale-105 transition-transform duration-300"
+                         onerror="this.parentElement.classList.add('flex','items-center','justify-center');this.style.display='none'">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-200 group-hover/sim:text-primary transition-colors truncate leading-snug">${escapeHtml(g.title)}</p>
+                    ${meta ? `<p class="text-[10px] text-slate-500 mt-0.5">${meta}</p>` : ''}
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-slate-700 group-hover/sim:text-primary transition-colors flex-shrink-0">chevron_right</span>
+            </a>`;
+        }).join('');
+    } catch (err) {
+        console.error('Similar games error:', err);
+        hideSimilarGames();
+    }
+}
+
+function hideSimilarGames() {
+    const card = document.getElementById('similar-games-card');
+    if (card) card.classList.add('hidden');
 }
 
 function renderGame(g) {
@@ -831,13 +877,29 @@ async function loadReviews(externalId) {
         const res = await apiRequest(`/api/Reviews/GetAllReviews?ExternalId=${externalId}`);
         if (!res.ok) return;
         const reviews = await res.json();
-        renderReviews(reviews);
+
+        // Fetch the current user's friends so we can badge them in reviews
+        let friendUsernames = new Set();
+        try {
+            const me = getUserInfo()?.userName;
+            if (me) {
+                const fr = await apiRequest(`/api/Friendship/friends/${encodeURIComponent(me)}`);
+                if (fr.ok) {
+                    const friends = await fr.json();
+                    friends.forEach(f => {
+                        if (f.username) friendUsernames.add(f.username.toLowerCase());
+                    });
+                }
+            }
+        } catch (_) { /* non-critical */ }
+
+        renderReviews(reviews, friendUsernames);
     } catch (err) {
         console.error('Failed to load reviews:', err);
     }
 }
 
-function renderReviews(reviews) {
+function renderReviews(reviews, friendUsernames = new Set()) {
     const list = document.getElementById('reviews-list');
     const empty = document.getElementById('reviews-empty');
     if (!list) return;
@@ -864,6 +926,7 @@ function renderReviews(reviews) {
 
         const commentEscaped = (r.comment || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         const isOwn = currentUser && r.userName === currentUser;
+        const isFriend = !isOwn && friendUsernames.has((r.userName || '').toLowerCase());
         const actionBtns = isOwn ? `
             <span class="mx-1.5 text-slate-700">·</span>
             <button onclick="editReview(${r.reviewId}, ${r.rating}, '${commentEscaped}')"
@@ -876,18 +939,25 @@ function renderReviews(reviews) {
                 <span class="material-symbols-outlined text-[12px]">delete</span>Delete
             </button>` : '';
 
+        const profileUrl = `../../Profile/Html/profile.html?user=${encodeURIComponent(r.userName || '')}`;
+
         return `
         <div id="review-card-${r.reviewId}" class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden flex-shrink-0">
-                    ${avatar}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-0 flex-wrap">
-                        <p class="text-sm font-bold text-white xirod-font">${escapeHtml(r.userName || 'Anonymous')}</p>
-                        ${actionBtns}
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <a href="${profileUrl}" class="flex-shrink-0 group/user hover:opacity-80 transition-opacity no-underline">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center overflow-hidden ring-2 ring-transparent group-hover/user:ring-primary/40 transition-all">
+                            ${avatar}
+                        </div>
+                    </a>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-0 flex-wrap">
+                            <a href="${profileUrl}" class="text-sm font-bold text-white xirod-font hover:text-primary transition-colors no-underline">${escapeHtml(r.userName || 'Anonymous')}</a>
+                            ${isFriend ? `<span class="inline-flex items-center gap-0.5 ml-1.5 px-1.5 py-0.5 rounded-md bg-primary/10 border border-primary/25 text-primary text-[9px] xirod-font" title="Friend"><span class="material-symbols-outlined text-[11px] fill-icon">group</span>FRIEND</span>` : ''}
+                            ${actionBtns}
+                        </div>
+                        <p class="text-[10px] text-slate-500">${date}</p>
                     </div>
-                    <p class="text-[10px] text-slate-500">${date}</p>
                 </div>
                 <div class="flex items-center gap-0.5">${stars}</div>
             </div>

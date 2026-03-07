@@ -228,18 +228,24 @@ function appendMessage(container, senderName, content, sentAt, animate) {
     const time = formatTime(sentAt);
     const initial = (senderName || '?').charAt(0).toUpperCase();
     const avatarColor = stringToColor(senderName);
+    const profileUrl = `../../Profile/Html/profile.html?user=${encodeURIComponent(senderName)}`;
+    const avatarTag = isOwn
+        ? `<div class="size-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black text-white shadow-md select-none mt-0.5"
+             style="background: ${avatarColor}; box-shadow: 0 0 12px ${avatarColor}40">${initial}</div>`
+        : `<a href="${profileUrl}" class="size-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black text-white shadow-md select-none mt-0.5 hover:ring-2 hover:ring-primary/40 transition-all"
+             style="background: ${avatarColor}; box-shadow: 0 0 12px ${avatarColor}40">${initial}</a>`;
+    const nameTag = isOwn
+        ? `<span class="text-[11px] font-bold text-primary">${escapeHtml(senderName)}</span>`
+        : `<a href="${profileUrl}" class="text-[11px] font-bold text-slate-300 hover:text-primary transition-colors">${escapeHtml(senderName)}</a>`;
 
     const wrap = document.createElement('div');
     wrap.className = `msg-bubble flex items-start gap-3 px-2 py-1.5 rounded-xl group hover:bg-white/[0.02] transition-colors ${animate ? '' : ''} ${isOwn ? 'msg-own' : ''}`;
 
     wrap.innerHTML = `
-        <div class="size-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black text-white shadow-md select-none mt-0.5"
-             style="background: ${avatarColor}; box-shadow: 0 0 12px ${avatarColor}40">
-            ${initial}
-        </div>
+        ${avatarTag}
         <div class="flex-1 min-w-0 msg-content">
             <div class="flex items-baseline gap-2 mb-0.5">
-                <span class="text-[11px] font-bold ${isOwn ? 'text-primary' : 'text-slate-300'}">${escapeHtml(senderName)}</span>
+                ${nameTag}
                 <span class="text-[9px] text-slate-600 tabular-nums">${time}</span>
             </div>
             <p class="text-sm text-slate-300 leading-relaxed break-words whitespace-pre-wrap">${escapeHtml(content)}</p>

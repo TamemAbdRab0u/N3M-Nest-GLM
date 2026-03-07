@@ -12,6 +12,7 @@ namespace Game_Library_Management_BL.Services.IServices
     public interface IUserGamesServices
     {
         Task<IEnumerable<UserGamesResponseDto>> AllUserGamesAsync(string UserId);
+        Task<IEnumerable<UserGamesResponseDto>> GetPublicUserGamesAsync(string username);
         Task<IEnumerable<UserGamesResponseDto>> GetUserGamesByStatusAsync(string UserId, Gamestatus status); 
         Task<UserGamesResponseDto> UserGameByIdAsync(string UserId, int GameId);
         Task<UserGamesResponseDto> AddUserGameAsync(string UserId, int GameId, UserGamesCreateDto createDto);

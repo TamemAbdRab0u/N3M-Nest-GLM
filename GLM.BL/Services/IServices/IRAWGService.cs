@@ -19,5 +19,6 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<bool> ToggleFavoriteAsync(string userId, int externalId);
         Task<bool> AddToLibraryAsync(string userId, int externalId);
         Task<bool> ToggleWishlistAsync(string userId, int externalId);
+        Task<IEnumerable<RAWGCatalogDto>> GetSimilarGamesAsync(int externalId);
     }
 }

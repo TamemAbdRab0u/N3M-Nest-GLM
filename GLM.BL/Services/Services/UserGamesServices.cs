@@ -66,6 +66,18 @@ namespace Game_Library_Management_BL.Services.Services
             });
         }
 
+        public async Task<IEnumerable<UserGamesResponseDto>> GetPublicUserGamesAsync(string username)
+        {
+            if (string.IsNullOrEmpty(username))
+                return Enumerable.Empty<UserGamesResponseDto>();
+
+            var user = await unitofwork.Users.Query().FirstOrDefaultAsync(x => x.Username == username);
+            if (user == null)
+                return Enumerable.Empty<UserGamesResponseDto>();
+
+            return await AllUserGamesAsync(user.Id);
+        }
+
         public async Task<IEnumerable<UserGamesResponseDto>> GetUserGamesByStatusAsync(string UserId, Gamestatus status)
         {
             if (string.IsNullOrEmpty(UserId))
