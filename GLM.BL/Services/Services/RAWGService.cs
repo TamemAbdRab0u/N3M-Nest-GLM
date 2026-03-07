@@ -616,29 +616,88 @@ namespace Game_Library_Management_BL.Services.Services
         {
             var key = _config["RAWG:ApiKey"];
 
-            // RAWG provides a dedicated endpoint for games in the same series / similar titles
-            var url = $"https://api.rawg.io/api/games/{externalId}/suggested?key={key}&page_size=6";
-
             try
             {
-                var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
-                if (response?.Results == null || !response.Results.Any())
+                // ── Step 1: fetch the source game's own details ──────────────────
+                var detailHttp = await _http.GetAsync($"https://api.rawg.io/api/games/{externalId}?key={key}");
+                if (!detailHttp.IsSuccessStatusCode)
                     return Enumerable.Empty<RAWGCatalogDto>();
 
-                var games = response.Results
-                    .Where(g => !string.IsNullOrEmpty(g.Background_Image))
-                    .Take(6)
-                    .Select(g => new RAWGCatalogDto
-                    {
-                        ExternalId = g.Id,
-                        Title = g.Name,
-                        ImageUrl = g.Background_Image,
-                        Rating = g.Rating,
-                        Metacritic = g.Metacritic,
-                        ReleaseDate = g.Released,
-                        Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
-                        Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
-                    }).ToList();
+                var detail = await detailHttp.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+
+                // Genre slugs (all of them)
+                var genreSlugs = new List<string>();
+                if (detail.TryGetProperty("genres", out var genresProp) && genresProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    genreSlugs = genresProp.EnumerateArray()
+                        .Where(g => g.TryGetProperty("slug", out _))
+                        .Select(g => g.GetProperty("slug").GetString())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
+
+                // Developer slugs
+                var developerSlugs = new List<string>();
+                if (detail.TryGetProperty("developers", out var devsProp) && devsProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    developerSlugs = devsProp.EnumerateArray()
+                        .Where(d => d.TryGetProperty("slug", out _))
+                        .Select(d => d.GetProperty("slug").GetString())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
+
+                // Platform slugs via parent_platforms
+                var platformSlugs = new List<string>();
+                if (detail.TryGetProperty("parent_platforms", out var platsProp) && platsProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    platformSlugs = platsProp.EnumerateArray()
+                        .Where(p => p.TryGetProperty("platform", out var pl) && pl.TryGetProperty("slug", out _))
+                        .Select(p => p.GetProperty("platform").GetProperty("slug").GetString())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
+
+                if (genreSlugs.Count == 0)
+                    return Enumerable.Empty<RAWGCatalogDto>();
+
+                var genres = string.Join(",", genreSlugs);
+                var rng = new Random();
+
+                // ── Step 2: tiered search — most specific first ───────────────────
+                // Tier 1: same genres + same developer  (very specific, unique per game)
+                List<RAWGGameDto> rawResults = null;
+                if (developerSlugs.Any())
+                {
+                    var developers = string.Join(",", developerSlugs);
+                    rawResults = await FetchRawgPage(key, $"genres={genres}&developers={developers}", externalId, rng);
+                }
+
+                // Tier 2: same genres + same platforms
+                if ((rawResults == null || rawResults.Count < 6) && platformSlugs.Any())
+                {
+                    var platforms = string.Join(",", platformSlugs);
+                    var extra = await FetchRawgPage(key, $"genres={genres}&parent_platforms={platforms}", externalId, rng);
+                    rawResults = Merge(rawResults, extra);
+                }
+
+                // Tier 3: same genres only (broadest)
+                if (rawResults == null || rawResults.Count < 6)
+                {
+                    var extra = await FetchRawgPage(key, $"genres={genres}", externalId, rng);
+                    rawResults = Merge(rawResults, extra);
+                }
+
+                rawResults = rawResults?.Take(6).ToList() ?? new List<RAWGGameDto>();
+                if (rawResults.Count == 0)
+                    return Enumerable.Empty<RAWGCatalogDto>();
+
+                // ── Step 3: map to DTOs ───────────────────────────────────────────
+                var games = rawResults.Select(g => new RAWGCatalogDto
+                {
+                    ExternalId = g.Id,
+                    Title = g.Name,
+                    ImageUrl = g.Background_Image,
+                    Rating = g.Rating,
+                    Metacritic = g.Metacritic,
+                    ReleaseDate = g.Released,
+                    Genres = g.Genres?.Select(genre => genre.Name).ToList() ?? new List<string>(),
+                    Platforms = g.Parent_Platforms?.Select(p => p.Platform.Slug).ToList() ?? new List<string>()
+                }).ToList();
 
                 var userId = GetCurrentUserId();
                 if (!string.IsNullOrEmpty(userId))
@@ -667,6 +726,52 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 return Enumerable.Empty<RAWGCatalogDto>();
             }
+        }
+
+        // Fetches a random page of RAWG results for the given query params, excluding the source game
+        private async Task<List<RAWGGameDto>> FetchRawgPage(string key, string queryParams, int excludeId, Random rng)
+        {
+            try
+            {
+                // First call to know total count
+                var probeUrl = $"https://api.rawg.io/api/games?key={key}&{queryParams}&page_size=1";
+                var probeHttp = await _http.GetAsync(probeUrl);
+                if (!probeHttp.IsSuccessStatusCode) return new List<RAWGGameDto>();
+
+                var probe = await probeHttp.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+                int count = probe.TryGetProperty("count", out var cProp) ? cProp.GetInt32() : 0;
+                if (count == 0) return new List<RAWGGameDto>();
+
+                // Pick a random page (page_size=20, avoid going past last page)
+                int pageSize = 20;
+                int maxPage = Math.Max(1, Math.Min((count / pageSize), 10)); // cap at page 10
+                int page = rng.Next(1, maxPage + 1);
+
+                var url = $"https://api.rawg.io/api/games?key={key}&{queryParams}&page_size={pageSize}&page={page}";
+                var http = await _http.GetAsync(url);
+                if (!http.IsSuccessStatusCode) return new List<RAWGGameDto>();
+
+                var response = await http.Content.ReadFromJsonAsync<RAWGResponseDto>();
+                var results = response?.Results?
+                    .Where(g => g.Id != excludeId && !string.IsNullOrEmpty(g.Background_Image))
+                    .ToList() ?? new List<RAWGGameDto>();
+
+                // Shuffle so even same-page results appear in different order each call
+                return results.OrderBy(_ => rng.Next()).ToList();
+            }
+            catch
+            {
+                return new List<RAWGGameDto>();
+            }
+        }
+
+        // Merges two lists, deduplicating by Id
+        private static List<RAWGGameDto> Merge(List<RAWGGameDto> existing, List<RAWGGameDto> incoming)
+        {
+            existing ??= new List<RAWGGameDto>();
+            var existingIds = new HashSet<int>(existing.Select(g => g.Id));
+            existing.AddRange(incoming.Where(g => !existingIds.Contains(g.Id)));
+            return existing;
         }
     }
 }

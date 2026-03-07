@@ -168,23 +168,11 @@ async function loadSimilarGames(id) {
     const container = document.getElementById('similar-games-list');
     if (!container) return;
 
-    // Wait until currentGame is populated
-    if (!currentGame) { hideSimilarGames(); return; }
-
-    // Pick first available genre and turn it into a RAWG slug
-    const genreName = currentGame.genres?.[0];
-    if (!genreName) { hideSimilarGames(); return; }
-    const genreSlug = genreName.toLowerCase().replace(/\s+/g, '-');
-
     try {
-        const res = await apiRequest(`/api/RAWG/catalog/GetAll?genre=${encodeURIComponent(genreSlug)}&ordering=-rating`);
+        const res = await apiRequest(`/api/RAWG/catalog/${id}/similar`);
         if (!res.ok) { hideSimilarGames(); return; }
 
-        const allGames = await res.json();
-        // Filter out the current game itself
-        const games = (allGames || [])
-            .filter(g => g.externalId !== currentGame.externalId)
-            .slice(0, 6);
+        const games = ((await res.json()) || []).filter(g => g.externalId !== id).slice(0, 6);
 
         if (games.length === 0) { hideSimilarGames(); return; }
 
