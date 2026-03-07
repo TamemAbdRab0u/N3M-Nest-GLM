@@ -124,6 +124,9 @@
                 _renderDropdown();
             } else if (notification.eventType === 'Accepted') {
                 _showToast(notification, 'accepted');
+                if (typeof window._onFriendshipAccepted === 'function') {
+                    window._onFriendshipAccepted(notification);
+                }
             }
         });
 

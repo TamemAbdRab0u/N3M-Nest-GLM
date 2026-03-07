@@ -231,13 +231,6 @@ function updateProfileUI(profile) {
     // Update Display Name
     if (profile.displayName) {
         usernameElements.forEach(el => el.textContent = profile.displayName);
-        
-        // Update local storage too to keep it in sync
-        const userInfo = getUserInfo();
-        if (userInfo.userName !== profile.displayName) {
-            userInfo.userName = profile.displayName;
-            localStorage.setItem("userName", profile.displayName);
-        }
     }
 
     // Sidebar Avatar / Initial
@@ -1166,18 +1159,18 @@ function updateFriendshipBtn() {
 
     if (!status) {
         btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">person_add</span><span>ADD FRIEND</span>`;
-        btn.className = 'h-14 px-8 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+        btn.className = 'h-14 w-52 justify-center rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
     } else if (status === 'Pending' && !isSentByMe) {
         btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">how_to_reg</span><span>ACCEPT REQUEST</span>`;
-        btn.className = 'h-14 px-8 rounded-2xl bg-green-500/20 border border-green-500/40 text-green-400 font-black hover:bg-green-500/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+        btn.className = 'h-14 w-52 justify-center rounded-2xl bg-green-500/20 border border-green-500/40 text-green-400 font-black hover:bg-green-500/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
     } else if (status === 'Pending' && isSentByMe) {
         btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">schedule</span><span>PENDING...</span>`;
-        btn.className = 'h-14 px-8 rounded-2xl bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 font-black hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-400 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+        btn.className = 'h-14 w-52 justify-center rounded-2xl bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 font-black hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-400 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
         btn.onmouseenter = () => { btn.querySelector('span:last-child').textContent = 'CANCEL'; btn.querySelector('span:first-child').textContent = 'cancel'; };
         btn.onmouseleave = () => { btn.querySelector('span:last-child').textContent = 'PENDING...'; btn.querySelector('span:first-child').textContent = 'schedule'; };
     } else if (status === 'Accepted') {
         btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">how_to_reg</span><span>FRIENDS</span>`;
-        btn.className = 'h-14 px-8 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-black hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-400 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+        btn.className = 'h-14 w-52 justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-black hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-400 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
         btn.onmouseenter = () => { btn.querySelector('span:last-child').textContent = 'UNFRIEND'; btn.querySelector('span:first-child').textContent = 'person_remove'; };
         btn.onmouseleave = () => { btn.querySelector('span:last-child').textContent = 'FRIENDS'; btn.querySelector('span:first-child').textContent = 'how_to_reg'; };
     }
@@ -1208,19 +1201,70 @@ async function handleFriendAction() {
             friendshipState = { status: null, friendsCount: friendshipState?.friendsCount || 0 };
 
         } else if (status === 'Accepted') {
-            if (!confirm('Remove this friend?')) return;
+            if (!(await showConfirmModal())) return;
             const res = await apiRequest(`/api/Friendship/remove/${friendshipId}`, { method: 'DELETE' });
             if (!res.ok) throw new Error(await res.text());
             const newCount = Math.max(0, (friendshipState?.friendsCount || 1) - 1);
             friendshipState = { status: null, friendsCount: newCount };
             updateFriendsCountStat(newCount);
             loadFriendsPreview(_visitedUser);
+            showToast('Friend removed', 'info');
         }
 
         updateFriendshipBtn();
     } catch (e) {
         console.error('Friend action failed:', e);
     }
+}
+
+// Called by notifications.js when the visited user accepts our friend request
+window._onFriendshipAccepted = function () {
+    if (!_visitedUser || !isVisitorMode) return;
+    loadFriendshipStatus(_visitedUser);
+};
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const icons = { success: 'check_circle', error: 'error', info: 'info' };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="material-symbols-outlined text-[18px] fill-icon">${icons[type] || 'info'}</span>
+        <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('removing');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }, 3000);
+}
+
+function showConfirmModal() {
+    return new Promise(resolve => {
+        const modal = document.getElementById('unfriend-confirm-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        function close(result) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+            backdrop.removeEventListener('click', onCancel);
+            resolve(result);
+        }
+
+        const confirmBtn = document.getElementById('unfriend-confirm-btn');
+        const cancelBtn = document.getElementById('unfriend-cancel-btn');
+        const backdrop = document.getElementById('unfriend-modal-backdrop');
+
+        function onConfirm() { close(true); }
+        function onCancel() { close(false); }
+
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        backdrop.addEventListener('click', onCancel);
+    });
 }
 
 async function loadFriendsPreview(username) {
