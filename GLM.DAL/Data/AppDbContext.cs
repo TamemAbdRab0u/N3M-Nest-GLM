@@ -25,6 +25,7 @@ namespace Game_Library_Management_DAL.Data
         public DbSet<UserGame> UserGames { get; set; }
         public DbSet<GameTag> GameTags { get; set; }
         public DbSet<GamePlatform> GamePlatforms { get; set; }
+        public DbSet<Friendship> Friendships { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -55,6 +56,10 @@ namespace Game_Library_Management_DAL.Data
             modelBuilder.Entity<ReviewVote>().HasIndex(x => new { x.ReviewId, x.UserId }).IsUnique();
             modelBuilder.Entity<ReviewVote>().HasOne(x => x.Review).WithMany(x => x.Votes).HasForeignKey(x => x.ReviewId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<ReviewVote>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Friendship>().HasIndex(x => new { x.RequesterId, x.AddresseeId }).IsUnique();
+            modelBuilder.Entity<Friendship>().HasOne(x => x.Requester).WithMany().HasForeignKey(x => x.RequesterId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Friendship>().HasOne(x => x.Addressee).WithMany().HasForeignKey(x => x.AddresseeId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<IdentityRole>().HasData(
                new IdentityRole

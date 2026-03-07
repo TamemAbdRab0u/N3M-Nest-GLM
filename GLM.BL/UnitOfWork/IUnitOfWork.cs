@@ -21,6 +21,7 @@ namespace Game_Library_Management_BL.UnitOfWork
         public IRepo<Profile> Profiles { get; }
         public IRepo<Review> Reviews { get; }
         public IRepo<ReviewVote> ReviewVotes { get; }
+        public IRepo<Friendship> Friendships { get; }
 
         public void Save();
     }
