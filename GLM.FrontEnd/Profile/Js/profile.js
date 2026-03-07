@@ -9,6 +9,7 @@ let selectedAvatarFile = null;
 let currentCategory = 'favorite';
 let isGenreReportExpanded = false;
 let allGenresData = [];
+let friendshipState = null; // { status, isSentByMe, friendshipId, friendsCount }
 
 // Visitor mode — set when viewing another user's profile via ?user=<username>
 const _urlParams = new URLSearchParams(window.location.search);
@@ -27,12 +28,14 @@ document.addEventListener("DOMContentLoaded", () => {
         applyVisitorMode();
         fetchPublicProfile(_visitedUser);
         loadPublicGames(_visitedUser);
+        loadFriendshipStatus(_visitedUser);
     } else {
         // Own profile
         displayUserInfo();
         fetchProfile();
         loadInitialData();
         initializeEventListeners();
+        loadOwnFriendship();
     }
 });
 
@@ -103,6 +106,10 @@ function applyVisitorMode() {
     // Hide bell/notification button
     const notifBtn = document.getElementById('notification-btn');
     if (notifBtn) notifBtn.style.display = 'none';
+
+    // Show add-friend button (will be styled by loadFriendshipStatus)
+    const addFriendBtn = document.getElementById('add-friend-btn');
+    if (addFriendBtn) addFriendBtn.classList.remove('hidden');
 
     // Hide avatar upload overlay
     const avatarOverlay = document.getElementById('avatar-edit-icon');
@@ -1100,4 +1107,172 @@ function navigateToDashboard(view = "catalog") {
 function logout() {
     clearAuthData();
     window.location.href = "../../Auth/Html/login.html";
+}
+
+// ============================================================
+// FRIENDSHIP SYSTEM
+// ============================================================
+
+function navigateToFriendsPage() {
+    const target = isVisitorMode ? _visitedUser : (getUserInfo()?.userName);
+    if (target) window.location.href = `../Html/friends.html?user=${encodeURIComponent(target)}`;
+}
+
+// Load friendship status when visiting another profile
+async function loadFriendshipStatus(username) {
+    try {
+        const res = await apiRequest(`/api/Friendship/status/${encodeURIComponent(username)}`);
+        if (!res.ok) return;
+        friendshipState = await res.json();
+        updateFriendshipBtn();
+        updateFriendsCountStat(friendshipState.friendsCount);
+        loadFriendsPreview(username);
+    } catch (e) {
+        console.error('Friendship status error:', e);
+    }
+}
+
+// Load own friend count + preview for the owner's view
+async function loadOwnFriendship() {
+    const me = getUserInfo()?.userName;
+    if (!me) return;
+    try {
+        const res = await apiRequest(`/api/Friendship/status/${encodeURIComponent(me)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        updateFriendsCountStat(data.friendsCount);
+        loadFriendsPreview(me);
+    } catch (e) {
+        console.error('Own friendship load error:', e);
+    }
+}
+
+function updateFriendsCountStat(count) {
+    const statEl = document.getElementById('stat-friends');
+    if (statEl) statEl.textContent = (count || 0).toLocaleString();
+    const headerEl = document.getElementById('friends-count-header');
+    if (headerEl) headerEl.textContent = count > 0 ? `(${count})` : '';
+}
+
+function updateFriendshipBtn() {
+    const btn = document.getElementById('add-friend-btn');
+    if (!btn) return;
+
+    const { status, isSentByMe } = friendshipState || {};
+
+    // Reset hover handlers
+    btn.onmouseenter = null;
+    btn.onmouseleave = null;
+
+    if (!status) {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">person_add</span><span>ADD FRIEND</span>`;
+        btn.className = 'h-14 px-8 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+    } else if (status === 'Pending' && !isSentByMe) {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">how_to_reg</span><span>ACCEPT REQUEST</span>`;
+        btn.className = 'h-14 px-8 rounded-2xl bg-green-500/20 border border-green-500/40 text-green-400 font-black hover:bg-green-500/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+    } else if (status === 'Pending' && isSentByMe) {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">schedule</span><span>PENDING...</span>`;
+        btn.className = 'h-14 px-8 rounded-2xl bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 font-black hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-400 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+        btn.onmouseenter = () => { btn.querySelector('span:last-child').textContent = 'CANCEL'; btn.querySelector('span:first-child').textContent = 'cancel'; };
+        btn.onmouseleave = () => { btn.querySelector('span:last-child').textContent = 'PENDING...'; btn.querySelector('span:first-child').textContent = 'schedule'; };
+    } else if (status === 'Accepted') {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">how_to_reg</span><span>FRIENDS</span>`;
+        btn.className = 'h-14 px-8 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-black hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-400 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg';
+        btn.onmouseenter = () => { btn.querySelector('span:last-child').textContent = 'UNFRIEND'; btn.querySelector('span:first-child').textContent = 'person_remove'; };
+        btn.onmouseleave = () => { btn.querySelector('span:last-child').textContent = 'FRIENDS'; btn.querySelector('span:first-child').textContent = 'how_to_reg'; };
+    }
+
+    btn.onclick = handleFriendAction;
+}
+
+async function handleFriendAction() {
+    if (!friendshipState && !isVisitorMode) return;
+    const { status, isSentByMe, friendshipId } = friendshipState || {};
+
+    try {
+        if (!status) {
+            const res = await apiRequest(`/api/Friendship/send/${encodeURIComponent(_visitedUser)}`, { method: 'POST' });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            friendshipState = { status: 'Pending', isSentByMe: true, friendshipId: data.friendshipId, friendsCount: friendshipState?.friendsCount || 0 };
+
+        } else if (status === 'Pending' && !isSentByMe) {
+            const res = await apiRequest(`/api/Friendship/accept/${friendshipId}`, { method: 'PUT' });
+            if (!res.ok) throw new Error(await res.text());
+            await loadFriendshipStatus(_visitedUser);
+            return;
+
+        } else if (status === 'Pending' && isSentByMe) {
+            const res = await apiRequest(`/api/Friendship/remove/${friendshipId}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error(await res.text());
+            friendshipState = { status: null, friendsCount: friendshipState?.friendsCount || 0 };
+
+        } else if (status === 'Accepted') {
+            if (!confirm('Remove this friend?')) return;
+            const res = await apiRequest(`/api/Friendship/remove/${friendshipId}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error(await res.text());
+            const newCount = Math.max(0, (friendshipState?.friendsCount || 1) - 1);
+            friendshipState = { status: null, friendsCount: newCount };
+            updateFriendsCountStat(newCount);
+            loadFriendsPreview(_visitedUser);
+        }
+
+        updateFriendshipBtn();
+    } catch (e) {
+        console.error('Friend action failed:', e);
+    }
+}
+
+async function loadFriendsPreview(username) {
+    const list = document.getElementById('friends-preview-list');
+    const empty = document.getElementById('friends-empty');
+    const showAllLink = document.getElementById('friends-show-all');
+    if (!list) return;
+
+    if (showAllLink) showAllLink.href = `../Html/friends.html?user=${encodeURIComponent(username)}`;
+
+    try {
+        const res = await apiRequest(`/api/Friendship/friends/${encodeURIComponent(username)}`);
+        if (!res.ok) return;
+        const friends = await res.json();
+
+        updateFriendsCountStat(friends.length);
+
+        if (friends.length === 0) {
+            list.innerHTML = '';
+            empty?.classList.remove('hidden');
+            return;
+        }
+
+        empty?.classList.add('hidden');
+        const preview = friends.slice(0, 8);
+        const remaining = friends.length - preview.length;
+
+        list.innerHTML = preview.map(f => {
+            const displayName = f.displayName || f.username;
+            const avatarSrc = f.avatarUrl
+                ? `${API_URL}/Uploads/${f.avatarUrl}`
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=80`;
+            const safeName = encodeURIComponent(f.username);
+            return `
+            <div class="flex flex-col items-center gap-1.5 cursor-pointer group" onclick="window.location.href='../Html/profile.html?user=${safeName}'">
+                <div class="h-14 w-14 rounded-full overflow-hidden border-2 border-slate-700 group-hover:border-primary transition-all shadow-lg">
+                    <img src="${avatarSrc}" class="h-full w-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=80'">
+                </div>
+                <p class="text-[10px] xirod-font text-slate-500 group-hover:text-primary transition-colors truncate max-w-[60px]">${displayName}</p>
+            </div>`;
+        }).join('');
+
+        if (remaining > 0) {
+            list.innerHTML += `
+            <a href="../Html/friends.html?user=${encodeURIComponent(username)}" class="flex flex-col items-center gap-1.5 group">
+                <div class="h-14 w-14 rounded-full border-2 border-dashed border-slate-600 group-hover:border-primary transition-all flex items-center justify-center">
+                    <span class="text-xs font-bold text-slate-500 group-hover:text-primary transition-colors">+${remaining}</span>
+                </div>
+                <p class="text-[10px] xirod-font text-slate-500 group-hover:text-primary transition-colors">MORE</p>
+            </a>`;
+        }
+    } catch (e) {
+        console.error('Error loading friends preview:', e);
+    }
 }
