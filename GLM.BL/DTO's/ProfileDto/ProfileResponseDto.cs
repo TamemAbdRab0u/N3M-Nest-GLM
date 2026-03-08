@@ -13,5 +13,6 @@ namespace Game_Library_Management_BL.DTO_s.ProfileDto
         public string? Email { get; set; }
         public string? AvatarUrl { get; set; }
         public string? CoverUrl { get; set; }
+        public bool IsRectTransparent { get; set; }
     }
 }

@@ -14,6 +14,7 @@ namespace Game_Library_Management_DAL.Models
         public string? Email { get; set; }
         public string? AvatarUrl { get; set; }
         public string? CoverUrl { get; set; }
+        public bool IsRectTransparent { get; set; }
 
         public User user { get; set; }
         public string UserId { get; set; }

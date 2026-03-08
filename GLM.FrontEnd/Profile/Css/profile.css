@@ -225,6 +225,8 @@
     background: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    border-width: 0 !important;
+    border-color: transparent !important;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(148, 251, 255, 0.08);
 }
 

@@ -127,8 +127,9 @@ function initializeEventListeners() {
 
     const rectTransparencyToggle = document.getElementById('rect-transparency-toggle');
     if (rectTransparencyToggle) {
-        rectTransparencyToggle.checked = localStorage.getItem(RECT_TRANSPARENCY_STORAGE_KEY) === '1';
-        applyRectTransparency(rectTransparencyToggle.checked);
+        const localFallback = localStorage.getItem(RECT_TRANSPARENCY_STORAGE_KEY) === '1';
+        rectTransparencyToggle.checked = localFallback;
+        applyRectTransparency(localFallback);
 
         rectTransparencyToggle.addEventListener('change', () => {
             const isOn = rectTransparencyToggle.checked;
@@ -257,6 +258,16 @@ async function fetchPublicProfile(username) {
         if (profile.coverUrl) {
             setProfileBannerImage(`${API_URL}/Uploads/${profile.coverUrl}?t=${timestamp}`);
         }
+
+        const isRectTransparent = !!profile.isRectTransparent;
+        applyRectTransparency(isRectTransparent);
+
+        const rectTransparencyToggle = document.getElementById('rect-transparency-toggle');
+        if (rectTransparencyToggle) {
+            rectTransparencyToggle.checked = isRectTransparent;
+        }
+
+        localStorage.setItem(RECT_TRANSPARENCY_STORAGE_KEY, isRectTransparent ? '1' : '0');
     } catch (error) {
         console.error('Error fetching public profile:', error);
     }
@@ -358,6 +369,16 @@ function updateProfileUI(profile) {
     if (profile.coverUrl) {
         setProfileBannerImage(`${API_URL}/Uploads/${profile.coverUrl}?t=${timestamp}`);
     }
+
+    const isRectTransparent = !!profile.isRectTransparent;
+    applyRectTransparency(isRectTransparent);
+
+    const rectTransparencyToggle = document.getElementById('rect-transparency-toggle');
+    if (rectTransparencyToggle) {
+        rectTransparencyToggle.checked = isRectTransparent;
+    }
+
+    localStorage.setItem(RECT_TRANSPARENCY_STORAGE_KEY, isRectTransparent ? '1' : '0');
 }
 
 function toggleEditMode() {
@@ -457,6 +478,9 @@ async function saveProfileChanges() {
     if (selectedBannerFile) {
         formData.append("CoverUrl", selectedBannerFile);
     }
+
+    const rectTransparencyToggle = document.getElementById('rect-transparency-toggle');
+    formData.append("IsRectTransparent", rectTransparencyToggle?.checked ? "true" : "false");
 
     try {
         const response = await fetch(`${API_URL}/api/Profile`, {

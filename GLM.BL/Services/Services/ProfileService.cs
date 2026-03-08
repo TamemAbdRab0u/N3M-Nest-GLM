@@ -57,7 +57,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Bio = profile.Bio,
                 Email = profile.Email,
                 AvatarUrl = avatarUrl,
-                CoverUrl = profile.CoverUrl
+                CoverUrl = profile.CoverUrl,
+                IsRectTransparent = profile.IsRectTransparent
             };
         }
 
@@ -76,7 +77,8 @@ namespace Game_Library_Management_BL.Services.Services
                 DisplayName = profile?.DisplayName ?? user.Username,
                 Bio = profile?.Bio,
                 AvatarUrl = avatarUrl,
-                CoverUrl = profile?.CoverUrl
+                CoverUrl = profile?.CoverUrl,
+                IsRectTransparent = profile?.IsRectTransparent ?? false
                 // Email intentionally omitted for public view
             };
         }
@@ -171,6 +173,11 @@ namespace Game_Library_Management_BL.Services.Services
                 }
             }
 
+            if (model.IsRectTransparent.HasValue)
+            {
+                profile.IsRectTransparent = model.IsRectTransparent.Value;
+            }
+
             
             unitOfWork.Save();
 
@@ -183,7 +190,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Bio = profile.Bio,
                 Email = profile.Email,
                 AvatarUrl = updatedImageUrl,
-                CoverUrl = profile.CoverUrl
+                CoverUrl = profile.CoverUrl,
+                IsRectTransparent = profile.IsRectTransparent
             };
         }
     }
