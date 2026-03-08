@@ -109,7 +109,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+    <main class="flex-1 flex flex-col h-full min-h-0 relative overflow-hidden">
         <!-- Background Image with Overlay -->
         <div class="absolute inset-0 z-0 pointer-events-none">
              <div class="absolute inset-0 bg-[#0f2023]/90 z-10"></div>
@@ -117,19 +117,21 @@
         </div>
 
         <!-- Profile View -->
-        <div id="profile-view" class="flex-1 overflow-y-auto flex flex-col z-10 relative">
+        <div id="profile-view" class="flex-1 min-h-0 overflow-y-auto flex flex-col z-10 relative">
             <!-- Hidden File Input for Avatar -->
             <input type="file" id="avatar-input" class="hidden" accept="image/*">
+            <input type="file" id="banner-input" class="hidden" accept="image/*">
             
             <!-- Upper Part (Profile Header) -->
-            <div class="w-full px-4 sm:px-6 lg:px-10 pt-10 pb-12 relative z-20">
+            <div class="profile-header-stage w-full px-4 sm:px-6 lg:px-10 pt-10 pb-12 relative z-20">
                 <div class="absolute inset-0 z-0 pointer-events-none">
+                    <div class="profile-header-backdrop absolute inset-0"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0a1618] via-[#0a1618]/55 to-transparent"></div>
                     <div class="absolute -top-24 right-12 w-[26rem] h-[26rem] rounded-full bg-primary/15 blur-[140px]"></div>
                     <div class="absolute bottom-0 left-24 w-80 h-80 rounded-full bg-sky-500/10 blur-[120px]"></div>
                 </div>
 
-                <section class="profile-hero-shell relative z-10 w-full max-w-7xl mx-auto rounded-[2rem] border border-cyan-400/20 bg-[#081416]/72 backdrop-blur-2xl">
+                <section class="profile-hero-shell relative z-10 w-full max-w-7xl mx-auto rounded-[2rem] border border-cyan-400/20 bg-[#081416]/38 backdrop-blur-2xl">
                     <div class="profile-grid-overlay absolute inset-0 rounded-[2rem] opacity-50 pointer-events-none"></div>
                     <div class="absolute -top-20 -left-16 w-56 h-56 rounded-full bg-cyan-400/20 blur-[120px] pointer-events-none"></div>
 
@@ -223,6 +225,21 @@
                             <!-- Right Actions -->
                             <div class="xl:pt-1">
                                 <div class="profile-actions-wrap flex flex-wrap xl:flex-col items-center xl:items-stretch gap-3 w-full xl:w-auto">
+                                    <div id="profile-edit-controls" class="profile-edit-controls flex flex-col gap-2 items-end xl:items-stretch w-full sm:w-auto" aria-hidden="true">
+                                        <button id="banner-edit-btn" type="button" class="h-10 w-36 rounded-xl bg-[#0f2023]/70 border border-cyan-400/30 text-primary text-[10px] xirod-font tracking-wider flex items-center justify-center gap-2 hover:bg-[#153136]/80 hover:border-cyan-300/60 transition-all" onclick="document.getElementById('banner-input').click()">
+                                            <span class="material-symbols-outlined text-[18px]">image</span>
+                                            <span>BANNER</span>
+                                        </button>
+
+                                        <label id="rect-transparency-wrap" class="h-10 w-36 px-3 rounded-xl bg-[#0f2023]/70 border border-cyan-400/30 text-primary text-[10px] xirod-font tracking-wider flex items-center justify-between gap-2 select-none cursor-pointer hover:bg-[#153136]/80 hover:border-cyan-300/60 transition-all">
+                                            <span class="material-symbols-outlined text-[16px]">contrast</span>
+                                            <span class="rect-toggle-switch">
+                                                <input id="rect-transparency-toggle" type="checkbox">
+                                                <span class="rect-toggle-slider"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+
                                     <!-- Notification Bell -->
                                     <div class="relative" id="notif-wrapper">
                                         <button id="notification-btn" onclick="toggleNotifDropdown()" class="h-14 w-14 rounded-2xl bg-[#102226]/80 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-[#163236] transition-all group overflow-visible relative shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
@@ -262,7 +279,7 @@
             </div>
 
             <!-- Lower Part -->
-            <div class="p-8 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+              <div class="p-8 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
                  <div class="max-w-7xl mx-auto">
                     <!-- Library Snapshot Header -->
                     <section class="mb-12">
@@ -276,7 +293,7 @@
                                     <p class="text-2xl font-bold text-primary" id="snapshot-total-games">40</p>
                                 </div>
                                 <div class="glass-panel px-6 py-3 rounded-xl text-center">
-                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">TOTAL HOURS</p>
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">AVERAGE HOURS</p>
                                     <p class="text-2xl font-bold text-primary" id="snapshot-total-hours">1,331</p>
                                 </div>
                             </div>

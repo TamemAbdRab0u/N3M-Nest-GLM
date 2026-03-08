@@ -6,10 +6,15 @@ let userProfile = null;
 let isEditMode = false;
 let isHoveringCarousel = false;
 let selectedAvatarFile = null;
+let selectedBannerFile = null;
 let currentCategory = 'favorite';
 let isGenreReportExpanded = false;
 let allGenresData = [];
 let friendshipState = null; // { status, isSentByMe, friendshipId, friendsCount }
+const MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024;
+const playtimeCache = new Map(); // externalId -> playtime hours
+let snapshotRequestToken = 0;
+const RECT_TRANSPARENCY_STORAGE_KEY = 'glmRectFullTransparent';
 
 // Visitor mode — set when viewing another user's profile via ?user=<username>
 const _urlParams = new URLSearchParams(window.location.search);
@@ -74,6 +79,13 @@ function initializeEventListeners() {
         avatarInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (file) {
+                if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+                    showToast('Avatar image has 5MB limit.', 'error');
+                    selectedAvatarFile = null;
+                    avatarInput.value = "";
+                    return;
+                }
+
                 selectedAvatarFile = file;
                 // Preview the image immediately
                 const reader = new FileReader();
@@ -85,6 +97,60 @@ function initializeEventListeners() {
             }
         });
     }
+
+    // Banner Input Change (frontend-only preview)
+    const bannerInput = document.getElementById("banner-input");
+    if (bannerInput) {
+        bannerInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+                showToast('Banner image has 5MB limit.', 'error');
+                selectedBannerFile = null;
+                bannerInput.value = "";
+                return;
+            }
+
+            selectedBannerFile = file;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target.result;
+                if (typeof dataUrl !== 'string') return;
+
+                setProfileBannerImage(dataUrl);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    const rectTransparencyToggle = document.getElementById('rect-transparency-toggle');
+    if (rectTransparencyToggle) {
+        rectTransparencyToggle.checked = localStorage.getItem(RECT_TRANSPARENCY_STORAGE_KEY) === '1';
+        applyRectTransparency(rectTransparencyToggle.checked);
+
+        rectTransparencyToggle.addEventListener('change', () => {
+            const isOn = rectTransparencyToggle.checked;
+            applyRectTransparency(isOn);
+            localStorage.setItem(RECT_TRANSPARENCY_STORAGE_KEY, isOn ? '1' : '0');
+        });
+    }
+}
+
+function applyRectTransparency(enabled) {
+    const heroShell = document.querySelector('.profile-hero-shell');
+    if (!heroShell) return;
+
+    heroShell.classList.toggle('fully-transparent', !!enabled);
+}
+
+function setProfileBannerImage(imageUrl) {
+    const heroStage = document.querySelector('.profile-header-stage');
+    if (!heroStage || !imageUrl) return;
+
+    const safeUrl = imageUrl.replace(/"/g, '\\"');
+    heroStage.style.setProperty('--profile-banner-url', `url("${safeUrl}")`);
 }
 
 // Hide all edit controls when in visitor mode
@@ -116,6 +182,14 @@ function applyVisitorMode() {
     if (avatarOverlay) avatarOverlay.classList.add('hidden');
     const avatarInput = document.getElementById('avatar-input');
     if (avatarInput) avatarInput.remove();
+    const profileEditControls = document.getElementById('profile-edit-controls');
+    if (profileEditControls) {
+        profileEditControls.classList.remove('is-visible');
+        profileEditControls.classList.add('hidden');
+        profileEditControls.setAttribute('aria-hidden', 'true');
+    }
+    const bannerInput = document.getElementById('banner-input');
+    if (bannerInput) bannerInput.remove();
 
     // Hide name/bio inline edit icons
     const nameEditIcon = document.getElementById('name-edit-icon');
@@ -178,6 +252,10 @@ async function fetchPublicProfile(username) {
             avatarImg.src = profile.avatarUrl
                 ? `${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}`
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName || username)}&background=080f0f&color=0df2f2&size=200`;
+        }
+
+        if (profile.coverUrl) {
+            setProfileBannerImage(`${API_URL}/Uploads/${profile.coverUrl}?t=${timestamp}`);
         }
     } catch (error) {
         console.error('Error fetching public profile:', error);
@@ -276,6 +354,10 @@ function updateProfileUI(profile) {
             avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName || "User")}&background=080f0f&color=0df2f2&size=200`;
         }
     }
+
+    if (profile.coverUrl) {
+        setProfileBannerImage(`${API_URL}/Uploads/${profile.coverUrl}?t=${timestamp}`);
+    }
 }
 
 function toggleEditMode() {
@@ -290,6 +372,7 @@ function toggleEditMode() {
     const avatarOverlay = document.getElementById("avatar-edit-icon");
     const nameEditIcon = document.getElementById("name-edit-icon");
     const bioEditIcon = document.getElementById("bio-edit-icon");
+    const profileEditControls = document.getElementById("profile-edit-controls");
 
     if (isEditMode) {
         // Enter Edit Mode
@@ -315,6 +398,10 @@ function toggleEditMode() {
         }
         if (nameEditIcon) nameEditIcon.classList.remove("hidden");
         if (bioEditIcon) bioEditIcon.classList.remove("hidden");
+        if (profileEditControls) {
+            profileEditControls.classList.add("is-visible");
+            profileEditControls.setAttribute('aria-hidden', 'false');
+        }
 
         // Focus name
         if (nameDisplay) nameDisplay.focus();
@@ -342,6 +429,10 @@ function toggleEditMode() {
         }
         if (nameEditIcon) nameEditIcon.classList.add("hidden");
         if (bioEditIcon) bioEditIcon.classList.add("hidden");
+        if (profileEditControls) {
+            profileEditControls.classList.remove("is-visible");
+            profileEditControls.setAttribute('aria-hidden', 'true');
+        }
     }
 }
 
@@ -362,6 +453,9 @@ async function saveProfileChanges() {
     formData.append("Bio", bio);
     if (selectedAvatarFile) {
         formData.append("AvatarUrl", selectedAvatarFile);
+    }
+    if (selectedBannerFile) {
+        formData.append("CoverUrl", selectedBannerFile);
     }
 
     try {
@@ -384,8 +478,11 @@ async function saveProfileChanges() {
         
         // Clear the selected file so it doesn't get re-uploaded
         selectedAvatarFile = null;
+        selectedBannerFile = null;
         const avatarInput = document.getElementById("avatar-input");
         if (avatarInput) avatarInput.value = ""; 
+        const bannerInput = document.getElementById("banner-input");
+        if (bannerInput) bannerInput.value = "";
 
         // Important: Update global storage to match new state
         const userInfo = getUserInfo();
@@ -443,7 +540,8 @@ function switchCarouselView(category) {
         'completed': 'Your Fully Completed Adventures',
         'playing': 'What You Are Currently Playing',
         'dropped': 'Games You Have Dropped',
-        'onhold': 'Games Currently On Hold'
+        'onhold': 'Games Currently On Hold',
+        'pending': 'Games Pending In Your Library'
     };
     
     if (titleEl) {
@@ -490,9 +588,14 @@ function switchCarouselView(category) {
         case 'onhold':
              filtered = allUserGames.filter(ug => ug.gamestatus === 'OnHold' || ug.gamestatus === 5 || ug.gamestatus === 'On Hold');
             break;
+        case 'pending':
+            filtered = allUserGames.filter(ug => ug.gamestatus === 'Pending' || ug.gamestatus === 6);
+            break;
         default:
             filtered = allUserGames;
     }
+
+    updateSnapshotCards(filtered);
 
     currentCarouselGames = filtered.map(ug => ({
         id: ug.externalId,
@@ -512,6 +615,98 @@ function switchCarouselView(category) {
             setTimeout(() => carouselWrapper.classList.remove('carousel-transition-in'), 360);
         });
     }
+}
+
+function updateSnapshotCards(filteredGames) {
+    const totalGamesEl = document.getElementById('snapshot-total-games');
+    const totalHoursEl = document.getElementById('snapshot-total-hours');
+
+    if (totalGamesEl) {
+        totalGamesEl.textContent = (filteredGames?.length || 0).toLocaleString();
+    }
+
+    if (!totalHoursEl) return;
+
+    const currentToken = ++snapshotRequestToken;
+    totalHoursEl.textContent = '...';
+
+    computeTotalHours(filteredGames || [])
+        .then(totalHours => {
+            if (currentToken !== snapshotRequestToken) return;
+            totalHoursEl.textContent = Math.round(totalHours).toLocaleString();
+        })
+        .catch(() => {
+            if (currentToken !== snapshotRequestToken) return;
+            totalHoursEl.textContent = '0';
+        });
+}
+
+async function computeTotalHours(games) {
+    if (!games || games.length === 0) return 0;
+
+    let total = 0;
+    const missingIds = [];
+
+    for (const g of games) {
+        const immediate = extractHoursFromGame(g);
+        if (immediate !== null) {
+            total += immediate;
+            continue;
+        }
+
+        const id = g.externalId ?? g.id;
+        if (!id) continue;
+
+        if (playtimeCache.has(id)) {
+            total += playtimeCache.get(id) || 0;
+        } else {
+            missingIds.push(id);
+        }
+    }
+
+    if (missingIds.length === 0) return total;
+
+    const fetches = missingIds.map(async id => {
+        try {
+            const res = await apiRequest(`/api/RAWG/catalog/${id}`);
+            if (!res.ok) {
+                playtimeCache.set(id, 0);
+                return 0;
+            }
+            const details = await res.json();
+            const hours = extractHoursFromGame(details) ?? 0;
+            playtimeCache.set(id, hours);
+            return hours;
+        } catch {
+            playtimeCache.set(id, 0);
+            return 0;
+        }
+    });
+
+    const fetched = await Promise.all(fetches);
+    return total + fetched.reduce((sum, h) => sum + (h || 0), 0);
+}
+
+function extractHoursFromGame(game) {
+    if (!game) return null;
+
+    const candidates = [
+        game.playtime,
+        game.hoursPlayed,
+        game.avgHours,
+        game.averageHours,
+        game.estimatedHours
+    ];
+
+    for (const value of candidates) {
+        if (value === null || value === undefined || value === '') continue;
+        const num = Number(value);
+        if (!Number.isNaN(num) && Number.isFinite(num)) {
+            return Math.max(0, num);
+        }
+    }
+
+    return null;
 }
 
 function updateLibraryStats(allGames) {

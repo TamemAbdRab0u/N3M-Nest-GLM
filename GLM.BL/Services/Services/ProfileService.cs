@@ -147,6 +147,30 @@ namespace Game_Library_Management_BL.Services.Services
                 }
             }
 
+            if (model.CoverUrl != null && model.CoverUrl.Length > 0)
+            {
+                var originalCover = profile.CoverUrl;
+
+                var coverFileName = await uploadHandler.UploadAsync(model.CoverUrl);
+                if (!coverFileName.StartsWith("Invalid") && !coverFileName.Contains("limit"))
+                {
+                    profile.CoverUrl = coverFileName;
+
+                    if (!string.IsNullOrEmpty(originalCover))
+                    {
+                        try
+                        {
+                            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", originalCover);
+                            if (System.IO.File.Exists(oldPath))
+                            {
+                                System.IO.File.Delete(oldPath);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+
             
             unitOfWork.Save();
 

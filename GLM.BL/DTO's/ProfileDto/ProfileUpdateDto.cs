@@ -13,6 +13,6 @@ namespace Game_Library_Management_BL.DTO_s.ProfileDto
         public string? Bio { get; set; }
         public string? Email { get; set; }
         public IFormFile? AvatarUrl { get; set; }
-        public string? CoverUrl { get; set; }
+        public IFormFile? CoverUrl { get; set; }
     }
 }

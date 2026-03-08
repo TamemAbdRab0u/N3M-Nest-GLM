@@ -208,9 +208,34 @@
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.profile-header-stage {
+    --profile-banner-url: url('../../Assets/Images/Bg1.jpg');
+}
+
 .profile-hero-shell {
+    background: linear-gradient(145deg, rgba(6, 22, 27, 0.18), rgba(8, 22, 26, 0.08));
+    backdrop-filter: blur(18px) saturate(128%);
+    -webkit-backdrop-filter: blur(18px) saturate(128%);
     box-shadow: 0 28px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(148, 251, 255, 0.12);
     animation: heroReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: background 280ms ease, box-shadow 280ms ease, border-color 280ms ease, backdrop-filter 280ms ease, -webkit-backdrop-filter 280ms ease;
+}
+
+.profile-hero-shell.fully-transparent {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(148, 251, 255, 0.08);
+}
+
+.profile-header-backdrop {
+    background-image:
+        linear-gradient(110deg, rgba(2, 13, 16, 0.3) 10%, rgba(2, 16, 20, 0.14) 42%, rgba(2, 18, 21, 0.34) 100%),
+        var(--profile-banner-url);
+    background-size: cover;
+    background-position: center center;
+    opacity: 0.82;
+    filter: saturate(122%) contrast(112%) brightness(1.06);
 }
 
 .profile-grid-overlay {
@@ -219,6 +244,38 @@
         linear-gradient(90deg, rgba(115, 212, 226, 0.06) 1px, transparent 1px);
     background-size: 46px 46px;
     mask-image: radial-gradient(circle at 40% 35%, #000 20%, transparent 92%);
+    transition: opacity 240ms ease;
+}
+
+.profile-hero-shell.fully-transparent .profile-grid-overlay {
+    opacity: 0.28;
+}
+
+.profile-edit-controls {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-height 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease, transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.profile-edit-controls > * {
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 220ms ease, transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.profile-edit-controls.is-visible {
+    max-height: 112px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.profile-edit-controls.is-visible > * {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .profile-avatar-frame {
@@ -236,6 +293,57 @@
 
 .profile-view-container:hover #profile-avatar-img {
     transform: scale(1.05);
+}
+
+.rect-toggle-switch {
+    position: relative;
+    width: 34px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.rect-toggle-switch input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+    z-index: 2;
+}
+
+.rect-toggle-slider {
+    width: 34px;
+    height: 18px;
+    border-radius: 9999px;
+    background: rgba(15, 32, 35, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    transition: all 0.22s ease;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.35);
+    position: relative;
+}
+
+.rect-toggle-slider::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: #e2e8f0;
+    transition: transform 0.22s ease, background 0.22s ease;
+}
+
+.rect-toggle-switch input:checked + .rect-toggle-slider {
+    background: rgba(13, 242, 242, 0.22);
+    border-color: rgba(13, 242, 242, 0.85);
+    box-shadow: 0 0 10px rgba(13, 242, 242, 0.25), inset 0 0 10px rgba(13, 242, 242, 0.15);
+}
+
+.rect-toggle-switch input:checked + .rect-toggle-slider::before {
+    transform: translateX(16px);
+    background: #0df2f2;
 }
 
 .profile-stat-card {
@@ -264,7 +372,14 @@
 
 @media (max-width: 1279px) {
     .profile-actions-wrap {
-        justify-content: flex-start;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .profile-edit-controls {
+        width: 100%;
+        align-items: center;
+        order: 99;
     }
 }
 
