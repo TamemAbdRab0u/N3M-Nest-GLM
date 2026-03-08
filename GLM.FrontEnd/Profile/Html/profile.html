@@ -122,132 +122,143 @@
             <input type="file" id="avatar-input" class="hidden" accept="image/*">
             
             <!-- Upper Part (Profile Header) -->
-            <div class="w-full flex items-start px-10 pt-16 pb-12 relative z-20">
-                 <!-- Background Profile Pattern/Image -->
-                 <div class="absolute inset-0 z-0">
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a1618] via-[#0a1618]/40 to-transparent"></div>
-                    <div class="absolute top-0 left-0 w-full h-full opacity-25 bg-[radial-gradient(circle_at_50%_50%,rgba(74,125,255,0.4),transparent_70%)]"></div>
-                 </div>
-                 
-                 <div class="flex flex-col md:flex-row items-end gap-10 relative z-10 w-full max-w-7xl mx-auto mb-4">
-                    <!-- Avatar Container -->
-                    <div class="relative group shrink-0 profile-view-container">
-                        <div class="h-44 w-44 rounded-3xl overflow-hidden border-2 border-primary shadow-[0_0_30px_rgba(74,125,255,0.5)] backdrop-blur-md bg-[#1e292b]/40 relative">
-                             <img src="../../Assets/Images/avatar-placeholder.jpg" id="profile-avatar-img" class="h-full w-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=User&background=080f0f&color=0df2f2&size=200'">
-                             <!-- Edit Overlay for Avatar -->
-                             <div id="avatar-edit-icon" class="hidden absolute inset-0 bg-black/40 items-center justify-center cursor-pointer group-hover:bg-black/60 transition-all" onclick="document.getElementById('avatar-input').click()">
-                                <span class="material-symbols-outlined text-white text-4xl">photo_camera</span>
-                             </div>
-                        </div>
-                        <!-- Level Badge -->
-                        <div class="absolute -bottom-3 -right-3 h-[42px] px-4 bg-primary rounded-lg flex items-center justify-center border-2 border-[#0a1618] shadow-lg shadow-black/50">
-                            <span class="xirod-font text-[12px] text-white whitespace-nowrap font-bold">LVL 42</span>
-                        </div>
-                    </div>
+            <div class="w-full px-4 sm:px-6 lg:px-10 pt-10 pb-12 relative z-20">
+                <div class="absolute inset-0 z-0 pointer-events-none">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a1618] via-[#0a1618]/55 to-transparent"></div>
+                    <div class="absolute -top-24 right-12 w-[26rem] h-[26rem] rounded-full bg-primary/15 blur-[140px]"></div>
+                    <div class="absolute bottom-0 left-24 w-80 h-80 rounded-full bg-sky-500/10 blur-[120px]"></div>
+                </div>
 
-                    <!-- User Info Section -->
-                    <div class="flex-1 pb-2">
-                        <div class="flex items-center gap-5 mb-3 group/name relative">
-                            <h1 id="profile-username" class="text-6xl font-black neon-username tracking-wide uppercase transition-all duration-300 outline-none" contenteditable="false">USER</h1>
-                            <span id="name-edit-icon" class="hidden material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform text-2xl" title="Edit name" onclick="document.getElementById('profile-username').focus()">edit</span>
-                            <span class="px-4 py-1.5 rounded-full border border-yellow-500/40 text-yellow-500 text-[10px] xirod-font bg-yellow-500/5 shadow-[0_0_15px_rgba(234,179,8,0.1)]">PRO MEMBER</span>
-                        </div>
-                        <div class="group/bio relative mb-8 max-w-3xl">
-                            <p id="profile-bio" class="text-slate-300 font-display text-lg leading-relaxed opacity-90 outline-none transition-all duration-300 tracking-wide" contenteditable="false">
-                                ...
-                            </p>
-                            <span id="bio-edit-icon" class="hidden absolute top-0 -right-8 material-symbols-outlined text-primary/60 cursor-pointer hover:text-primary transition-colors text-xl" title="Edit bio" onclick="document.getElementById('profile-bio').focus()">edit_note</span>
-                        </div>
-                        
-                        <!-- Stats Bar (Integrated) -->
-                        <div class="flex items-center w-full max-w-4xl rounded-2xl bg-[#0a1618]/40 border border-[#1e293b]/50 backdrop-blur-2xl divide-x divide-[#1e293b]/50">
-                            <div id="stat-box-owned" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box rounded-l-2xl" onclick="switchCarouselView('owned')">
-                                <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Owned</p>
-                                <p class="text-3xl font-black text-white" id="stat-owned">0</p>
-                            </div>
-                            <div id="stat-box-favorite" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box" onclick="switchCarouselView('favorite')">
-                                <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Favorite</p>
-                                <p class="text-3xl font-black text-white" id="stat-favorite">0</p>
-                            </div>
-                            <div id="stat-box-wishlist" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box" onclick="switchCarouselView('wishlist')">
-                                <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Wishlisted</p>
-                                <p class="text-3xl font-black text-white" id="stat-wishlisted">0</p>
-                            </div>
-                            <div id="stat-box-others" class="flex-1 text-center relative group">
-                                <div id="stat-box-completed" class="cursor-pointer py-6 hover:bg-white/5 transition-all group/stat stat-box" onclick="switchCarouselView('completed')">
-                                    <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Completed</p>
-                                    <div class="flex items-center justify-center gap-2">
-                                        <p class="text-3xl font-black text-white" id="stat-completed">0</p>
-                                        <span class="material-symbols-outlined text-[18px] text-slate-500 group-hover:text-primary group-hover:rotate-180 transition-all duration-300">expand_circle_down</span>
+                <section class="profile-hero-shell relative z-10 w-full max-w-7xl mx-auto rounded-[2rem] border border-cyan-400/20 bg-[#081416]/72 backdrop-blur-2xl">
+                    <div class="profile-grid-overlay absolute inset-0 rounded-[2rem] opacity-50 pointer-events-none"></div>
+                    <div class="absolute -top-20 -left-16 w-56 h-56 rounded-full bg-cyan-400/20 blur-[120px] pointer-events-none"></div>
+
+                    <div class="relative p-6 md:p-8 lg:p-10">
+                        <div class="grid grid-cols-1 xl:grid-cols-[auto_minmax(0,1fr)_auto] gap-8 lg:gap-10 items-start">
+                            <!-- Avatar Container -->
+                            <div class="relative group shrink-0 profile-view-container place-self-center xl:place-self-start">
+                                <div class="profile-avatar-frame h-44 w-44 sm:h-48 sm:w-48 rounded-[1.75rem] overflow-hidden border border-primary/60 shadow-[0_0_40px_rgba(13,242,242,0.25)] bg-[#0e1a1c] relative">
+                                    <img src="../../Assets/Images/avatar-placeholder.jpg" id="profile-avatar-img" class="h-full w-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=User&background=080f0f&color=0df2f2&size=200'">
+                                    <!-- Edit Overlay for Avatar -->
+                                    <div id="avatar-edit-icon" class="hidden absolute inset-0 bg-black/40 items-center justify-center cursor-pointer group-hover:bg-black/60 transition-all" onclick="document.getElementById('avatar-input').click()">
+                                        <span class="material-symbols-outlined text-white text-4xl">photo_camera</span>
                                     </div>
                                 </div>
-
-                                <!-- Others Popup -->
-                                <div id="other-stats-popup" class="opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute top-full left-1/2 -translate-x-1/2 w-52 bg-[#0a1618]/95 border border-[#1e293b] rounded-xl p-5 backdrop-blur-3xl z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 before:content-[''] before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
-                                    <div class="space-y-4">
-                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('playing')">
-                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-primary transition-colors">PLAYING</span>
-                                            <span class="text-lg font-bold text-white group-hover/item:text-primary transition-colors" id="stat-playing">0</span>
-                                        </div>
-                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('dropped')">
-                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-rose-400 transition-colors">DROPPED</span>
-                                            <span class="text-lg font-bold text-white group-hover/item:text-rose-400 transition-colors" id="stat-dropped">0</span>
-                                        </div>
-                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-orange-400/10 hover:border-l-2 hover:border-orange-400 hover:pl-4 group/item" onclick="switchCarouselView('onhold')">
-                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-orange-400 transition-colors">ON HOLD</span>
-                                            <span class="text-lg font-bold text-white group-hover/item:text-orange-400 transition-colors" id="stat-onhold">0</span>
-                                        </div>
-                                        <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-slate-400/10 hover:border-l-2 hover:border-slate-400 hover:pl-4 group/item" onclick="switchCarouselView('pending')">
-                                            <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-slate-300 transition-colors">PENDING</span>
-                                            <span class="text-lg font-bold text-white group-hover/item:text-slate-300 transition-colors" id="stat-pending">0</span>
-                                        </div>
-                                    </div>
-                                    <!-- Triangle Arrow -->
-                                    <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#0a1618] border-l border-t border-[#1e293b] rotate-45"></div>
+                                <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 h-11 px-5 rounded-xl bg-gradient-to-r from-primary to-cyan-300 text-[#042124] border border-cyan-200/60 shadow-xl shadow-primary/30 flex items-center justify-center">
+                                    <span class="xirod-font text-[11px] whitespace-nowrap font-black tracking-widest">LVL 42</span>
                                 </div>
                             </div>
-                            <div id="stat-box-friends" class="flex-1 text-center py-6 cursor-pointer hover:bg-white/5 transition-all group/stat stat-box rounded-r-2xl" onclick="navigateToFriendsPage()">
-                                <p class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest mb-2 opacity-60 group-hover/stat:text-primary transition-colors">Friends</p>
-                                <p class="text-3xl font-black text-white" id="stat-friends">0</p>
+
+                            <!-- User Info Section -->
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-4 md:gap-5 mb-3 group/name relative">
+                                    <h1 id="profile-username" class="text-4xl sm:text-5xl lg:text-6xl font-black neon-username tracking-wide uppercase leading-none transition-all duration-300 outline-none" contenteditable="false">USER</h1>
+                                    <span id="name-edit-icon" class="hidden material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform text-2xl" title="Edit name" onclick="document.getElementById('profile-username').focus()">edit</span>
+                                </div>
+
+                                <div class="group/bio relative mb-8 max-w-3xl">
+                                    <p id="profile-bio" class="text-slate-300 font-display text-base md:text-lg leading-relaxed opacity-90 outline-none transition-all duration-300 tracking-wide" contenteditable="false">
+                                        ...
+                                    </p>
+                                    <span id="bio-edit-icon" class="hidden absolute top-0 -right-8 material-symbols-outlined text-primary/60 cursor-pointer hover:text-primary transition-colors text-xl" title="Edit bio" onclick="document.getElementById('profile-bio').focus()">edit_note</span>
+                                </div>
+
+                                <!-- Stats Bar -->
+                                <div class="profile-stats-grid grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
+                                    <div id="stat-box-owned" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="switchCarouselView('owned')">
+                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Owned</p>
+                                        <p class="text-3xl font-black text-white" id="stat-owned">0</p>
+                                    </div>
+
+                                    <div id="stat-box-favorite" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="switchCarouselView('favorite')">
+                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Favorite</p>
+                                        <p class="text-3xl font-black text-white" id="stat-favorite">0</p>
+                                    </div>
+
+                                    <div id="stat-box-wishlist" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="switchCarouselView('wishlist')">
+                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Wishlisted</p>
+                                        <p class="text-3xl font-black text-white" id="stat-wishlisted">0</p>
+                                    </div>
+
+                                    <div id="stat-box-completed" class="profile-stat-card text-center py-4 px-3 relative group cursor-pointer transition-all stat-box" onclick="switchCarouselView('completed')">
+                                        <div class="transition-all group/stat">
+                                            <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Completed</p>
+                                            <div class="flex items-center justify-center gap-2">
+                                                <p class="text-3xl font-black text-white" id="stat-completed">0</p>
+                                                <span class="material-symbols-outlined text-[18px] text-slate-500 rotate-180 group-hover:text-primary group-hover:rotate-0 transition-all duration-300">expand_circle_down</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Others Popup -->
+                                        <div id="other-stats-popup" onclick="event.stopPropagation()" class="opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute top-[calc(100%+14px)] left-1/2 -translate-x-1/2 w-56 bg-[#071013]/95 border border-[#1e293b] rounded-xl p-5 backdrop-blur-3xl z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 before:content-[''] before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
+                                            <div class="space-y-4">
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('playing')">
+                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-primary transition-colors">PLAYING</span>
+                                                    <span class="text-lg font-bold text-white group-hover/item:text-primary transition-colors" id="stat-playing">0</span>
+                                                </div>
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('dropped')">
+                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-rose-400 transition-colors">DROPPED</span>
+                                                    <span class="text-lg font-bold text-white group-hover/item:text-rose-400 transition-colors" id="stat-dropped">0</span>
+                                                </div>
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-orange-400/10 hover:border-l-2 hover:border-orange-400 hover:pl-4 group/item" onclick="switchCarouselView('onhold')">
+                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-orange-400 transition-colors">ON HOLD</span>
+                                                    <span class="text-lg font-bold text-white group-hover/item:text-orange-400 transition-colors" id="stat-onhold">0</span>
+                                                </div>
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-slate-400/10 hover:border-l-2 hover:border-slate-400 hover:pl-4 group/item" onclick="switchCarouselView('pending')">
+                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-slate-300 transition-colors">PENDING</span>
+                                                    <span class="text-lg font-bold text-white group-hover/item:text-slate-300 transition-colors" id="stat-pending">0</span>
+                                                </div>
+                                            </div>
+                                            <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#071013] border-l border-t border-[#1e293b] rotate-45"></div>
+                                        </div>
+                                    </div>
+
+                                    <div id="stat-box-friends" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="navigateToFriendsPage()">
+                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Friends</p>
+                                        <p class="text-3xl font-black text-white" id="stat-friends">0</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Actions -->
+                            <div class="xl:pt-1">
+                                <div class="profile-actions-wrap flex flex-wrap xl:flex-col items-center xl:items-stretch gap-3 w-full xl:w-auto">
+                                    <!-- Notification Bell -->
+                                    <div class="relative" id="notif-wrapper">
+                                        <button id="notification-btn" onclick="toggleNotifDropdown()" class="h-14 w-14 rounded-2xl bg-[#102226]/80 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-[#163236] transition-all group overflow-visible relative shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+                                            <span class="material-symbols-outlined text-[24px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                                            <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(13,242,242,0.8)] animate-pulse">0</span>
+                                        </button>
+                                        <!-- Notification Dropdown -->
+                                        <div id="notif-dropdown" class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618] border border-[#1e293b] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[200] overflow-hidden backdrop-blur-xl">
+                                            <div class="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between">
+                                                <h3 class="text-xs xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
+                                                <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
+                                            </div>
+                                            <div id="notif-list" class="overflow-y-auto custom-scrollbar" style="max-height:360px">
+                                                <!-- populated by JS -->
+                                            </div>
+                                            <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
+                                                <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
+                                                <p class="text-xs xirod-font text-slate-600 uppercase tracking-wider">No pending requests</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button id="add-friend-btn" class="hidden h-14 px-7 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg w-auto">
+                                        <span class="material-symbols-outlined text-[20px]">person_add</span>
+                                        <span>ADD FRIEND</span>
+                                    </button>
+
+                                    <button id="edit-profile-btn" class="h-14 px-8 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider group shadow-lg shadow-primary/5 w-auto">
+                                        <span id="edit-btn-icon" class="material-symbols-outlined text-[20px]">edit</span>
+                                        <span id="edit-btn-text">EDIT</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Right Actions -->
-                    <div class="flex flex-col gap-4 pb-4">
-                        <div class="flex items-center gap-4">
-                             <!-- Notification Bell -->
-                             <div class="relative" id="notif-wrapper">
-                                 <button id="notification-btn" onclick="toggleNotifDropdown()" class="h-14 w-14 rounded-full bg-[#1e292b]/60 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-[#1e292b] transition-all group overflow-visible relative">
-                                    <span class="material-symbols-outlined text-[24px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
-                                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(13,242,242,0.8)] animate-pulse">0</span>
-                                 </button>
-                                 <!-- Notification Dropdown -->
-                                 <div id="notif-dropdown" class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618] border border-[#1e293b] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[200] overflow-hidden backdrop-blur-xl">
-                                     <div class="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between">
-                                         <h3 class="text-xs xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
-                                         <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
-                                     </div>
-                                     <div id="notif-list" class="overflow-y-auto custom-scrollbar" style="max-height:360px">
-                                         <!-- populated by JS -->
-                                     </div>
-                                     <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
-                                         <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                                         <p class="text-xs xirod-font text-slate-600 uppercase tracking-wider">No pending requests</p>
-                                     </div>
-                                 </div>
-                             </div>
-                             <button id="add-friend-btn" class="hidden h-14 px-8 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg">
-                                <span class="material-symbols-outlined text-[20px]">person_add</span>
-                                <span>ADD FRIEND</span>
-                             </button>
-                             <button id="edit-profile-btn" class="h-14 px-10 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider group shadow-lg shadow-primary/5">
-                                <span id="edit-btn-icon" class="material-symbols-outlined text-[20px]">edit</span>
-                                <span id="edit-btn-text">EDIT</span>
-                             </button>
-                        </div>
-                    </div>
-                 </div>
+                </section>
             </div>
 
             <!-- Lower Part -->
@@ -436,64 +447,12 @@
                         </div>
                     </section>
 
-                    <!-- Backlog Tracker -->
-                    <section class="mb-12">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-2xl font-bold text-slate-100 italic">Protocol Progress</h3>
-                            <div class="flex items-center gap-4 text-[10px] font-bold text-slate-400 xirod-font">
-                                <span class="flex items-center gap-2"><div class="size-2 rounded-full bg-primary shadow-[0_0_5px_#0df2f2]"></div> COMPLETED</span>
-                                <span class="flex items-center gap-2"><div class="size-2 rounded-full bg-slate-700"></div> IN PROGRESS</span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="backlog-tracker">
-                            <!-- Cards -->
-                            <div class="glass-panel p-6 rounded-2xl glow-border transition-all">
-                                <div class="flex justify-between items-start mb-4">
-                                    <h4 class="font-bold text-slate-200">The Elder Scrolls VI</h4>
-                                    <span class="text-primary font-bold">62%</span>
-                                </div>
-                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-4 shadow-inner">
-                                    <div class="h-full bg-primary" style="width: 62%"></div>
-                                </div>
-                                <div class="flex justify-between text-[10px] text-slate-500 xirod-font">
-                                    <span>MAIN STORY: 45/60 CH</span>
-                                    <span>SIDE: 12%</span>
-                                </div>
-                            </div>
-                            <div class="glass-panel p-6 rounded-2xl glow-border transition-all border-l-4 border-l-primary/40">
-                                <div class="flex justify-between items-start mb-4">
-                                    <h4 class="font-bold text-slate-200">MechWarrior: Global War</h4>
-                                    <span class="text-primary font-bold">88%</span>
-                                </div>
-                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-4 shadow-inner">
-                                    <div class="h-full bg-primary" style="width: 88%"></div>
-                                </div>
-                                <div class="flex justify-between text-[10px] text-slate-500 xirod-font">
-                                    <span>MAIN STORY: 22/25 CH</span>
-                                    <span class="text-primary">NEAR COMPLETION</span>
-                                </div>
-                            </div>
-                            <div class="glass-panel p-6 rounded-2xl glow-border transition-all opacity-70">
-                                <div class="flex justify-between items-start mb-4">
-                                    <h4 class="font-bold text-slate-200">Baldur's Gate 4</h4>
-                                    <span class="text-slate-500 font-bold">5%</span>
-                                </div>
-                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-4 shadow-inner">
-                                    <div class="h-full bg-primary/30" style="width: 5%"></div>
-                                </div>
-                                <div class="flex justify-between text-[10px] text-slate-500 xirod-font">
-                                    <span>MAIN STORY: 1/20 CH</span>
-                                    <span>JUST STARTED</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
                  </div>
             </div>
             
             <!-- Footer -->
             <footer class="mt-auto py-6 border-t border-[#1e293b]/50 text-center z-10">
-                <p class="text-xs text-slate-600">© 2026 N3M Library. Game data provided by RAWG.</p>
+                <p class="text-xs text-slate-600">© 2026 N3M Library.</p>
             </footer>
         </div>
     </main>

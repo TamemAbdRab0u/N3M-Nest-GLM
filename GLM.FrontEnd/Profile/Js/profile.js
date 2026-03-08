@@ -428,6 +428,12 @@ async function loadInitialData() {
 function switchCarouselView(category) {
     currentCategory = category;
     const titleEl = document.getElementById('carousel-title');
+    const carouselWrapper = document.getElementById('carousel-wrapper');
+
+    if (carouselWrapper) {
+        carouselWrapper.classList.remove('carousel-transition-in');
+        carouselWrapper.classList.add('carousel-transition-out');
+    }
     
     // Update Heading
     const labels = {
@@ -498,6 +504,14 @@ function switchCarouselView(category) {
 
     currentIndex = 0;
     renderCarousel();
+
+    if (carouselWrapper) {
+        requestAnimationFrame(() => {
+            carouselWrapper.classList.remove('carousel-transition-out');
+            carouselWrapper.classList.add('carousel-transition-in');
+            setTimeout(() => carouselWrapper.classList.remove('carousel-transition-in'), 360);
+        });
+    }
 }
 
 function updateLibraryStats(allGames) {
