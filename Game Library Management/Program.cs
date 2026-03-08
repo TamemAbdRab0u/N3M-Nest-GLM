@@ -53,6 +53,7 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 
             builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, NotificationUserIdProvider>();
+            builder.Services.AddSingleton<IOnlineUserTracker, OnlineUserTracker>();
 
             builder.Services.AddSignalR();
             #endregion

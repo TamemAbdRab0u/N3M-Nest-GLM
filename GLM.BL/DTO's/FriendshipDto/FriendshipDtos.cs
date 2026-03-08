@@ -12,6 +12,7 @@ namespace Game_Library_Management_BL.DTO_s.FriendshipDto
         public string Username { get; set; }
         public string? DisplayName { get; set; }
         public string? AvatarUrl { get; set; }
+        public bool IsOnline { get; set; }
         public string Status { get; set; }
         public bool IsSentByMe { get; set; }
         public int FriendshipId { get; set; }

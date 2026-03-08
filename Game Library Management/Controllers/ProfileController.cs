@@ -43,6 +43,19 @@ namespace Game_Library_Management.Controllers
             return Ok(profile);
         }
 
+        [HttpGet("search/users")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string query, [FromQuery] int limit = 15)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var users = await profileService.SearchUsersAsync(userId, query, limit);
+            return Ok(users);
+        }
+
         [HttpPut]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateProfile([FromForm] ProfileUpdateDto model)

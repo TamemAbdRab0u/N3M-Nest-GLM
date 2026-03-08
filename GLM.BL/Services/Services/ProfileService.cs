@@ -194,5 +194,39 @@ namespace Game_Library_Management_BL.Services.Services
                 IsRectTransparent = profile.IsRectTransparent
             };
         }
+
+        public async Task<IEnumerable<UserSearchResultDto>> SearchUsersAsync(string currentUserId, string query, int limit = 15)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Enumerable.Empty<UserSearchResultDto>();
+            }
+
+            var trimmedQuery = query.Trim();
+            var safeLimit = Math.Clamp(limit, 1, 30);
+            var likePattern = $"%{trimmedQuery}%";
+
+            var users = await unitOfWork.Users.Query()
+                .Include(u => u.Profile)
+                .Where(u => u.Id != currentUserId &&
+                            (EF.Functions.Like(u.Username, likePattern) ||
+                             (u.Profile != null && EF.Functions.Like(u.Profile.DisplayName ?? string.Empty, likePattern))))
+                .OrderBy(u => u.Username)
+                .Take(safeLimit)
+                .Select(u => new UserSearchResultDto
+                {
+                    UserId = u.Id,
+                    Username = u.Username,
+                    DisplayName = u.Profile != null && u.Profile.DisplayName != null && u.Profile.DisplayName != ""
+                        ? u.Profile.DisplayName
+                        : u.Username,
+                    AvatarUrl = u.ImageUrl != null && u.ImageUrl != ""
+                        ? u.ImageUrl
+                        : (u.Profile != null ? u.Profile.AvatarUrl : null)
+                })
+                .ToListAsync();
+
+            return users;
+        }
     }
 }

@@ -13,5 +13,6 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<ProfileResponseDto> GetProfileAsync(string userId);
         Task<ProfileResponseDto> GetPublicProfileAsync(string username);
         Task<ProfileResponseDto> UpdateProfileAsync(string userId, ProfileUpdateDto model);
+        Task<IEnumerable<UserSearchResultDto>> SearchUsersAsync(string currentUserId, string query, int limit = 15);
     }
 }

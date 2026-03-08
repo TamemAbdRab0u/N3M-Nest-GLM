@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.IdentityModel.Tokens.Jwt;
+using Game_Library_Management.Helpers;
 
 namespace Game_Library_Management.Controllers
 {
@@ -16,15 +17,18 @@ namespace Game_Library_Management.Controllers
         private readonly IFriendshipService friendshipService;
         private readonly IProfileService profileService;
         private readonly IHubContext<NotificationHub> hubContext;
+        private readonly IOnlineUserTracker onlineUserTracker;
 
         public FriendshipController(
             IFriendshipService friendshipService,
             IProfileService profileService,
-            IHubContext<NotificationHub> hubContext)
+            IHubContext<NotificationHub> hubContext,
+            IOnlineUserTracker onlineUserTracker)
         {
             this.friendshipService = friendshipService;
             this.profileService = profileService;
             this.hubContext = hubContext;
+            this.onlineUserTracker = onlineUserTracker;
         }
 
         private string? CurrentUserId => User.FindFirst("uid")?.Value;
@@ -46,6 +50,10 @@ namespace Game_Library_Management.Controllers
             try
             {
                 var friends = await friendshipService.GetFriendsAsync(username);
+                foreach (var friend in friends)
+                {
+                    friend.IsOnline = onlineUserTracker.IsOnline(friend.UserId);
+                }
                 return Ok(friends);
             }
             catch (InvalidOperationException ex)
