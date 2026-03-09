@@ -10,7 +10,7 @@ namespace Game_Library_Management_DAL.Models
     {
         public string Id { get; set; }
         public string Username { get; set; }
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
         public string Email { get; set; }
         public string Password { get; set; }
 

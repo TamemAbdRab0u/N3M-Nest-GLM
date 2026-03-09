@@ -75,8 +75,8 @@ async function handleLogin(e) {
             body: JSON.stringify(loginData),
             credentials: 'include' // Include cookies for refresh token
         });
-        
-        const data = await response.json();
+
+        const data = await readResponseBody(response);
         
         console.log('Login response:', response.status, data);
         
@@ -148,8 +148,8 @@ async function handleRegister(e) {
             body: JSON.stringify(registerData),
             credentials: 'include' // Include cookies for refresh token
         });
-        
-        const data = await response.json();
+
+        const data = await readResponseBody(response);
         
         console.log('Register response:', response.status, data);
         
@@ -170,6 +170,20 @@ async function handleRegister(e) {
         showError(errorMsg, error.message);
         setLoading(submitBtn, false);
     }
+}
+
+async function readResponseBody(response) {
+    const contentType = response.headers.get('content-type') || '';
+
+    if (contentType.includes('application/json')) {
+        return await response.json();
+    }
+
+    const text = await response.text();
+    return {
+        isAuthenticated: false,
+        message: text || `Request failed with status ${response.status}`
+    };
 }
 
 // Save authentication data

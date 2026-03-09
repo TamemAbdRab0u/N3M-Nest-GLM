@@ -84,6 +84,7 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 Id = user.Id,
                 Username = user.UserName,
+                ImageUrl = string.Empty,
                 Email = user.Email,
                 Password = user.PasswordHash
             };
@@ -124,6 +125,7 @@ namespace Game_Library_Management_BL.Services.Services
                 {
                     Id = user.Id,
                     Username = user.UserName,
+                    ImageUrl = string.Empty,
                     Email = user.Email,
                     Password = user.PasswordHash
                 };
