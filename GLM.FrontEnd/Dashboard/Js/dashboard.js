@@ -9,6 +9,8 @@ let currentStatus = ''; // Store current game status filter
 let gamesPerPage = 12; // Updated to 12 games per page
 let allGames = []; // Will store just the current page of games now
 let currentView = 'catalog'; // 'catalog', 'library', 'favorites'
+let isCatalogLoading = false;
+let hasMoreCatalogPages = true;
 
 // Toast Notification State
 let activeToast = null;
@@ -88,11 +90,38 @@ document.addEventListener('DOMContentLoaded', () => {
     
     initializeNavigation();
     initializePagination();
+    initializeCatalogInfiniteScroll();
     initializeSearch();
     initializeCategories();
     initializePlatforms();
     initializeReleaseYears();
 });
+
+function initializeCatalogInfiniteScroll() {
+    const scrollContainer = document.querySelector('.content-area');
+    const target = scrollContainer || window;
+    target.addEventListener('scroll', handleCatalogInfiniteScroll, { passive: true });
+}
+
+function handleCatalogInfiniteScroll() {
+    if (currentView !== 'catalog' || !!currentQuery || !!currentStatus || isCatalogLoading || !hasMoreCatalogPages) {
+        return;
+    }
+
+    const scrollContainer = document.querySelector('.content-area');
+    const threshold = 260;
+    let nearBottom = false;
+
+    if (scrollContainer) {
+        nearBottom = (scrollContainer.scrollTop + scrollContainer.clientHeight) >= (scrollContainer.scrollHeight - threshold);
+    } else {
+        nearBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - threshold);
+    }
+
+    if (nearBottom) {
+        loadGames(currentPage + 1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
+    }
+}
 
 // Display user information
 function displayUserInfo() {
@@ -223,6 +252,16 @@ function selectView(view) {
 async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '', status = '') {
     const container = document.getElementById('library-games');
     const totalGamesElement = document.getElementById('total-games');
+    const isCatalog = currentView === 'catalog' && !status;
+    const isAppendCatalogRequest = isCatalog && !query && page > 1;
+
+    if (isCatalog && page === 1) {
+        hasMoreCatalogPages = true;
+    }
+
+    if (isAppendCatalogRequest && (!hasMoreCatalogPages || isCatalogLoading)) {
+        return;
+    }
     // Ensure element exists before setting textContent
     if (!totalGamesElement) { 
         console.warn('Total games element not found');
@@ -235,7 +274,13 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         </div>
     `;
     
-    if (container) container.innerHTML = loadingHtml;
+    if (isCatalog) isCatalogLoading = true;
+
+    if (!isAppendCatalogRequest) {
+        if (container) container.innerHTML = loadingHtml;
+    } else {
+        toggleCatalogAppendLoader(true);
+    }
     
     try {
         let endpoint;
@@ -244,9 +289,9 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
 
         if (currentView === 'catalog' && !status) {
             if (query) {
-                 endpoint = `/api/RAWG/catalog/search?query=${encodeURIComponent(query)}`;
+                 endpoint = `/api/Steam/catalog/search?query=${encodeURIComponent(query)}`;
             } else {
-                 endpoint = `/api/RAWG/catalog/GetAll?page=${page}`;
+                 endpoint = `/api/Steam/catalog/GetAll?page=${page}`;
                  if (genre) endpoint += `&genre=${encodeURIComponent(genre)}`;
                  if (platform) endpoint += `&platforms=${encodeURIComponent(platform)}`;
                  if (ordering) endpoint += `&ordering=${encodeURIComponent(ordering)}`;
@@ -449,13 +494,38 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                 isCatalog: false
             });
         } else {
-            allGames = gamesData;
+            if (isAppendCatalogRequest) {
+                if (!gamesData || gamesData.length === 0) {
+                    hasMoreCatalogPages = false;
+                } else {
+                    allGames = [...allGames, ...gamesData];
+                    appendGames(gamesData);
+                    if (gamesData.length < gamesPerPage) {
+                        hasMoreCatalogPages = false;
+                    }
+                }
+
+                if (totalGamesElement) {
+                    totalGamesElement.textContent = `${allGames.length} loaded`;
+                }
+            } else {
+                allGames = gamesData;
+                hasMoreCatalogPages = gamesData.length >= gamesPerPage;
+                if (allGames && allGames.length > 0) {
+                    if (totalGamesElement) {
+                        totalGamesElement.textContent = (query) ? `Search Results` : `${allGames.length} loaded`;
+                    }
+                    displayGames(allGames);
+                } else {
+                    handleEmptyState(container, totalGamesElement, query);
+                }
+            }
+
             if (allGames && allGames.length > 0) {
                 if (totalGamesElement) {
-                    totalGamesElement.textContent = (query) ? `Search Results` : `Page ${page}`;
+                    totalGamesElement.textContent = (query) ? `Search Results` : `${allGames.length} loaded`;
                 }
-                displayGames(allGames);
-            } else {
+            } else if (!isAppendCatalogRequest) {
                 handleEmptyState(container, totalGamesElement, query);
             }
             
@@ -479,6 +549,31 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         `;
         if (totalGamesElement) totalGamesElement.textContent = 'Connection Error';
     }
+    finally {
+        if (isCatalog) isCatalogLoading = false;
+        if (isAppendCatalogRequest) toggleCatalogAppendLoader(false);
+    }
+}
+
+function toggleCatalogAppendLoader(show) {
+    const container = document.getElementById('library-games');
+    if (!container) return;
+
+    const id = 'catalog-append-loader';
+    const existing = document.getElementById(id);
+
+    if (!show) {
+        if (existing) existing.remove();
+        return;
+    }
+
+    if (existing) return;
+
+    const loader = document.createElement('div');
+    loader.id = id;
+    loader.className = 'col-span-full flex justify-center py-6 text-slate-500';
+    loader.innerHTML = '<div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>';
+    container.appendChild(loader);
 }
 
 
@@ -528,6 +623,15 @@ function displayGames(games) {
     // However, given the current constraints, rerendering is acceptable.
     container.innerHTML = '';
     
+    games.forEach(game => {
+        container.appendChild(createGameCard(game));
+    });
+}
+
+function appendGames(games) {
+    const container = document.getElementById('library-games');
+    if (!container) return;
+
     games.forEach(game => {
         container.appendChild(createGameCard(game));
     });
@@ -784,12 +888,18 @@ function updatePaginationControls(page, query, genre, platform, ordering, releas
     const pageInfo = document.getElementById('page-info');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const paginationControls = document.getElementById('pagination-controls');
+
+    if (paginationControls) {
+        if (paginationInfo.isCatalog) paginationControls.classList.add('hidden');
+        else paginationControls.classList.remove('hidden');
+    }
     
     if (prevBtn) prevBtn.disabled = page === 1;
     
     if (paginationInfo.isCatalog) {
         // Catalog uses simple logic: if count < pageSize, we're at the end
-        if (pageInfo) pageInfo.textContent = (query) ? 'Search Results' : `Page ${page}`;
+        if (pageInfo) pageInfo.textContent = (query) ? 'Search Results' : `${allGames.length} loaded`;
         
         if (nextBtn) {
             if (query) {
@@ -866,7 +976,7 @@ async function initializeCategories() {
     if (!categoryList) return;
 
     try {
-        const response = await apiRequest('/api/RAWG/catalog/genres', { method: 'GET' });
+        const response = await apiRequest('/api/Steam/catalog/genres', { method: 'GET' });
         if (response.ok) {
             const genres = await response.json();
             
@@ -915,7 +1025,7 @@ async function initializePlatforms() {
     if (!platformList) return;
 
     try {
-        const response = await apiRequest('/api/RAWG/catalog/platforms', { method: 'GET' });
+        const response = await apiRequest('/api/Steam/catalog/platforms', { method: 'GET' });
         if (response.ok) {
             const platforms = await response.json();
             
@@ -1035,7 +1145,7 @@ async function initializeReleaseYears() {
 
     try {
         // Fetch the oldest game to find the start year dynamically
-        const response = await apiRequest('/api/RAWG/catalog/GetAll?ordering=released&page=1', { method: 'GET' });
+        const response = await apiRequest('/api/Steam/catalog/GetAll?ordering=released&page=1', { method: 'GET' });
         if (response.ok) {
             const games = await response.json();
             if (games && games.length > 0 && games[0].releaseDate) {
@@ -1111,7 +1221,7 @@ async function addToFavorites(gameIdOrObj) {
     const gameId = (typeof gameIdOrObj === 'object') ? (gameIdOrObj.externalId || gameIdOrObj.id) : gameIdOrObj;
     
     try {
-        const response = await apiRequest(`/api/RAWG/catalog/favorite/${gameId}`, {
+        const response = await apiRequest(`/api/Steam/catalog/favorite/${gameId}`, {
             method: 'POST'
         });
         
@@ -1338,7 +1448,7 @@ async function addToLibrary(gameIdOrObj) {
     const gameId = (typeof gameIdOrObj === 'object') ? (gameIdOrObj.externalId || gameIdOrObj.id) : gameIdOrObj;
     
     try {
-        const response = await apiRequest(`/api/RAWG/catalog/library/${gameId}`, {
+        const response = await apiRequest(`/api/Steam/catalog/library/${gameId}`, {
             method: 'POST'
         });
         
@@ -1435,7 +1545,7 @@ async function addToWishlist(gameIdOrObj) {
     const gameId = (typeof gameIdOrObj === 'object') ? (gameIdOrObj.externalId || gameIdOrObj.id) : gameIdOrObj;
     
     try {
-        const response = await apiRequest(`/api/RAWG/catalog/wishlist/${gameId}`, {
+        const response = await apiRequest(`/api/Steam/catalog/wishlist/${gameId}`, {
             method: 'POST'
         });
         

@@ -16,12 +16,12 @@ namespace Game_Library_Management_BL.Services.Services
     public class UserGamesServices : IUserGamesServices
     {
         private readonly IUnitOfWork unitofwork;
-        private readonly IRAWGService _rawgService;
+        private readonly ISteamService _steamService;
 
-        public UserGamesServices(IUnitOfWork unitofwork, IRAWGService rawgService)
+        public UserGamesServices(IUnitOfWork unitofwork, ISteamService steamService)
         {
             this.unitofwork = unitofwork;
-            _rawgService = rawgService;
+            _steamService = steamService;
         }
 
         public async Task<IEnumerable<UserGamesResponseDto>> AllUserGamesAsync(string UserId)
@@ -40,7 +40,7 @@ namespace Game_Library_Management_BL.Services.Services
                 return Enumerable.Empty<UserGamesResponseDto>();
 
             var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
-            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(externalIds);
+            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
 
             return UserGames.Select(x => {
                 var rg = rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId);
@@ -94,7 +94,7 @@ namespace Game_Library_Management_BL.Services.Services
                 return Enumerable.Empty<UserGamesResponseDto>();
 
             var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
-            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(externalIds);
+            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
 
             return UserGames.Select(x => {
                 var rg = rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId);
@@ -138,7 +138,7 @@ namespace Game_Library_Management_BL.Services.Services
             if (UserGame == null)
                 return null;
 
-            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(new List<int> { UserGame.Game.ExternalId });
+            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { UserGame.Game.ExternalId });
             var rg = rawgGames.FirstOrDefault();
 
             return new UserGamesResponseDto
@@ -196,7 +196,7 @@ namespace Game_Library_Management_BL.Services.Services
             await unitofwork.UserGames.Add(userGame);
             unitofwork.Save();
 
-            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(new List<int> { game.ExternalId });
+            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { game.ExternalId });
             var rg = rawgGames.FirstOrDefault();
 
             return new UserGamesResponseDto
@@ -235,7 +235,7 @@ namespace Game_Library_Management_BL.Services.Services
             await unitofwork.UserGames.Update(ExistedUserGame);
             unitofwork.Save();
 
-            var rawgGames = await _rawgService.GetGamesByExternalIdsAsync(new List<int> { ExistedUserGame.Game.ExternalId });
+            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { ExistedUserGame.Game.ExternalId });
             var rg = rawgGames.FirstOrDefault();
 
             return new UserGamesResponseDto

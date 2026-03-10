@@ -692,7 +692,7 @@ async function computeTotalHours(games) {
 
     const fetches = missingIds.map(async id => {
         try {
-            const res = await apiRequest(`/api/RAWG/catalog/${id}`);
+            const res = await apiRequest(`/api/Steam/catalog/${id}`);
             if (!res.ok) {
                 playtimeCache.set(id, 0);
                 return 0;

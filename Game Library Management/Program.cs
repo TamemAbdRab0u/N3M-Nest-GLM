@@ -23,6 +23,7 @@ namespace Game_Library_Management
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddMemoryCache();
             builder.Services.AddSwaggerGen(setupAction =>
             {
                 var xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -48,7 +49,9 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IUserGamesServices, UserGamesServices>();
             builder.Services.AddScoped<IStatsService, StatsService>();
             builder.Services.AddScoped<IProfileService, ProfileService>();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddHttpClient<IRAWGService, RAWGService>();
+            builder.Services.AddHttpClient<ISteamService, SteamService>();
             builder.Services.AddScoped<IReviewServices,ReviewServices>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 

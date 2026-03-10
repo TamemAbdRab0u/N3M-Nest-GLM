@@ -149,7 +149,7 @@ async function populateSidebarUser() {
 ────────────────────────────────────────────── */
 async function loadGameDetails(id) {
     try {
-        const res = await apiRequest(`/api/RAWG/catalog/${id}`);
+        const res = await apiRequest(`/api/Steam/catalog/${id}`);
         if (!res.ok) { showError(); return; }
 
         currentGame = await res.json();
@@ -169,7 +169,7 @@ async function loadSimilarGames(id) {
     if (!container) return;
 
     try {
-        const res = await apiRequest(`/api/RAWG/catalog/${id}/similar`);
+        const res = await apiRequest(`/api/Steam/catalog/${id}/similar`);
         if (!res.ok) { hideSimilarGames(); return; }
 
         const games = ((await res.json()) || []).filter(g => g.externalId !== id).slice(0, 6);
@@ -665,7 +665,7 @@ function applyMutualExclusionRules(g) {
 async function toggleLibrary() {
     if (!currentGame) return;
     try {
-        const res = await apiRequest(`/api/RAWG/catalog/library/${currentGame.externalId}`, { method: 'POST' });
+        const res = await apiRequest(`/api/Steam/catalog/library/${currentGame.externalId}`, { method: 'POST' });
         if (!res.ok) { showToast('Could not update library', 'error'); return; }
         const data = await res.json();
         currentGame.isInLibrary = data.added;
@@ -681,7 +681,7 @@ async function toggleLibrary() {
 async function toggleFavorite() {
     if (!currentGame) return;
     try {
-        const res = await apiRequest(`/api/RAWG/catalog/favorite/${currentGame.externalId}`, { method: 'POST' });
+        const res = await apiRequest(`/api/Steam/catalog/favorite/${currentGame.externalId}`, { method: 'POST' });
         if (!res.ok) { showToast('Could not update favorites', 'error'); return; }
         const data = await res.json();
         currentGame.isFavorite = data.isFavorite;
@@ -697,7 +697,7 @@ async function toggleFavorite() {
 async function toggleWishlist() {
     if (!currentGame) return;
     try {
-        const res = await apiRequest(`/api/RAWG/catalog/wishlist/${currentGame.externalId}`, { method: 'POST' });
+        const res = await apiRequest(`/api/Steam/catalog/wishlist/${currentGame.externalId}`, { method: 'POST' });
         if (!res.ok) { showToast('Could not update wishlist', 'error'); return; }
         const data = await res.json();
         currentGame.isInWishlist = data.added;

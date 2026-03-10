@@ -18,9 +18,15 @@ namespace Game_Library_Management_BL.UnitOfWork
         public IRepo<Game> Games { get; private set; }
         public IRepo<Tag> Tags { get; private set; }
         public IRepo<Platform> Platforms { get; private set; }
+        public IRepo<Developer> Developers { get; private set; }
+        public IRepo<PublisherEntity> PublisherEntities { get; private set; }
         public IRepo<UserGame> UserGames { get; private set; }
         public IRepo<GameTag> GameTags { get; private set; }
         public IRepo<GamePlatform> GamePlatforms { get; private set; }
+        public IRepo<GameDeveloper> GameDevelopers { get; private set; }
+        public IRepo<GamePublisher> GamePublishers { get; private set; }
+        public IRepo<GameScreenshot> GameScreenshots { get; private set; }
+        public IRepo<GameTrailer> GameTrailers { get; private set; }
         public IRepo<Profile> Profiles { get; private set; }
         public IRepo<Review> Reviews { get; private set; }
         public IRepo<ReviewVote> ReviewVotes { get; private set; }
@@ -32,9 +38,15 @@ namespace Game_Library_Management_BL.UnitOfWork
             Games = new Repo<Game>(context);
             Tags = new Repo<Tag>(context);
             Platforms = new Repo<Platform>(context);
+            Developers = new Repo<Developer>(context);
+            PublisherEntities = new Repo<PublisherEntity>(context);
             UserGames = new Repo<UserGame>(context);
             GameTags = new Repo<GameTag>(context);
             GamePlatforms = new Repo<GamePlatform>(context);
+            GameDevelopers = new Repo<GameDeveloper>(context);
+            GamePublishers = new Repo<GamePublisher>(context);
+            GameScreenshots = new Repo<GameScreenshot>(context);
+            GameTrailers = new Repo<GameTrailer>(context);
             Profiles = new Repo<Profile>(context);
             Reviews = new Repo<Review>(context);
             ReviewVotes = new Repo<ReviewVote>(context);
