@@ -21,7 +21,7 @@ namespace Game_Library_Management_BL.Services.Services
         private readonly IMemoryCache _cache;
 
         private const int PageSize = 12;
-        private const string CatalogFeedVersion = "v2";
+        private const string CatalogFeedVersion = "v3";
         private static readonly TimeSpan CatalogCacheTtl = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan SearchCacheTtl = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan AppDetailsCacheTtl = TimeSpan.FromHours(12);
@@ -74,7 +74,11 @@ namespace Game_Library_Management_BL.Services.Services
             var cacheKey = $"steam:catalog:{CatalogFeedVersion}:{page}:{genre}:{platforms}:{ordering}:{dates}";
             if (!_cache.TryGetValue(cacheKey, out List<RAWGCatalogDto>? cachedCatalog))
             {
-                var candidates = await FetchFeaturedCatalogAsync();
+                var candidates = await GetCatalogFromDatabaseAsync();
+                if (candidates.Count < 300)
+                {
+                    candidates = await FetchFeaturedCatalogAsync();
+                }
 
                 if (!string.IsNullOrWhiteSpace(platforms))
                 {
@@ -112,6 +116,100 @@ namespace Game_Library_Management_BL.Services.Services
 
             await PopulateUserStatesAsync(paged);
             return paged;
+        }
+
+        public async Task<(int Requested, int Stored, int Updated, int Failed)> PreloadPopularGamesAsync(int take = 1000, int hydrateTop = 200, int skip = 0)
+        {
+            take = Math.Clamp(take, 1, 2000);
+            skip = Math.Clamp(skip, 0, 200000);
+            hydrateTop = Math.Clamp(hydrateTop, 0, take);
+
+            var rankedApps = await FetchSteamSpyPopularAppsAsync(take + skip);
+            if (rankedApps.Count == 0)
+            {
+                return (take, 0, 0, take);
+            }
+
+            var selected = rankedApps.Skip(skip).Take(take).ToList();
+            if (selected.Count == 0)
+            {
+                return (0, 0, 0, 0);
+            }
+
+            var hydrateSet = selected.Take(hydrateTop).Select(x => x.appId).ToHashSet();
+
+            var stored = 0;
+            var updated = 0;
+            var failed = 0;
+
+            foreach (var app in selected)
+            {
+                try
+                {
+                    var existing = await _unitOfWork.Games.Query().FirstOrDefaultAsync(g => g.ExternalId == app.appId);
+
+                    if (hydrateSet.Contains(app.appId))
+                    {
+                        var details = await GetSteamAppDetailsAsync(app.appId);
+                        if (details != null)
+                        {
+                            var game = existing ?? new Game { ExternalId = app.appId };
+                            var isNew = existing == null;
+
+                            await UpsertGameAggregateAsync(game, details.Value, isNew);
+                            if (isNew) stored++; else updated++;
+                            continue;
+                        }
+                    }
+
+                    if (existing == null)
+                    {
+                        var newGame = new Game
+                        {
+                            ExternalId = app.appId,
+                            Title = string.IsNullOrWhiteSpace(app.name) ? $"Steam App {app.appId}" : app.name,
+                            ImgUrl = $"https://cdn.akamai.steamstatic.com/steam/apps/{app.appId}/header.jpg",
+                            IsDetailsHydrated = false,
+                            DetailsLastSyncedAt = null
+                        };
+
+                        await _unitOfWork.Games.Add(newGame);
+                        _unitOfWork.Save();
+                        stored++;
+                    }
+                    else
+                    {
+                        var changed = false;
+
+                        if (string.IsNullOrWhiteSpace(existing.Title) && !string.IsNullOrWhiteSpace(app.name))
+                        {
+                            existing.Title = app.name;
+                            changed = true;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(existing.ImgUrl))
+                        {
+                            existing.ImgUrl = $"https://cdn.akamai.steamstatic.com/steam/apps/{app.appId}/header.jpg";
+                            changed = true;
+                        }
+
+                        if (changed)
+                        {
+                            await _unitOfWork.Games.Update(existing);
+                            _unitOfWork.Save();
+                            updated++;
+                        }
+                    }
+                }
+                catch
+                {
+                    failed++;
+                }
+            }
+
+            InvalidateDefaultCatalogCachePages();
+
+            return (selected.Count, stored, updated, failed);
         }
 
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
@@ -422,6 +520,31 @@ namespace Game_Library_Management_BL.Services.Services
             return game;
         }
 
+        private async Task<List<RAWGCatalogDto>> GetCatalogFromDatabaseAsync(int maxCount = 1500)
+        {
+            var games = await _unitOfWork.Games.Query()
+                .Include(g => g.GameTags).ThenInclude(gt => gt.Tag)
+                .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+                .Where(g => g.ExternalId > 0)
+                .OrderByDescending(g => g.Rating ?? 0)
+                .ThenByDescending(g => g.Metacritic ?? 0)
+                .ThenByDescending(g => g.ReleaseDate ?? DateTime.MinValue)
+                .Take(maxCount)
+                .ToListAsync();
+
+            return games.Select(MapGameToCatalogDto).ToList();
+        }
+
+        private void InvalidateDefaultCatalogCachePages()
+        {
+            // Clear most commonly requested unfiltered pages.
+            for (var page = 1; page <= 120; page++)
+            {
+                var key = $"steam:catalog:{CatalogFeedVersion}:{page}::::";
+                _cache.Remove(key);
+            }
+        }
+
         private async Task<Game?> LoadGameAggregateAsync(int externalId)
         {
             return await _unitOfWork.Games.Query()
@@ -678,7 +801,8 @@ namespace Game_Library_Management_BL.Services.Services
 
         private async Task<List<RAWGCatalogDto>> FetchFeaturedCatalogAsync()
         {
-            var popularIds = await FetchSteamSpyPopularAppIdsAsync();
+            var popularApps = await FetchSteamSpyPopularAppsAsync(1000);
+            var popularIds = popularApps.Select(x => x.appId).ToList();
 
             var url = "https://store.steampowered.com/api/featuredcategories?cc=us&l=english";
             using var response = await _http.GetAsync(url);
@@ -761,9 +885,9 @@ namespace Game_Library_Management_BL.Services.Services
                 return featuredRanked;
             }
 
-            var steamSpyPopular = await EnrichCatalogByIdsAsync(popularIds.Take(36).ToList());
+            // Enrich only the top chunk to keep API latency reasonable while still enabling deep scrolling.
+            var steamSpyPopular = await EnrichCatalogByIdsAsync(popularIds.Take(120).ToList());
             var popularityOrder = popularIds
-                .Take(36)
                 .Select((id, index) => new { id, index })
                 .ToDictionary(x => x.id, x => x.index);
 
@@ -776,6 +900,24 @@ namespace Game_Library_Management_BL.Services.Services
             foreach (var game in steamSpyPopular)
             {
                 merged[game.ExternalId] = game;
+            }
+
+            // Add lightweight entries for the rest of the 1k list so users can keep scrolling.
+            foreach (var app in popularApps)
+            {
+                if (merged.ContainsKey(app.appId)) continue;
+
+                merged[app.appId] = new RAWGCatalogDto
+                {
+                    ExternalId = app.appId,
+                    Title = string.IsNullOrWhiteSpace(app.name) ? $"Steam App {app.appId}" : app.name,
+                    ImageUrl = $"https://cdn.akamai.steamstatic.com/steam/apps/{app.appId}/header.jpg",
+                    Rating = 0,
+                    Metacritic = null,
+                    ReleaseDate = string.Empty,
+                    Genres = new List<string>(),
+                    Platforms = new List<string> { "PC" }
+                };
             }
 
             foreach (var game in featuredRanked)
@@ -792,6 +934,99 @@ namespace Game_Library_Management_BL.Services.Services
                 .ThenByDescending(g => g.Rating)
                 .ThenByDescending(g => ParseDateSafe(g.ReleaseDate) ?? DateTime.MinValue)
                 .ToList();
+        }
+
+        private async Task<List<(int appId, string name, double score)>> FetchSteamSpyPopularAppsAsync(int targetCount)
+        {
+            try
+            {
+                using var response = await _http.GetAsync("https://steamspy.com/api.php?request=all");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return await FetchSteamSpyPopularAppsFallbackAsync(targetCount);
+                }
+
+                using var stream = await response.Content.ReadAsStreamAsync();
+                using var doc = await JsonDocument.ParseAsync(stream);
+
+                if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                {
+                    return await FetchSteamSpyPopularAppsFallbackAsync(targetCount);
+                }
+
+                var ranked = new List<(int appId, string name, double score)>();
+
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    var node = prop.Value;
+                    if (node.ValueKind != JsonValueKind.Object) continue;
+
+                    var appId = 0;
+                    if (node.TryGetProperty("appid", out var appIdNode) && appIdNode.ValueKind == JsonValueKind.Number)
+                    {
+                        appId = appIdNode.GetInt32();
+                    }
+                    else if (!int.TryParse(prop.Name, out appId))
+                    {
+                        continue;
+                    }
+
+                    var name = node.TryGetProperty("name", out var n) ? (n.GetString() ?? string.Empty) : string.Empty;
+
+                    var ownersText = node.TryGetProperty("owners", out var ownersNode) ? (ownersNode.GetString() ?? string.Empty) : string.Empty;
+                    var ownersScore = ParseOwnersMidpoint(ownersText);
+
+                    var positive = node.TryGetProperty("positive", out var pNode) && pNode.ValueKind == JsonValueKind.Number ? pNode.GetDouble() : 0;
+                    var negative = node.TryGetProperty("negative", out var nNode) && nNode.ValueKind == JsonValueKind.Number ? nNode.GetDouble() : 0;
+                    var ccu = node.TryGetProperty("ccu", out var cNode) && cNode.ValueKind == JsonValueKind.Number ? cNode.GetDouble() : 0;
+
+                    var reviewTotal = positive + negative;
+                    var reviewRatio = reviewTotal > 0 ? positive / reviewTotal : 0;
+
+                    // Weighted popularity score that favors ownership + active players + positive review ratio.
+                    var score = ownersScore + (ccu * 80) + (reviewRatio * 500000);
+
+                    if (appId > 0)
+                    {
+                        ranked.Add((appId, name, score));
+                    }
+                }
+
+                return ranked
+                    .OrderByDescending(x => x.score)
+                    .Take(targetCount)
+                    .ToList();
+            }
+            catch
+            {
+                return await FetchSteamSpyPopularAppsFallbackAsync(targetCount);
+            }
+        }
+
+        private async Task<List<(int appId, string name, double score)>> FetchSteamSpyPopularAppsFallbackAsync(int targetCount)
+        {
+            var ids = await FetchSteamSpyPopularAppIdsAsync();
+            return ids
+                .Take(targetCount)
+                .Select((id, index) => (id, string.Empty, (double)(targetCount - index)))
+                .ToList();
+        }
+
+        private static double ParseOwnersMidpoint(string ownersRange)
+        {
+            if (string.IsNullOrWhiteSpace(ownersRange)) return 0;
+
+            var normalized = ownersRange.Replace(",", string.Empty).Trim();
+            var parts = normalized.Split("..", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length == 2 &&
+                double.TryParse(parts[0], out var low) &&
+                double.TryParse(parts[1], out var high))
+            {
+                return (low + high) / 2.0;
+            }
+
+            return double.TryParse(normalized, out var single) ? single : 0;
         }
 
         private async Task<List<int>> FetchSteamSpyPopularAppIdsAsync()

@@ -642,7 +642,10 @@ function createGameCard(game) {
     const card = document.createElement('div');
     card.className = 'group bg-[#1e292b] rounded-xl overflow-hidden border border-[#2e616b]/30 hover:border-primary/50 transition-all duration-300 relative hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 cursor-pointer';
     
-    const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg'; 
+    const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
+    const hqLandscapeImageUrl = String(imageUrl).includes('/header.jpg')
+        ? String(imageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
+        : imageUrl;
     const title = game.title || game.name || 'Unknown Game';
     const gameId = game.externalId || game.id;
 
@@ -656,34 +659,40 @@ function createGameCard(game) {
         }
     }
 
-    // Rating Badge (Top Left - Floating)
-    const ratingBadge = game.rating ? 
-        `<div class="absolute top-4 left-4 glass-panel px-3 py-1.5 rounded-full flex items-center gap-1.5 z-10 transition-opacity group-hover:opacity-0">
-           <span class="material-symbols-outlined text-yellow-400 text-[18px] fill-icon">star</span>
-           <span class="text-white text-xs font-bold">${game.rating}</span>
-         </div>` : '';
+    // Platforms text (shown on card body, not only icons)
+    let platformsText = 'PC';
+    if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
+        const normalizedPlatforms = game.platforms
+            .map(p => {
+                if (typeof p === 'string') return p;
+                return p.name || p.slug || '';
+            })
+            .map(p => String(p).trim())
+            .filter(Boolean);
 
-    // Metacritic Badge (Top Right - Floating)
-    let metacriticBadge = '';
-    if (game.metacritic) {
-        const mc = game.metacritic;
-        // Dynamic colors: Green for 75+, Yellow for 50+, Red for others
-        const colors = mc >= 75 ? 'text-[#6cc331] border-[#6cc331]/80' : 
-                      (mc >= 50 ? 'text-[#fbc131] border-[#fbc131]/80' : 'text-[#ff0033] border-[#ff0033]/80');
-        
-        metacriticBadge = `
-            <div class="absolute top-4 right-4 w-9 h-9 bg-black/60 backdrop-blur-md border ${colors} rounded-lg flex items-center justify-center z-10 transition-all duration-300 group-hover:opacity-0 group-hover:scale-110 select-none shadow-2xl" title="Metacritic: ${mc}">
-                <span class="text-[13px] font-black leading-none">${mc}</span>
-            </div>`;
+        if (normalizedPlatforms.length > 0) {
+            platformsText = [...new Set(normalizedPlatforms)].join(' • ');
+        }
     }
 
     // Release Year Badge
     let releaseYearBadge = '';
-    if (game.releaseDate) {
-        const date = new Date(game.releaseDate);
-        if (!isNaN(date.getFullYear())) {
+    const rawRelease = game.releaseDate || game.released || game.release_date || '';
+    if (rawRelease) {
+        let releaseYear = null;
+        const parsedDate = new Date(rawRelease);
+        if (!Number.isNaN(parsedDate.getTime())) {
+            releaseYear = parsedDate.getFullYear();
+        }
+
+        if (!releaseYear) {
+            const yearMatch = String(rawRelease).match(/(19|20)\d{2}/);
+            if (yearMatch) releaseYear = parseInt(yearMatch[0], 10);
+        }
+
+        if (releaseYear) {
             releaseYearBadge = `<span class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider h-fit mt-1">
-                ${date.getFullYear()}
+                ${releaseYear}
             </span>`;
         }
     }
@@ -821,11 +830,16 @@ function createGameCard(game) {
 
     card.innerHTML = `
         <!-- Image & Actions -->
-        <div class="relative h-72 overflow-hidden">
-            <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='../../Assets/Images/logo.png'">
-            
-            ${ratingBadge}
-            ${metacriticBadge}
+        <div class="relative aspect-[16/9] overflow-hidden bg-[#0f1a1d]">
+            <img
+                src="${hqLandscapeImageUrl}"
+                data-fallback-src="${imageUrl}"
+                alt="${title}"
+                loading="lazy"
+                decoding="async"
+                class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                onerror="if (this.dataset.fallbackSrc && this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='../../Assets/Images/logo.png';"
+            >
 
             <!-- Action Buttons (Top Right) -->
             <div class="absolute top-4 right-4 flex flex-col gap-3 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
@@ -866,6 +880,7 @@ function createGameCard(game) {
                 <div class="overflow-hidden flex-1">
                     <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">${category}</p>
+                    <p class="text-xs text-gray-500/90 dark:text-gray-400 mt-1">${platformsText}</p>
                 </div>
                 <div class="flex flex-col items-end">
                     ${releaseYearBadge}

@@ -58,6 +58,20 @@ namespace Game_Library_Management.Controllers
             return Ok("Games imported successfully");
         }
 
+        [HttpPost("catalog/preload-popular")]
+        public async Task<IActionResult> PreloadPopularCatalog([FromQuery] int take = 1000, [FromQuery] int hydrateTop = 200, [FromQuery] int skip = 0)
+        {
+            var result = await _steamService.PreloadPopularGamesAsync(take, hydrateTop, skip);
+            return Ok(new
+            {
+                Skip = skip,
+                result.Requested,
+                result.Stored,
+                result.Updated,
+                result.Failed
+            });
+        }
+
         [HttpPost("catalog/favorite/{externalId}")]
         public async Task<IActionResult> ToggleFavorite(int externalId)
         {
