@@ -18,13 +18,19 @@ namespace Game_Library_Management_DAL.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Platform> Platforms { get; set; }
+        public DbSet<Developer> Developers { get; set; }
+        public DbSet<PublisherEntity> PublisherEntities { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Profile> profiles { get; set; }
+        public DbSet<GameScreenshot> GameScreenshots { get; set; }
+        public DbSet<GameTrailer> GameTrailers { get; set; }
 
         // Many-to-Many relationship tables //
         public DbSet<UserGame> UserGames { get; set; }
         public DbSet<GameTag> GameTags { get; set; }
         public DbSet<GamePlatform> GamePlatforms { get; set; }
+        public DbSet<GameDeveloper> GameDevelopers { get; set; }
+        public DbSet<GamePublisher> GamePublishers { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -46,6 +52,22 @@ namespace Game_Library_Management_DAL.Data
             modelBuilder.Entity<GamePlatform>().HasKey(x => new{x.GameId, x.PlatformId });
             modelBuilder.Entity<GamePlatform>().HasOne(x => x.Game).WithMany(x => x.GamePlatforms).HasForeignKey(x => x.GameId);
             modelBuilder.Entity<GamePlatform>().HasOne(x => x.Platform).WithMany(x => x.GamePlatforms).HasForeignKey(x => x.PlatformId);
+
+            modelBuilder.Entity<GameDeveloper>().HasKey(x => new { x.GameId, x.DeveloperId });
+            modelBuilder.Entity<GameDeveloper>().HasOne(x => x.Game).WithMany(x => x.GameDevelopers).HasForeignKey(x => x.GameId);
+            modelBuilder.Entity<GameDeveloper>().HasOne(x => x.Developer).WithMany(x => x.GameDevelopers).HasForeignKey(x => x.DeveloperId);
+
+            modelBuilder.Entity<GamePublisher>().HasKey(x => new { x.GameId, x.PublisherEntityId });
+            modelBuilder.Entity<GamePublisher>().HasOne(x => x.Game).WithMany(x => x.GamePublishers).HasForeignKey(x => x.GameId);
+            modelBuilder.Entity<GamePublisher>().HasOne(x => x.PublisherEntity).WithMany(x => x.GamePublishers).HasForeignKey(x => x.PublisherEntityId);
+
+            modelBuilder.Entity<GameScreenshot>().HasOne(x => x.Game).WithMany(x => x.Screenshots).HasForeignKey(x => x.GameId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<GameTrailer>().HasOne(x => x.Game).WithMany(x => x.Trailers).HasForeignKey(x => x.GameId).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Tag>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<Platform>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<Developer>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<PublisherEntity>().HasIndex(x => x.Name).IsUnique();
 
             modelBuilder.Entity<User>().HasOne(x => x.Profile).WithOne(x => x.user).HasForeignKey<Profile>(x => x.UserId);
 
