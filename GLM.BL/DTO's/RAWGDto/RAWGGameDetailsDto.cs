@@ -10,6 +10,7 @@ namespace Game_Library_Management_BL.DTO_s.RAWGDto
         public string Description { get; set; }
         public string BackgroundImage { get; set; }
         public string BackgroundImageAdditional { get; set; }
+        public string PosterImage { get; set; }
         public double Rating { get; set; }
         public int RatingTop { get; set; }
         public int RatingsCount { get; set; }

@@ -169,6 +169,7 @@ namespace Game_Library_Management_BL.Services.Services
                             ExternalId = app.appId,
                             Title = string.IsNullOrWhiteSpace(app.name) ? $"Steam App {app.appId}" : app.name,
                             ImgUrl = $"https://cdn.akamai.steamstatic.com/steam/apps/{app.appId}/header.jpg",
+                            PosterImageUrl = BuildSteamPosterImageUrl(app.appId),
                             IsDetailsHydrated = false,
                             DetailsLastSyncedAt = null
                         };
@@ -190,6 +191,12 @@ namespace Game_Library_Management_BL.Services.Services
                         if (string.IsNullOrWhiteSpace(existing.ImgUrl))
                         {
                             existing.ImgUrl = $"https://cdn.akamai.steamstatic.com/steam/apps/{app.appId}/header.jpg";
+                            changed = true;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(existing.PosterImageUrl))
+                        {
+                            existing.PosterImageUrl = BuildSteamPosterImageUrl(app.appId);
                             changed = true;
                         }
 
@@ -507,6 +514,7 @@ namespace Game_Library_Management_BL.Services.Services
                 ExternalId = details.Value.appId,
                 Title = details.Value.name,
                 ImgUrl = details.Value.headerImage,
+                PosterImageUrl = BuildSteamPosterImageUrl(details.Value.appId),
                 Description = details.Value.description,
                 Publisher = details.Value.publishers.FirstOrDefault(),
                 ReleaseDate = DateTime.TryParse(details.Value.releaseDate, out var d) ? d : null,
@@ -563,6 +571,7 @@ namespace Game_Library_Management_BL.Services.Services
             game.Description = details.description;
             game.ImgUrl = details.headerImage;
             game.BackgroundImageUrl = details.backgroundImage;
+            game.PosterImageUrl = BuildSteamPosterImageUrl(details.appId);
             game.ReleaseDate = ParseDateSafe(details.releaseDate);
             game.Publisher = details.publishers.FirstOrDefault();
             game.Website = details.website;
@@ -778,6 +787,7 @@ namespace Game_Library_Management_BL.Services.Services
                 Description = game.Description ?? string.Empty,
                 BackgroundImage = game.BackgroundImageUrl ?? game.ImgUrl ?? string.Empty,
                 BackgroundImageAdditional = game.ImgUrl ?? string.Empty,
+                PosterImage = game.PosterImageUrl ?? string.Empty,
                 Rating = game.Rating ?? 0,
                 RatingTop = game.RatingTop ?? 5,
                 RatingsCount = game.RatingsCount ?? 0,
@@ -1288,6 +1298,11 @@ namespace Game_Library_Management_BL.Services.Services
         {
             if (string.IsNullOrWhiteSpace(value)) return null;
             return DateTime.TryParse(value, out var date) ? date : null;
+        }
+
+        private static string BuildSteamPosterImageUrl(int appId)
+        {
+            return $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900_2x.jpg";
         }
 
         private static string Normalize(string value)

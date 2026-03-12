@@ -206,6 +206,30 @@ function hideSimilarGames() {
     if (card) card.classList.add('hidden');
 }
 
+function getPosterCandidates(g) {
+    return [
+        g.posterImage,
+        g.backgroundImage,
+        g.backgroundImageAdditional,
+        g.imageUrl,
+        g.imgUrl,
+        '../../Assets/Images/default-game.jpg'
+    ].filter(Boolean);
+}
+
+function setBestPosterImage(imgEl, candidates) {
+    if (!imgEl || !candidates.length) return;
+
+    let index = 0;
+    imgEl.src = candidates[index];
+    imgEl.onerror = () => {
+        index += 1;
+        if (index < candidates.length) {
+            imgEl.src = candidates[index];
+        }
+    };
+}
+
 function renderGame(g) {
     // ── Page title & header ──────────────────
     document.title = `${g.title} – N3M|Nest`;
@@ -223,7 +247,7 @@ function renderGame(g) {
     // ── Sidebar Poster ───────────────────────
     const sidePoster = document.getElementById('game-side-poster');
     if (sidePoster) {
-        sidePoster.src = g.backgroundImage || '../../Assets/Images/default-game.jpg';
+        setBestPosterImage(sidePoster, getPosterCandidates(g));
         sidePoster.alt = g.title;
     }
 
@@ -231,10 +255,7 @@ function renderGame(g) {
     setText('game-title', g.title);
     
     // ── Meta info ───────────────────────────
-    if (g.rating > 0) {
-        setText('game-rating', g.rating.toFixed(1));
-    }
-    
+
     if (g.releaseDate) {
         setText('game-release', formatDate(g.releaseDate));
     }
@@ -243,7 +264,6 @@ function renderGame(g) {
     setText('val-developer', g.developers?.[0] || 'Unknown');
     setText('val-publisher', g.publishers?.[0] || 'Unknown');
     setText('val-metascore', g.metacritic || 'N/A');
-    setText('val-playtime', g.playtime ? `${g.playtime}h` : 'N/A');
 
     // ── Platforms icons ─────────────────────
     const platIcons = document.getElementById('platforms-icons');

@@ -14,6 +14,7 @@ namespace Game_Library_Management_DAL.Models
         public string? Description { get; set; }
         public string? ImgUrl { get; set; }
         public string? BackgroundImageUrl { get; set; }
+        public string? PosterImageUrl { get; set; }
         public int? Metacritic { get; set; }
         public double? Rating { get; set; }
         public int? RatingTop { get; set; }

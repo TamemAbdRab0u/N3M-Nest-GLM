@@ -866,7 +866,7 @@ function createGameCard(game) {
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5">
                 ${gameStatusIndicator}
                 ${game.addedAt ? `
-                    <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg">
+                    <div data-added-at-for="${gameId}" class="${isPending ? 'hidden ' : ''}h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg">
                         <span class="material-symbols-outlined text-[15px] text-primary/70 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">schedule</span>
                         <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[200px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-primary/90 whitespace-nowrap">added ${getRelativeTime(game.addedAt)}</span>
                     </div>
@@ -879,8 +879,7 @@ function createGameCard(game) {
             <div class="flex items-start justify-between mb-2 gap-3">
                 <div class="overflow-hidden flex-1">
                     <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">${category}</p>
-                    <p class="text-xs text-gray-500/90 dark:text-gray-400 mt-1">${platformsText}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-5">${category}</p>
                 </div>
                 <div class="flex flex-col items-end">
                     ${releaseYearBadge}
@@ -1328,6 +1327,7 @@ function updateFavoriteUI(gameId, isFavorite) {
 
 function updateStatusIndicators(gameId, game) {
     const statusContainers = document.querySelectorAll(`[data-status-for="${gameId}"]`);
+    const addedAtContainers = document.querySelectorAll(`[data-added-at-for="${gameId}"]`);
     const inventoryContainers = document.querySelectorAll(`[data-inventory-for="${gameId}"]`);
     const libButtons = document.querySelectorAll(`[data-lib-btn-for="${gameId}"]`);
     const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
@@ -1357,11 +1357,9 @@ function updateStatusIndicators(gameId, game) {
             return;
         }
         if (isPending) {
-            container.className = 'absolute bottom-3 right-3 z-10 transition-all duration-500';
+            container.className = 'h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg';
             container.innerHTML = `
-                <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
-                    <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
-                </div>`;
+                <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>`;
         } else {
             container.className = 'h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg';
             container.innerHTML = statusObj ? `
@@ -1369,6 +1367,10 @@ function updateStatusIndicators(gameId, game) {
                     <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
                 ` : '';
         }
+    });
+
+    addedAtContainers.forEach(container => {
+        container.classList.toggle('hidden', isPending);
     });
 
     // Update Inventory Indicators (Below title)
