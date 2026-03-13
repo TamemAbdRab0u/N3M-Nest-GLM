@@ -47,17 +47,17 @@ document.addEventListener("DOMContentLoaded", () => {
 // Display information from local storage initially (Fast)
 function displayUserInfo() {
     const userInfo = getUserInfo();
-    const usernameElements = document.querySelectorAll("#display-username, #profile-username");
+    const usernameElements = document.querySelectorAll("#display-username, #profile-username, #welcome-username");
     const avatarImg = document.getElementById("profile-avatar-img");
-    const displayAvatar = document.getElementById("display-avatar");
+    const displayAvatar = document.querySelectorAll("#display-avatar, #display-avatar-header");
 
     usernameElements.forEach(el => {
         el.textContent = userInfo.userName || "User";
     });
 
-    if (displayAvatar) {
-        displayAvatar.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "U";
-    }
+    displayAvatar.forEach(el => {
+        el.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "U";
+    });
 
     if (avatarImg) {
         // Fallback using UI Avatars if no image yet
@@ -309,8 +309,8 @@ async function fetchProfile() {
 function updateProfileUI(profile) {
     if (!profile) return;
 
-    const usernameElements = document.querySelectorAll("#display-username, #profile-username");
-    const displayAvatar = document.getElementById("display-avatar");
+    const usernameElements = document.querySelectorAll("#display-username, #profile-username, #welcome-username");
+    const displayAvatars = document.querySelectorAll("#display-avatar, #display-avatar-header");
     const sidebarAvatar = document.getElementById("profile-sidebar-img"); // Added check for sidebar
     const bioText = document.getElementById("profile-bio");
     const avatarImg = document.getElementById("profile-avatar-img");
@@ -324,18 +324,20 @@ function updateProfileUI(profile) {
 
     // Sidebar Avatar / Initial
     const resolvedAvatar = profile.avatarUrl;
-    if (displayAvatar) {
-        if (resolvedAvatar) {
-            displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
-            const parent = displayAvatar.parentElement;
-            if (parent && parent.classList.contains("bg-gradient-to-tr")) {
-                parent.classList.remove("bg-gradient-to-tr", "from-primary", "to-purple-500");
-                parent.classList.add("bg-transparent");
+    displayAvatars.forEach(displayAvatar => {
+        if (displayAvatar) {
+            if (resolvedAvatar) {
+                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+                const parent = displayAvatar.parentElement;
+                if (parent && (parent.classList.contains("bg-gradient-to-tr") || parent.classList.contains("from-primary"))) {
+                    parent.classList.remove("bg-gradient-to-tr", "from-primary", "to-purple-500", "to-purple-600");
+                    parent.classList.add("bg-transparent");
+                }
+            } else if (profile.displayName) {
+                displayAvatar.textContent = profile.displayName.charAt(0).toUpperCase();
             }
-        } else if (profile.displayName) {
-            displayAvatar.textContent = profile.displayName.charAt(0).toUpperCase();
         }
-    }
+    });
 
     // Update Sidebar Image if exists separately
     if (sidebarAvatar && resolvedAvatar) {

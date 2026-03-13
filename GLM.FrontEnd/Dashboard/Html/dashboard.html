@@ -272,13 +272,42 @@
                          <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">Gamer</span>
                          <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
                     </div>
-                    <a href="../../Profile/Html/profile.html" class="group relative">
-                        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
-                            <div class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
-                                <span id="display-avatar" class="text-sm font-bold text-white">U</span>
+
+                    <div class="flex items-center gap-2">
+                        <a href="../../Profile/Html/profile.html" class="group relative">
+                            <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                                <div class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                                     <span id="display-avatar-header" class="text-sm font-bold text-white uppercase">U</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Notification Bell -->
+                        <div class="relative" id="notif-wrapper">
+                            <button id="notification-btn" onclick="toggleNotifDropdown()"
+                                class="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
+                                <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                                <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
+                            </button>
+                            
+                            <!-- Notif Dropdown -->
+                            <div id="notif-dropdown" class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
+                                <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+                                    <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
+                                    <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
+                                </div>
+                                <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
+                                <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
+                                    <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
+                                    <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No pending requests</p>
+                                </div>
                             </div>
                         </div>
-                    </a>
+
+                        <button onclick="logout()" class="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group" title="Logout">
+                            <span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -320,8 +349,17 @@
     </main>
 
     <!-- Dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-    <script src="../../Auth/Js/auth.js"></script>
-    <script src="../Js/dashboard.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+        <script src="../../Auth/Js/auth.js"></script>
+        <script src="../../Shared/Js/notifications.js"></script>
+        <script src="../Js/dashboard.js"></script>
+        <script>
+            // Ensure notification system is initialized for dashboard
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof isLoggedIn === 'function' && isLoggedIn() && typeof initNotificationSystem === 'function') {
+                    initNotificationSystem();
+                }
+            });
+        </script>
 </body>
 </html>

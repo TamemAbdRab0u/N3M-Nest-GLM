@@ -127,10 +127,17 @@ function handleCatalogInfiniteScroll() {
 function displayUserInfo() {
     const userInfo = getUserInfo();
     const usernameElements = document.querySelectorAll('#display-username, #welcome-username, #display-username-top');
+    const avatarContainers = document.querySelectorAll('#display-avatar, #display-avatar-top, #display-avatar-header');
 
     usernameElements.forEach(el => {
         el.textContent = userInfo.userName || 'User';
     });
+
+    if (userInfo.userName) {
+        avatarContainers.forEach(container => {
+            container.textContent = userInfo.userName.charAt(0).toUpperCase();
+        });
+    }
     
     // Fetch actual profile to update name and avatar if they exist
     fetchProfileInfo();
@@ -142,7 +149,7 @@ async function fetchProfileInfo() {
         if (response.ok) {
             const profile = await response.json();
             const usernameElements = document.querySelectorAll('#display-username, #welcome-username, #display-username-top');
-            const avatarContainers = document.querySelectorAll('#display-avatar, #display-avatar-top');
+            const avatarContainers = document.querySelectorAll('#display-avatar, #display-avatar-top, #display-avatar-header');
 
             if (profile.displayName) {
                 usernameElements.forEach(el => {
@@ -162,8 +169,8 @@ async function fetchProfileInfo() {
                     
                     // Remove background gradient from parent div if it exists
                     const parent = container.parentElement;
-                    if (parent && parent.classList.contains('bg-gradient-to-tr')) {
-                        parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
+                    if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
+                        parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600', 'to-purple-500');
                     }
                 });
             } else if (profile.displayName) {

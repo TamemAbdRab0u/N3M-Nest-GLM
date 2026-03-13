@@ -21,10 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const info = getUserInfo();
     currentUser = info.userName || 'User';
 
-    // Sidebar display
-    document.getElementById('sidebar-username').textContent = currentUser;
-    const av = document.getElementById('sidebar-avatar');
-    if (av) av.textContent = currentUser.charAt(0).toUpperCase();
+    // Header & Sidebar display
+    const usernameEls = document.querySelectorAll('#sidebar-username, #welcome-username');
+    usernameEls.forEach(el => el.textContent = currentUser);
+
+    const avatars = document.querySelectorAll('#sidebar-avatar, #display-avatar-header');
+    avatars.forEach(av => {
+        if (av) av.textContent = currentUser.charAt(0).toUpperCase();
+    });
 
     loadAvatar();
     loadHistory();
@@ -39,9 +43,21 @@ async function loadAvatar() {
         if (!res.ok) return;
         const profile = await res.json();
         if (profile.avatarUrl) {
-            const av = document.getElementById('sidebar-avatar');
-            if (av) {
-                av.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${currentUser.charAt(0).toUpperCase()}'">`;
+            const avatars = document.querySelectorAll('#sidebar-avatar, #display-avatar-header');
+            avatars.forEach(av => {
+                if (av) {
+                    av.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${currentUser.charAt(0).toUpperCase()}'">`;
+                }
+            });
+            
+            // Remove gradient for header avatar
+            const headerAvatar = document.getElementById('display-avatar-header');
+            if (headerAvatar) {
+                const parent = headerAvatar.parentElement;
+                if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
+                    parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600');
+                    parent.classList.add('bg-transparent');
+                }
             }
         }
     } catch { /* silent */ }

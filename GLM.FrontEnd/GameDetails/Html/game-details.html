@@ -29,63 +29,153 @@
             },
         }
     </script>
+    <style>
+        @font-face {
+            font-family: 'Xirod';
+            src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+        }
+
+        .xirod-font {
+            font-family: 'Xirod', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .neon-xirod {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 
+                0 0 5px rgba(74, 125, 255, 0.8),
+                0 0 10px rgba(74, 125, 255, 0.5),
+                0 0 15px rgba(74, 125, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .flicker-pipe {
+            display: inline-block;
+            animation: flicker-bulb 6s linear infinite;
+        }
+        @keyframes flicker-bulb {
+            0%,  8%,  10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+                opacity: 1;
+                text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
+            }
+            9%,  11%, 41%, 67% {
+                opacity: 0.08;
+                text-shadow: none;
+            }
+            13%, 39% {
+                opacity: 0.5;
+                text-shadow: 0 0 4px #fff;
+            }
+            64%, 69% {
+                opacity: 0.15;
+                text-shadow: none;
+            }
+        }
+
+        .neon-username {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #4a7dff,
+                0 0 40px #4a7dff;
+            font-weight: 800;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
     <link rel="stylesheet" href="../Css/game-details.css"/>
 </head>
-<body class="bg-background-dark text-slate-200 font-body min-h-screen flex overflow-x-hidden">
+<body class="bg-background-dark text-slate-200 font-body min-h-screen flex flex-col overflow-x-hidden">
 
-    <!-- Sidebar -->
-    <aside class="w-20 lg:w-64 flex-shrink-0 bg-[#060d0e] border-r border-white/5 flex flex-col transition-all duration-300 z-50 fixed top-0 left-0 h-full">
-        <!-- Logo -->
-        <div class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
-            <div class="h-8 w-8 relative">
-                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain scale-125">
+    <!-- Top Bar Navigation -->
+    <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
+        <!-- Left: Brand & Main Nav -->
+        <div class="flex items-center gap-10">
+            <div class="flex items-center gap-3">
+                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-7 w-7 object-contain">
+                <span class="neon-xirod font-bold text-base tracking-widest hidden sm:block">
+                    N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
+                </span>
             </div>
-            <span class="hidden lg:block ml-3 neon-xirod font-bold text-lg tracking-wide text-white">
-                N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
-            </span>
+            
+            <nav id="top-nav" class="hidden xl:flex items-center gap-1">
+                <a href="../../Dashboard/Html/dashboard.html?view=catalog" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">dashboard</span> CATALOG
+                </a>
+                <a href="../../Dashboard/Html/dashboard.html?view=library" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">stadia_controller</span> LIBRARY
+                </a>
+                <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">favorite</span> FAVORITES
+                </a>
+                <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">bookmark</span> WISHLIST
+                </a>
+                <a href="../../Community/Html/community.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">group</span> COMMUNITY
+                </a>
+            </nav>
         </div>
 
-        <!-- Nav -->
-        <nav class="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
-            <a href="../../Dashboard/Html/dashboard.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
-                <span class="material-symbols-outlined">dashboard</span>
-                <span class="hidden lg:block font-medium">Dashboard</span>
-            </a>
-            <a href="../../Dashboard/Html/dashboard.html?view=library" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
-                <span class="material-symbols-outlined">stadia_controller</span>
-                <span class="hidden lg:block font-medium">My Library</span>
-            </a>
-            <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
-                <span class="material-symbols-outlined">favorite</span>
-                <span class="hidden lg:block font-medium">Favorites</span>
-            </a>
-            <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
-                <span class="material-symbols-outlined">bookmark</span>
-                <span class="hidden lg:block font-medium">Wishlist</span>
-            </a>
-            <div class="my-2 border-t border-white/5"></div>
-            <a href="../../Community/Html/community.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
-                <span class="material-symbols-outlined">group</span>
-                <span class="hidden lg:block font-medium">Community</span>
-            </a>
-        </nav>
+        <!-- Right: Account & Notifications -->
+        <div class="flex items-center gap-4">
+            <div class="hidden lg:flex items-center relative search-bar">
+                <span class="absolute left-3 flex items-center pointer-events-none text-slate-500">
+                    <span class="material-symbols-outlined text-base">search</span>
+                </span>
+                <input type="text" placeholder="Search games..." 
+                       class="h-9 w-48 xl:w-64 rounded-xl bg-white/5 border border-white/10 text-xs text-white pl-10 pr-4 focus:outline-none focus:w-80 transition-all focus:border-primary/50 placeholder-slate-600 bg-black/20">
+            </div>
 
-        <!-- User profile -->
-        <div class="p-4 border-t border-white/5">
-            <a href="../../Profile/Html/profile.html" class="flex items-center gap-3 cursor-pointer group hover:bg-white/5 p-2 rounded-xl transition-all">
-                <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white font-bold shadow-lg overflow-hidden">
-                    <span id="display-avatar">U</span>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex flex-col items-end">
+                     <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">USER</span>
+                     <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
                 </div>
-                <div class="hidden lg:block overflow-hidden">
-                    <p id="display-username" class="text-xs xirod-font text-white truncate">User</p>
-                    <p class="text-xs text-slate-400 truncate">Online</p>
+
+                <div class="flex items-center gap-2">
+                    <!-- Profile Link -->
+                    <a href="../../Profile/Html/profile.html" class="group relative">
+                        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                            <div class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                                <span id="display-avatar-header" class="text-sm font-bold text-white uppercase">U</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Notification Bell -->
+                    <div class="relative" id="notif-wrapper">
+                        <button id="notification-btn" onclick="toggleNotifDropdown()"
+                            class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
+                            <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                            <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
+                        </button>
+                        
+                        <!-- Notif Dropdown -->
+                        <div id="notif-dropdown" class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
+                            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
+                                <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
+                            </div>
+                            <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
+                            <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
+                                <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
+                                <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No pending requests</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </a>
+            </div>
         </div>
-    </aside>
+    </header>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-20 lg:ml-64 relative min-h-screen bg-background-dark">
+    <main class="flex-1 relative min-h-screen bg-background-dark">
         
         <!-- Hero Background -->
         <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -94,32 +184,15 @@
             <img id="hero-bg-img" src="" alt="" class="w-full h-full object-cover opacity-30 scale-110 blur-md">
         </div>
 
-        <!-- Top Navigation -->
-        <header class="h-20 flex items-center justify-between px-8 relative z-40 bg-gradient-to-b from-black/40 to-transparent">
+        <!-- Sub Navigation / Back Button -->
+        <header class="h-20 flex items-center justify-between px-8 relative z-40 bg-gradient-to-b from-black/20 to-transparent">
             <button onclick="history.back()" class="flex items-center gap-2 text-slate-400 hover:text-white transition-all group px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
                 <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                <span class="text-xs font-bold uppercase tracking-widest">Back</span>
+                <span class="text-[10px] xirod-font uppercase tracking-widest">Back</span>
             </button>
             
             <div class="flex items-center gap-4">
-                <div class="relative" id="notif-wrapper">
-                    <button id="notification-btn" onclick="toggleNotifDropdown()"
-                        class="h-10 w-10 rounded-full bg-white/10 border border-white/10 backdrop-blur-md flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-[#1e292b] transition-all group overflow-visible relative">
-                        <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
-                        <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(13,242,242,0.8)] animate-pulse">0</span>
-                    </button>
-                    <div id="notif-dropdown" class="hidden absolute top-[calc(100%+10px)] right-0 w-80 bg-[#0a1618] border border-[#1e293b] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[200] overflow-hidden backdrop-blur-xl">
-                        <div class="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between">
-                            <h3 class="text-xs xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
-                            <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
-                        </div>
-                        <div id="notif-list" class="overflow-y-auto" style="max-height:360px;scrollbar-width:thin;scrollbar-color:#1e293b transparent"></div>
-                        <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
-                            <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                            <p class="text-xs xirod-font text-slate-600 uppercase tracking-wider">No pending requests</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Removed duplicate bell -->
             </div>
         </header>
 

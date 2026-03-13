@@ -124,21 +124,33 @@ async function populateSidebarUser() {
         const userInfo = getUserInfo();
         if (!userInfo) return;
 
-        const avatarEl = document.getElementById('display-avatar');
-        const usernameEl = document.getElementById('display-username');
-        if (usernameEl) usernameEl.textContent = userInfo.userName || 'User';
+        const avatarEls = document.querySelectorAll('#display-avatar, #display-avatar-header');
+        const usernameEls = document.querySelectorAll('#display-username, #welcome-username');
+        
+        usernameEls.forEach(el => el.textContent = userInfo.userName || 'User');
+        avatarEls.forEach(el => {
+            el.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
+        });
 
         const res = await apiRequest('/api/Profile');
         if (res.ok) {
             const profile = await res.json();
-            if (profile.displayName && usernameEl) usernameEl.textContent = profile.displayName;
-            if (profile.avatarUrl && avatarEl) {
-                avatarEl.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full">`;
-                const parent = avatarEl.parentElement;
-                if (parent && parent.classList.contains('bg-gradient-to-tr')) {
-                    parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
-                    parent.classList.add('bg-transparent');
-                }
+            if (profile.displayName) {
+                usernameEls.forEach(el => el.textContent = profile.displayName);
+            }
+            if (profile.avatarUrl) {
+                avatarEls.forEach(el => {
+                    el.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full">`;
+                    const parent = el.parentElement;
+                    if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
+                        parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500', 'to-purple-600');
+                        parent.classList.add('bg-transparent');
+                    }
+                });
+            } else if (profile.displayName) {
+                avatarEls.forEach(el => {
+                    el.textContent = profile.displayName.charAt(0).toUpperCase();
+                });
             }
         }
     } catch (_) { /* optional */ }
