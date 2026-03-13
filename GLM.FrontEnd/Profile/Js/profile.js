@@ -1,5 +1,5 @@
 // State management
-let allUserGames = []; 
+let allUserGames = [];
 let currentCarouselGames = [];
 let currentIndex = 0;
 let userProfile = null;
@@ -50,15 +50,15 @@ function displayUserInfo() {
     const usernameElements = document.querySelectorAll("#display-username, #profile-username");
     const avatarImg = document.getElementById("profile-avatar-img");
     const displayAvatar = document.getElementById("display-avatar");
-    
+
     usernameElements.forEach(el => {
         el.textContent = userInfo.userName || "User";
     });
-    
+
     if (displayAvatar) {
         displayAvatar.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "U";
     }
-    
+
     if (avatarImg) {
         // Fallback using UI Avatars if no image yet
         const name = userInfo.userName || "User";
@@ -298,7 +298,7 @@ async function fetchProfile() {
     try {
         const response = await apiRequest("/api/Profile");
         if (!response.ok) throw new Error("Failed to fetch profile");
-        
+
         userProfile = await response.json();
         updateProfileUI(userProfile);
     } catch (error) {
@@ -308,7 +308,7 @@ async function fetchProfile() {
 
 function updateProfileUI(profile) {
     if (!profile) return;
-    
+
     const usernameElements = document.querySelectorAll("#display-username, #profile-username");
     const displayAvatar = document.getElementById("display-avatar");
     const sidebarAvatar = document.getElementById("profile-sidebar-img"); // Added check for sidebar
@@ -353,10 +353,10 @@ function updateProfileUI(profile) {
     if (avatarImg) {
         if (resolvedAvatar) {
             const newSrc = `${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}`;
-            
+
             // Set source
             avatarImg.src = newSrc;
-            
+
             // Fallback for errors
             avatarImg.onerror = () => {
                 avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName || "User")}&background=080f0f&color=0df2f2&size=200`;
@@ -383,11 +383,11 @@ function updateProfileUI(profile) {
 
 function toggleEditMode() {
     isEditMode = !isEditMode;
-    
+
     const editBtn = document.getElementById("edit-profile-btn");
     const btnText = document.getElementById("edit-btn-text");
     const btnIcon = document.getElementById("edit-btn-icon");
-    
+
     const nameDisplay = document.getElementById("profile-username");
     const bioDisplay = document.getElementById("profile-bio");
     const avatarOverlay = document.getElementById("avatar-edit-icon");
@@ -411,7 +411,7 @@ function toggleEditMode() {
             bioDisplay.contentEditable = "true";
             bioDisplay.classList.add("editing-active");
         }
-        
+
         // Show edit indicators
         if (avatarOverlay) {
             avatarOverlay.classList.remove("hidden");
@@ -429,7 +429,7 @@ function toggleEditMode() {
     } else {
         // Save and Exit Edit Mode
         saveProfileChanges();
-        
+
         if (btnText) btnText.textContent = "EDIT";
         if (btnIcon) btnIcon.textContent = "edit";
         editBtn.classList.remove("bg-green-500/20", "border-green-500/40", "text-green-500");
@@ -461,14 +461,14 @@ async function saveProfileChanges() {
     const name = document.getElementById("profile-username")?.textContent.trim();
     const bioElement = document.getElementById("profile-bio");
     let bio = bioElement?.textContent.trim() || "";
-    
+
     // If bio is completely empty, set it to "..." explicitly
     if (bio === "" || bio === "...") {
         bio = "...";
     }
-    
+
     console.log("Saving profile with bio:", bio); // Debug log
-    
+
     const formData = new FormData();
     formData.append("DisplayName", name);
     formData.append("Bio", bio);
@@ -492,19 +492,19 @@ async function saveProfileChanges() {
         });
 
         if (!response.ok) throw new Error("Update failed");
-        
+
         const updatedProfile = await response.json();
-        
+
         console.log("Profile updated, received bio:", updatedProfile.bio); // Debug log
-        
+
         // Update userProfile state with new data
         userProfile = updatedProfile;
-        
+
         // Clear the selected file so it doesn't get re-uploaded
         selectedAvatarFile = null;
         selectedBannerFile = null;
         const avatarInput = document.getElementById("avatar-input");
-        if (avatarInput) avatarInput.value = ""; 
+        if (avatarInput) avatarInput.value = "";
         const bannerInput = document.getElementById("banner-input");
         if (bannerInput) bannerInput.value = "";
 
@@ -516,7 +516,7 @@ async function saveProfileChanges() {
         }
 
         updateProfileUI(updatedProfile);
-        
+
         console.log("Profile updated successfully");
     } catch (error) {
         console.error("Error saving profile:", error);
@@ -532,13 +532,13 @@ async function loadInitialData() {
     try {
         const response = await apiRequest("/api/UserGames/GetAllUserGames");
         if (!response.ok) throw new Error("Failed to load games");
-        
+
         allUserGames = await response.json();
         updateLibraryStats(allUserGames);
         loadRecentActivity();
         loadRecentFavorites();
         loadRecentWishlist();
-        
+
         // Initial view is owned games
         switchCarouselView('owned');
     } catch (error) {
@@ -555,7 +555,7 @@ function switchCarouselView(category) {
         carouselWrapper.classList.remove('carousel-transition-in');
         carouselWrapper.classList.add('carousel-transition-out');
     }
-    
+
     // Update Heading
     const labels = {
         'favorite': 'a Quick Look To Your Favorite Games',
@@ -567,7 +567,7 @@ function switchCarouselView(category) {
         'onhold': 'Games Currently On Hold',
         'pending': 'Games Pending In Your Library'
     };
-    
+
     if (titleEl) {
         titleEl.textContent = labels[category] || 'Your Game Library';
         // Add a small animation effect
@@ -577,19 +577,19 @@ function switchCarouselView(category) {
 
     // Active State Logic
     document.querySelectorAll('.stat-box').forEach(el => el.classList.remove('stat-active'));
-    
+
     let activeBoxId = '';
     if (category === 'favorite') activeBoxId = 'stat-box-favorite';
     else if (category === 'owned') activeBoxId = 'stat-box-owned';
     else if (category === 'wishlist') activeBoxId = 'stat-box-wishlist';
     else activeBoxId = 'stat-box-completed';
-    
+
     const activeBox = document.getElementById(activeBoxId);
     if (activeBox) activeBox.classList.add('stat-active');
-    
+
     // Filter Games
     let filtered = [];
-    switch(category) {
+    switch (category) {
         case 'favorite':
             filtered = allUserGames.filter(ug => ug.isFavorite);
             break;
@@ -610,7 +610,7 @@ function switchCarouselView(category) {
             filtered = allUserGames.filter(ug => ug.gamestatus === 'Dropped' || ug.gamestatus === 4);
             break;
         case 'onhold':
-             filtered = allUserGames.filter(ug => ug.gamestatus === 'OnHold' || ug.gamestatus === 5 || ug.gamestatus === 'On Hold');
+            filtered = allUserGames.filter(ug => ug.gamestatus === 'OnHold' || ug.gamestatus === 5 || ug.gamestatus === 'On Hold');
             break;
         case 'pending':
             filtered = allUserGames.filter(ug => ug.gamestatus === 'Pending' || ug.gamestatus === 6);
@@ -624,9 +624,11 @@ function switchCarouselView(category) {
     currentCarouselGames = filtered.map(ug => ({
         id: ug.externalId,
         title: ug.gameTitle,
-        imageUrl: ug.gameImageUrl || "../../Assets/Images/Bg1.jpg", 
-        hoursPlayed: Math.floor(Math.random() * 80) + 10, // Still mock hours as it's not in DB
-        gamestatus: ug.gamestatus // Include the game status from the user game
+        imageUrl: getHqGameImage(ug.posterImageUrl || ug.gameImageUrl || "../../Assets/Images/Bg1.jpg", true),
+        gameImageUrl: ug.gameImageUrl,
+        posterImageUrl: ug.posterImageUrl,
+        hoursPlayed: Math.floor(Math.random() * 80) + 10,
+        gamestatus: ug.gamestatus
     }));
 
     currentIndex = 0;
@@ -743,7 +745,7 @@ function updateLibraryStats(allGames) {
     const droppedCount = allGames.filter(g => g.gamestatus === "Dropped" || g.gamestatus === 4).length;
     const onHoldCount = allGames.filter(g => g.gamestatus === "OnHold" || g.gamestatus === 5 || g.gamestatus === "On Hold").length;
     const pendingCount = allGames.filter(g => g.gamestatus === "Pending" || g.gamestatus === 6).length;
-    
+
     const ownedCount = allGames.length - wishlistedCount;
 
     const stats = {
@@ -756,7 +758,7 @@ function updateLibraryStats(allGames) {
         "stat-onhold": onHoldCount,
         "stat-pending": pendingCount
     };
-    
+
     for (const [id, value] of Object.entries(stats)) {
         const el = document.getElementById(id);
         if (el) el.textContent = value.toLocaleString();
@@ -770,12 +772,12 @@ function updateLibraryStats(allGames) {
 
 function calculateGenres(allGames) {
     // Filter to only include owned games (exclude wishlist)
-    const ownedGames = allGames.filter(g => 
-        g.gamestatus !== "whishlist" && 
-        g.gamestatus !== 2 && 
+    const ownedGames = allGames.filter(g =>
+        g.gamestatus !== "whishlist" &&
+        g.gamestatus !== 2 &&
         g.gamestatus !== "Wishlist"
     );
-    
+
     const counts = {};
     ownedGames.forEach(g => {
         if (g.genres) {
@@ -786,7 +788,7 @@ function calculateGenres(allGames) {
         }
     });
 
-    const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     allGenresData = sorted;
     drawGenreRadar(sorted);
 
@@ -797,7 +799,7 @@ function calculateGenres(allGames) {
     // --- Dynamic donut ---
     const donutSvg = document.getElementById('genre-donut-svg');
     if (donutSvg && sorted.length > 0) {
-        const topN  = sorted.slice(0, 4);
+        const topN = sorted.slice(0, 4);
         const total = sorted.reduce((s, [, c]) => s + c, 0);
         let offset = 0;
         let circles = `<circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b" stroke-width="3.5"/>`;
@@ -815,18 +817,18 @@ function calculateGenres(allGames) {
         const maxCount = sorted[0][1];
         const total = sorted.reduce((s, [, c]) => s + c, 0);
         const barColors = ['#0df2f2', '#067d7d', '#06b6d4', '#334155', '#475569', '#64748b', '#94a3b8'];
-        const gridColors = ['#0df2f2','#067d7d','#06b6d4','#0891b2','#0e7490','#155e75','#164e63','#334155','#475569','#64748b','#94a3b8','#cbd5e1'];
+        const gridColors = ['#0df2f2', '#067d7d', '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1'];
 
         const renderBar = ([name, count], globalIdx) => {
             const barW = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
-            const pct  = total  > 0 ? Math.round((count / total)    * 100) : 0;
-            const color    = barColors[Math.min(globalIdx, barColors.length - 1)];
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            const color = barColors[Math.min(globalIdx, barColors.length - 1)];
             const safeName = name.replace(/'/g, "\\'");
             return `
             <div class="group/genre cursor-pointer" onclick="navigateToLibraryWithGenre('${safeName}')">
                 <div class="flex items-center justify-between mb-1">
                     <div class="flex items-center gap-2">
-                        <span class="text-[9px] xirod-font text-slate-600 w-5 flex-shrink-0">${String(globalIdx+1).padStart(2,'0')}</span>
+                        <span class="text-[9px] xirod-font text-slate-600 w-5 flex-shrink-0">${String(globalIdx + 1).padStart(2, '0')}</span>
                         <span class="text-xs font-bold text-slate-200 group-hover/genre:text-primary transition-colors truncate max-w-[120px]">${name}</span>
                     </div>
                     <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -886,21 +888,21 @@ function drawGenreRadar(genres) {
         return;
     }
 
-    const n      = top.length;
-    const cx     = 155, cy = 148, r = 90;
+    const n = top.length;
+    const cx = 155, cy = 148, r = 90;
     const maxVal = top[0][1];
 
-    const angle  = i => (Math.PI * 2 * i / n) - Math.PI / 2;
-    const pt     = (i, radius) => ({
+    const angle = i => (Math.PI * 2 * i / n) - Math.PI / 2;
+    const pt = (i, radius) => ({
         x: cx + radius * Math.cos(angle(i)),
         y: cy + radius * Math.sin(angle(i))
     });
-    const poly   = pts => pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const poly = pts => pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
     // Grid levels
     let gridSvg = '';
-    [1/3, 2/3, 1].forEach(lvl => {
-        const pts = Array.from({length: n}, (_, i) => pt(i, r * lvl));
+    [1 / 3, 2 / 3, 1].forEach(lvl => {
+        const pts = Array.from({ length: n }, (_, i) => pt(i, r * lvl));
         gridSvg += `<polygon points="${poly(pts)}" fill="none" stroke="#1e293b" stroke-width="1"/>`;
     });
 
@@ -921,7 +923,7 @@ function drawGenreRadar(genres) {
     const labelR = r + 20;
     let labelsSvg = '';
     top.forEach(([name], i) => {
-        const p   = pt(i, labelR);
+        const p = pt(i, labelR);
         const cos = Math.cos(angle(i));
         const anchor = cos > 0.25 ? 'start' : cos < -0.25 ? 'end' : 'middle';
         const display = name.length > 9 ? name.slice(0, 8) + '\u2026' : name;
@@ -952,7 +954,7 @@ function drawGenreRadar(genres) {
 
     // Hover: scale dot + highlight label (triggers from both dot and label)
     top.forEach(([name, count], i) => {
-        const dot   = svg.querySelector(`#radar-dot-${i}`);
+        const dot = svg.querySelector(`#radar-dot-${i}`);
         const label = svg.querySelector(`#radar-label-${i}`);
         if (!dot || !label) return;
 
@@ -980,13 +982,13 @@ function drawGenreRadar(genres) {
 
     // Stats strip
     if (statsEl) {
-        const totalGames  = allUserGames.filter(g => g.gamestatus !== 'whishlist' && g.gamestatus !== 2).length;
-        const topPct      = totalGames > 0 ? Math.round((top[0][1] / totalGames) * 100) : 0;
+        const totalGames = allUserGames.filter(g => g.gamestatus !== 'whishlist' && g.gamestatus !== 2).length;
+        const topPct = totalGames > 0 ? Math.round((top[0][1] / totalGames) * 100) : 0;
         const totalGenres = genres.length;
         statsEl.innerHTML = `
             <div class="text-center">
                 <p class="text-xl font-black text-primary xirod-font leading-none">${topPct}%</p>
-                <p class="text-[9px] text-slate-500 xirod-font uppercase tracking-wider mt-1">${top[0][0].length > 8 ? top[0][0].slice(0,7)+'\u2026' : top[0][0]}</p>
+                <p class="text-[9px] text-slate-500 xirod-font uppercase tracking-wider mt-1">${top[0][0].length > 8 ? top[0][0].slice(0, 7) + '\u2026' : top[0][0]}</p>
             </div>
             <div class="text-center border-x border-slate-700/50">
                 <p class="text-xl font-black text-slate-100 xirod-font leading-none">${totalGenres}</p>
@@ -1028,19 +1030,19 @@ function toggleGenreReport() {
 function populateAllGenres() {
     const container = document.getElementById("all-genres-list");
     if (!container || allGenresData.length === 0) return;
-    
+
     container.innerHTML = "";
-    
+
     const colors = [
-        "#0df2f2", "#067d7d", "#06b6d4", "#0891b2", 
+        "#0df2f2", "#067d7d", "#06b6d4", "#0891b2",
         "#0e7490", "#155e75", "#164e63", "#334155",
         "#475569", "#64748b", "#94a3b8", "#cbd5e1"
     ];
-    
+
     allGenresData.forEach((genre, idx) => {
         const [name, count] = genre;
         const color = colors[idx % colors.length];
-        
+
         const item = document.createElement("div");
         item.className = "flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-all animate-slide-in cursor-pointer group";
         item.style.animationDelay = `${idx * 30}ms`;
@@ -1073,7 +1075,7 @@ function renderCarousel() {
         wrapper.addEventListener("mouseleave", () => { isHoveringCarousel = false; });
         wrapper.dataset.listenersInitialized = "true";
     }
-    
+
     if (currentCarouselGames.length === 0) {
         wrapper.innerHTML = `
             <div class="flex flex-col items-center justify-center p-10 text-slate-500 border-2 border-dashed border-slate-800 rounded-3xl w-full">
@@ -1084,56 +1086,56 @@ function renderCarousel() {
     }
 
     const categoryThemes = {
-        'favorite': { 
-            badge: 'MOST PLAYED', 
-            color: 'text-yellow-400', 
+        'favorite': {
+            badge: 'MOST PLAYED',
+            color: 'text-yellow-400',
             glow: 'shadow-[0_0_20px_rgba(250,204,21,0.3)]',
             icon: 'star'
         },
-        'owned': { 
-            badge: 'COLLECTION', 
-            color: 'text-primary', 
+        'owned': {
+            badge: 'COLLECTION',
+            color: 'text-primary',
             glow: 'shadow-[0_0_20px_rgba(13,242,242,0.3)]',
             icon: 'grid_view'
         },
-        'wishlist': { 
-            badge: 'WANTED', 
-            color: 'text-purple-400', 
+        'wishlist': {
+            badge: 'WANTED',
+            color: 'text-purple-400',
             glow: 'shadow-[0_0_20px_rgba(192,132,252,0.3)]',
             icon: 'bookmark'
         },
-        'completed': { 
-            badge: 'PROTOCOL CLEAR', 
-            color: 'text-emerald-400', 
+        'completed': {
+            badge: 'PROTOCOL CLEAR',
+            color: 'text-emerald-400',
             glow: 'shadow-[0_0_20px_rgba(52,211,153,0.3)]',
             icon: 'verified'
         },
-        'playing': { 
-            badge: 'ACTIVE', 
-            color: 'text-blue-400', 
+        'playing': {
+            badge: 'ACTIVE',
+            color: 'text-blue-400',
             glow: 'shadow-[0_0_20px_rgba(96,165,250,0.3)]',
             icon: 'play_circle'
         },
-        'dropped': { 
-            badge: 'ABANDONED', 
-            color: 'text-rose-400', 
+        'dropped': {
+            badge: 'ABANDONED',
+            color: 'text-rose-400',
             glow: 'shadow-[0_0_20px_rgba(251,113,133,0.3)]',
             icon: 'cancel'
         },
-        'onhold': { 
-            badge: 'PAUSED', 
-            color: 'text-orange-400', 
+        'onhold': {
+            badge: 'PAUSED',
+            color: 'text-orange-400',
             glow: 'shadow-[0_0_20px_rgba(251,146,60,0.3)]',
             icon: 'pause_circle'
         }
     };
-    
+
     const theme = categoryThemes[currentCategory] || categoryThemes['owned'];
 
     currentCarouselGames.forEach((game, index) => {
         const card = document.createElement("div");
-        card.className = `carousel-card hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-[1.15] hover:-translate-y-4 hover:brightness-125 ${theme.glow}`; 
-        
+        card.className = `carousel-card hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-[1.15] hover:-translate-y-4 hover:brightness-125 ${theme.glow}`;
+
         let status = game.gamestatus || game.gameStatus || "Library";
         const statusMap = {
             'playing': 'playing',
@@ -1143,7 +1145,7 @@ function renderCarousel() {
             'OnHold': 'on hold',
             'Pending': 'pending'
         };
-        
+
         const displayStatus = statusMap[status] || status;
 
         const iconMap = {
@@ -1155,9 +1157,18 @@ function renderCarousel() {
             'Pending': 'schedule'
         };
         const statusIcon = iconMap[status] || 'analytics';
+
+        // Use a cascading fallback for images: 
+        // 1. Vertical Poster (resolved by getHqGameImage)
+        // 2. Horizontal/Standard Image (game.gameImageUrl - resolved as HQ landscape)
+        // 3. System Placeholder
+        const horizontalImg = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
         
         card.innerHTML = `
-            <img src="${game.imageUrl}" alt="${game.title}" onerror="this.src='../../Assets/Images/Bg1.jpg'">
+            <img src="${game.imageUrl}" 
+                 data-fallback-img="${horizontalImg}"
+                 alt="${game.title}" 
+                 onerror="if(this.src !== this.getAttribute('data-fallback-img')) { this.src = this.getAttribute('data-fallback-img'); } else { this.src='../../Assets/Images/Bg1.jpg'; this.onerror=null; }">
             <div class="card-overlay"></div>
             <div class="card-content">
                 <div class="flex items-center gap-2 mb-2">
@@ -1172,10 +1183,10 @@ function renderCarousel() {
                     </div>
                 </div>
             </div>`;
-        
+
         card.onclick = () => {
             const offset = (index - currentIndex + currentCarouselGames.length) % currentCarouselGames.length;
-            if (offset === 1 ) moveCarousel(1);
+            if (offset === 1) moveCarousel(1);
             else if (offset === currentCarouselGames.length - 1) moveCarousel(-1);
         };
         wrapper.appendChild(card);
@@ -1226,24 +1237,69 @@ function _relativeTime(dateStr) {
     const date = _parseDate(dateStr);
     if (!dateStr || isNaN(date)) return null;
     const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (diff < 60)      return `${diff}s ago`;
-    if (diff < 3600)    return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400)   return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+/**
+ * Resolves high-quality Steam imagery based on view requirements.
+ * vertical=true: returns 600x900 poster (avoids zooming in horizontal headers)
+ * vertical=false: returns 616x353 high-res capsule
+ */
+function getHqGameImage(url, isVertical = false) {
+    if (!url || url.includes('../../Assets/Images/Bg1.jpg')) return url || '../../Assets/Images/Bg1.jpg';
+
+    // Steam image processing - Support multiple CDNs and domains
+    const isSteam = /steamstatic|steamcdn|steampowered/.test(url.toLowerCase());
+    
+    if (isSteam) {
+        const type = isVertical ? 'library_600x900_2x.jpg' : 'capsule_616x353.jpg';
+        
+        // Remove trailing query params
+        let cleanUrl = url.split('?')[0];
+        
+        // Pattern: /apps/APPID/FILENAME.EXT
+        const steamPattern = /\/apps\/(\d+)\/([^\/\?]+)/;
+        const match = cleanUrl.match(steamPattern);
+        
+        if (match) {
+            const appId = match[1];
+            const currentFilename = match[2];
+            
+            // If it's already the type we want, just return the clean URL
+            if (currentFilename.includes(isVertical ? 'library_600x900' : 'capsule_616x353')) {
+                return cleanUrl;
+            }
+            
+            // Reconstruct URL with target image type
+            // Attempt to find the /steam/apps/ or /apps/ branch
+            const appsIndex = cleanUrl.indexOf('/apps/');
+            if (appsIndex !== -1) {
+                const domainPath = cleanUrl.substring(0, appsIndex);
+                return `${domainPath}/apps/${appId}/${type}`;
+            }
+
+            // Fallback to simple replace
+            return cleanUrl.replace(currentFilename, type);
+        }
+    }
+    return url;
+}
+
 const _statusLabels = {
-    'playing':   { label: 'Playing',   color: 'text-primary',    icon: 'play_circle' },
-    '1':         { label: 'Playing',   color: 'text-primary',    icon: 'play_circle' },
-    'completed': { label: 'Completed', color: 'text-green-400',  icon: 'task_alt' },
-    '3':         { label: 'Completed', color: 'text-green-400',  icon: 'task_alt' },
-    'dropped':   { label: 'Dropped',   color: 'text-red-400',    icon: 'do_not_disturb_on' },
-    '4':         { label: 'Dropped',   color: 'text-red-400',    icon: 'do_not_disturb_on' },
-    'onhold':    { label: 'On Hold',   color: 'text-yellow-400', icon: 'pause_circle' },
-    '5':         { label: 'On Hold',   color: 'text-yellow-400', icon: 'pause_circle' },
-    'pending':   { label: 'Pending',   color: 'text-slate-400',  icon: 'schedule' },
-    '6':         { label: 'Pending',   color: 'text-slate-400',  icon: 'schedule' },
+    'playing': { label: 'Playing', color: 'text-primary', icon: 'play_circle' },
+    '1': { label: 'Playing', color: 'text-primary', icon: 'play_circle' },
+    'completed': { label: 'Completed', color: 'text-green-400', icon: 'task_alt' },
+    '3': { label: 'Completed', color: 'text-green-400', icon: 'task_alt' },
+    'dropped': { label: 'Dropped', color: 'text-red-400', icon: 'do_not_disturb_on' },
+    '4': { label: 'Dropped', color: 'text-red-400', icon: 'do_not_disturb_on' },
+    'onhold': { label: 'On Hold', color: 'text-yellow-400', icon: 'pause_circle' },
+    '5': { label: 'On Hold', color: 'text-yellow-400', icon: 'pause_circle' },
+    'pending': { label: 'Pending', color: 'text-slate-400', icon: 'schedule' },
+    '6': { label: 'Pending', color: 'text-slate-400', icon: 'schedule' },
 };
 
 function renderRecentGames(listId, games, cfg) {
@@ -1266,10 +1322,10 @@ function renderRecentGames(listId, games, cfg) {
 
     list.innerHTML = '';
     sorted.forEach((game, i) => {
-        const img   = game.gameImageUrl || '../../Assets/Images/Bg1.jpg';
-        const sKey  = String(game.gamestatus).toLowerCase();
-        const st    = cfg.statusOverride || _statusLabels[sKey] || { label: 'Library', color: 'text-slate-400', icon: 'inventory_2' };
-        const time  = _relativeTime(game.addedAt);
+        const img = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
+        const sKey = String(game.gamestatus).toLowerCase();
+        const st = cfg.statusOverride || _statusLabels[sKey] || { label: 'Library', color: 'text-slate-400', icon: 'inventory_2' };
+        const time = _relativeTime(game.addedAt);
 
         const row = document.createElement('div');
         row.className = `flex gap-3 items-center p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer group`;
@@ -1297,20 +1353,20 @@ function renderRecentGames(listId, games, cfg) {
 async function loadRecentActivity() {
     const libraryGames = allUserGames.filter(g => g.gamestatus !== 'whishlist' && g.gamestatus !== 2);
     renderRecentGames('recent-activity-list', libraryGames, {
-        emptyIcon:   'inventory_2',
-        emptyMsg:    'No games in library yet',
-        viewHref:    '../../Dashboard/Html/dashboard.html?view=library',
-        accentText:  'text-primary',
+        emptyIcon: 'inventory_2',
+        emptyMsg: 'No games in library yet',
+        viewHref: '../../Dashboard/Html/dashboard.html?view=library',
+        accentText: 'text-primary',
     });
 }
 
 function loadRecentFavorites() {
     const favGames = allUserGames.filter(g => g.isFavorite === true);
     renderRecentGames('recent-favorites-list', favGames, {
-        emptyIcon:   'heart_plus',
-        emptyMsg:    'No favorites yet',
-        viewHref:    '../../Dashboard/Html/dashboard.html?view=favorites',
-        accentText:  'text-red-400',
+        emptyIcon: 'heart_plus',
+        emptyMsg: 'No favorites yet',
+        viewHref: '../../Dashboard/Html/dashboard.html?view=favorites',
+        accentText: 'text-red-400',
         statusOverride: { label: 'Favorite', color: 'text-red-400', icon: 'favorite' },
     });
 }
@@ -1318,10 +1374,10 @@ function loadRecentFavorites() {
 function loadRecentWishlist() {
     const wishGames = allUserGames.filter(g => g.isInWishlist === true);
     renderRecentGames('recent-wishlist-list', wishGames, {
-        emptyIcon:   'bookmark_add',
-        emptyMsg:    'Wishlist is empty',
-        viewHref:    '../../Dashboard/Html/dashboard.html?view=wishlist',
-        accentText:  'text-blue-400',
+        emptyIcon: 'bookmark_add',
+        emptyMsg: 'Wishlist is empty',
+        viewHref: '../../Dashboard/Html/dashboard.html?view=wishlist',
+        accentText: 'text-blue-400',
         statusOverride: { label: 'Wishlisted', color: 'text-blue-400', icon: 'bookmark' },
     });
 }

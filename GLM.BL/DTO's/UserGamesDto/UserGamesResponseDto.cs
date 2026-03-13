@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_DAL.Models;
+using Game_Library_Management_DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +17,7 @@ namespace Game_Library_Management_BL.DTO_s.UserGamesDto
         public string GameTitle { get; set; }
         public string GameDescription { get; set; }
         public string GameImageUrl { get; set; }
+        public string? PosterImageUrl { get; set; }
         public DateTime ReleaseDate { get; set; }
 
         public List<string> Genres { get; set; } = new List<string>();

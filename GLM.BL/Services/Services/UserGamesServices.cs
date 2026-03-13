@@ -1,4 +1,4 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using Game_Library_Management_BL.DTO_s.UserGamesDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
@@ -53,6 +53,7 @@ namespace Game_Library_Management_BL.Services.Services
                     GameTitle = rg?.Title ?? x.Game.Title,
                     GameDescription = x.Game.Description,
                     GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
+                    PosterImageUrl = x.Game.PosterImageUrl ?? (x.Game.ImgUrl != null && x.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{x.Game.ExternalId}/library_600x900_2x.jpg" : null),
                     ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
                     Genres = rg?.Genres ?? new List<string>(),
                     Platforms = rg?.Platforms ?? new List<string>(),
@@ -107,6 +108,7 @@ namespace Game_Library_Management_BL.Services.Services
                     GameTitle = rg?.Title ?? x.Game.Title,
                     GameDescription = x.Game.Description,
                     GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
+                    PosterImageUrl = x.Game.PosterImageUrl ?? (x.Game.ImgUrl != null && x.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{x.Game.ExternalId}/library_600x900_2x.jpg" : null),
                     ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
                     Genres = rg?.Genres ?? new List<string>(),
                     Platforms = rg?.Platforms ?? new List<string>(),
@@ -147,6 +149,7 @@ namespace Game_Library_Management_BL.Services.Services
                 GameTitle = rg?.Title ?? UserGame.Game.Title,
                 GameDescription = UserGame.Game.Description,
                 GameImageUrl = rg?.ImageUrl ?? UserGame.Game.ImgUrl,
+                PosterImageUrl = UserGame.Game.PosterImageUrl ?? (UserGame.Game.ImgUrl != null && UserGame.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{UserGame.Game.ExternalId}/library_600x900_2x.jpg" : null),
                 ReleaseDate = UserGame.Game.ReleaseDate ?? DateTime.MinValue,
                 Genres = rg?.Genres ?? new List<string>(),
                 Platforms = rg?.Platforms ?? new List<string>(),
@@ -206,6 +209,7 @@ namespace Game_Library_Management_BL.Services.Services
                 GameTitle = rg?.Title ?? game.Title,
                 GameDescription = game.Description,
                 GameImageUrl = rg?.ImageUrl ?? game.ImgUrl,
+                PosterImageUrl = game.PosterImageUrl ?? (game.ImgUrl != null && game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{game.ExternalId}/library_600x900_2x.jpg" : null),
                 ReleaseDate = game.ReleaseDate ?? DateTime.MinValue,
                 Genres = rg?.Genres ?? new List<string>(),
                 Platforms = rg?.Platforms ?? new List<string>(),
@@ -246,6 +250,7 @@ namespace Game_Library_Management_BL.Services.Services
                 GameTitle = rg?.Title ?? ExistedUserGame.Game.Title,
                 GameDescription = ExistedUserGame.Game.Description,
                 GameImageUrl = rg?.ImageUrl ?? ExistedUserGame.Game.ImgUrl,
+                PosterImageUrl = ExistedUserGame.Game.PosterImageUrl ?? (ExistedUserGame.Game.ImgUrl != null && ExistedUserGame.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{ExistedUserGame.Game.ExternalId}/library_600x900_2x.jpg" : null),
                 ReleaseDate = ExistedUserGame.Game.ReleaseDate ?? DateTime.MinValue,
                 Genres = rg?.Genres ?? new List<string>(),
                 Platforms = rg?.Platforms ?? new List<string>(),

@@ -11,7 +11,7 @@
 .neon-xirod {
     font-family: 'Xirod', sans-serif;
     color: #fff;
-    text-shadow: 
+    text-shadow:
         0 0 5px rgba(13, 242, 242, 0.8),
         0 0 10px rgba(13, 242, 242, 0.5),
         0 0 15px rgba(13, 242, 242, 0.3);
@@ -22,20 +22,39 @@
     display: inline-block;
     animation: flicker-bulb 6s linear infinite;
 }
+
 @keyframes flicker-bulb {
-    0%,  8%,  10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+
+    0%,
+    8%,
+    10%,
+    12%,
+    40%,
+    42%,
+    65%,
+    66%,
+    68%,
+    100% {
         opacity: 1;
         text-shadow: 0 0 4px #fff, 0 0 12px #0df2f2, 0 0 28px #0df2f2;
     }
-    9%,  11%, 41%, 67% {
+
+    9%,
+    11%,
+    41%,
+    67% {
         opacity: 0.08;
         text-shadow: none;
     }
-    13%, 39% {
+
+    13%,
+    39% {
         opacity: 0.5;
         text-shadow: 0 0 4px #fff;
     }
-    64%, 69% {
+
+    64%,
+    69% {
         opacity: 0.15;
         text-shadow: none;
     }
@@ -82,7 +101,14 @@
 
 /* Subtle Flicker Effect */
 @keyframes flicker {
-    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+
+    0%,
+    18%,
+    22%,
+    25%,
+    53%,
+    57%,
+    100% {
         text-shadow:
             0 0 4px #fff,
             0 0 11px #fff,
@@ -90,7 +116,10 @@
             0 0 40px #0df2f2,
             0 0 80px #0df2f2;
     }
-    20%, 24%, 55% {        
+
+    20%,
+    24%,
+    55% {
         text-shadow: none;
         opacity: 0.5;
     }
@@ -114,11 +143,13 @@
     width: 8px;
     height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-    background: #0f172a; 
+    background: #0f172a;
 }
+
 ::-webkit-scrollbar-thumb {
-    background: #334155; 
+    background: #334155;
     border-radius: 4px;
 }
 
@@ -138,7 +169,7 @@
 
 .editing-active:focus {
     border-bottom: 2px solid #0df2f2;
-    background: linear-gradient(180deg, rgba(13,242,242,0) 0%, rgba(13,242,242,0.1) 100%);
+    background: linear-gradient(180deg, rgba(13, 242, 242, 0) 0%, rgba(13, 242, 242, 0.1) 100%);
     text-shadow: 0 0 15px rgba(13, 242, 242, 0.6);
     box-shadow: 0 4px 20px -10px rgba(13, 242, 242, 0.3);
 }
@@ -159,8 +190,9 @@
 .stat-active p:last-child {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: #475569; 
+    background: #475569;
 }
 
 /* Glassmorphism Classes */
@@ -179,6 +211,7 @@
     width: 4px;
     height: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #0df2f2;
     border-radius: 10px;
@@ -196,6 +229,7 @@
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 0 15px -3px rgba(13, 242, 242, 0.3);
 }
+
 .glass-neon-btn:hover {
     background: rgba(15, 32, 35, 0.6);
     box-shadow: 0 0 20px 2px rgba(13, 242, 242, 0.5);
@@ -262,7 +296,7 @@
     transition: max-height 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease, transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.profile-edit-controls > * {
+.profile-edit-controls>* {
     opacity: 0;
     transform: translateY(-6px);
     transition: opacity 220ms ease, transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -275,7 +309,7 @@
     pointer-events: auto;
 }
 
-.profile-edit-controls.is-visible > * {
+.profile-edit-controls.is-visible>* {
     opacity: 1;
     transform: translateY(0);
 }
@@ -337,13 +371,13 @@
     transition: transform 0.22s ease, background 0.22s ease;
 }
 
-.rect-toggle-switch input:checked + .rect-toggle-slider {
+.rect-toggle-switch input:checked+.rect-toggle-slider {
     background: rgba(13, 242, 242, 0.22);
     border-color: rgba(13, 242, 242, 0.85);
     box-shadow: 0 0 10px rgba(13, 242, 242, 0.25), inset 0 0 10px rgba(13, 242, 242, 0.15);
 }
 
-.rect-toggle-switch input:checked + .rect-toggle-slider::before {
+.rect-toggle-switch input:checked+.rect-toggle-slider::before {
     transform: translateX(16px);
     background: #0df2f2;
 }
@@ -366,6 +400,7 @@
         opacity: 0;
         transform: translateY(12px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -425,6 +460,7 @@
         transform: translateY(14px) scale(0.985);
         filter: blur(1px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -444,10 +480,13 @@
 }
 
 .carousel-card.active {
-    width: 256px; /* w-64 */
-    height: 384px; /* h-96 */
+    width: 256px;
+    /* w-64 */
+    height: 384px;
+    /* h-96 */
     transform: scale(1.1);
-    z-index: 100 !important; /* Force active card to stay on top */
+    z-index: 100 !important;
+    /* Force active card to stay on top */
     opacity: 1;
     border: 1px solid rgba(13, 242, 242, 0.5);
     box-shadow: 0 0 50px rgba(13, 242, 242, 0.4);
@@ -455,8 +494,10 @@
 }
 
 .carousel-card.left {
-    width: 192px; /* w-48 */
-    height: 288px; /* h-72 */
+    width: 192px;
+    /* w-48 */
+    height: 288px;
+    /* h-72 */
     transform: scale(0.75) rotate(-12deg);
     z-index: 10;
     opacity: 0.8;
@@ -466,8 +507,10 @@
 }
 
 .carousel-card.right {
-    width: 192px; /* w-48 */
-    height: 288px; /* h-72 */
+    width: 192px;
+    /* w-48 */
+    height: 288px;
+    /* h-72 */
     transform: scale(0.75) rotate(12deg);
     z-index: 10;
     opacity: 0.8;
@@ -529,8 +572,8 @@
 
 /* Genre Report Animations */
 #genre-expanded-view {
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
 }
 
@@ -539,6 +582,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -550,6 +594,7 @@
         opacity: 0;
         transform: translateX(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -624,13 +669,27 @@
 }
 
 @keyframes slideInToast {
-    from { transform: translateX(110%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(110%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 @keyframes slideOutToast {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(110%); opacity: 0; }
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(110%);
+        opacity: 0;
+    }
 }
 
 .toast.removing {
