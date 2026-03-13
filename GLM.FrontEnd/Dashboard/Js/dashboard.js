@@ -19,12 +19,12 @@ let toastTimeout = null;
 // Helper function to convert DateTime to relative time
 function getRelativeTime(dateString) {
     if (!dateString) return '';
-    
+
     // Fix C# date format: replace space with T and append Z to treat as UTC
     // e.g. "2026-02-28 10:53:28" → "2026-02-28T10:53:28Z"
     const normalized = dateString.toString().replace(' ', 'T').replace(/Z?$/, 'Z');
     const date = new Date(normalized);
-    
+
     if (isNaN(date.getTime())) return '';
 
     const diffMs = Date.now() - date.getTime();
@@ -59,21 +59,21 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '../../Auth/Html/login.html';
         return;
     }
-    
+
     // Display user info
     displayUserInfo();
-    
+
     // Check for view in URL
     const urlParams = new URLSearchParams(window.location.search);
     const requestedView = urlParams.get('view') || 'catalog';
     const requestedGenre = urlParams.get('genre');
-    
+
     selectView(requestedView);
-    
+
     // Apply genre filter if specified in URL
     if (requestedGenre && requestedView === 'library') {
         currentGenre = requestedGenre;
-        
+
         // Update category filter UI to show the selected genre
         const currentCatDisplay = document.getElementById('current-category');
         const catBtn = document.getElementById('category-filter-btn');
@@ -83,11 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (catBtn) {
             catBtn.classList.add('active-filter-btn');
         }
-        
+
         // Reload library with genre filter
         loadGames(1, '', requestedGenre, '', '', '', '');
     }
-    
+
     initializeNavigation();
     initializePagination();
     initializeCatalogInfiniteScroll();
@@ -138,7 +138,7 @@ function displayUserInfo() {
             container.textContent = userInfo.userName.charAt(0).toUpperCase();
         });
     }
-    
+
     // Fetch actual profile to update name and avatar if they exist
     fetchProfileInfo();
 }
@@ -155,7 +155,7 @@ async function fetchProfileInfo() {
                 usernameElements.forEach(el => {
                     el.textContent = profile.displayName;
                 });
-                
+
                 // Update local storage too to keep it consistent
                 const userInfo = getUserInfo();
                 userInfo.userName = profile.displayName;
@@ -166,7 +166,7 @@ async function fetchProfileInfo() {
             if (resolvedAvatar && avatarContainers.length > 0) {
                 avatarContainers.forEach(container => {
                     container.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}" class="h-full w-full object-cover">`;
-                    
+
                     // Remove background gradient from parent div if it exists
                     const parent = container.parentElement;
                     if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
@@ -193,7 +193,7 @@ function selectView(view) {
     currentOrdering = ''; // Reset ordering filter
     currentRelease = ''; // Reset release filter
     currentStatus = ''; // Reset status filter
-    
+
     // Reset dropdown UI
     const currentCatDisplay = document.getElementById('current-category');
     const catBtn = document.getElementById('category-filter-btn');
@@ -235,7 +235,7 @@ function selectView(view) {
         el.classList.remove('active', 'bg-primary/10', 'text-primary');
         el.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-white/5');
     });
-    
+
     const activeNav = document.getElementById(`nav-${view}`);
     if (activeNav) {
         activeNav.classList.add('active', 'bg-primary/10', 'text-primary');
@@ -243,8 +243,8 @@ function selectView(view) {
     }
 
     // Update Header Text
-    const headerTitle = document.querySelector('.header-title') || document.querySelector('h2'); 
-    
+    const headerTitle = document.querySelector('.header-title') || document.querySelector('h2');
+
     if (headerTitle) {
         if (view === 'catalog') headerTitle.textContent = 'Catalog Games';
         else if (view === 'library') headerTitle.textContent = 'My Library';
@@ -271,17 +271,17 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         return;
     }
     // Ensure element exists before setting textContent
-    if (!totalGamesElement) { 
+    if (!totalGamesElement) {
         console.warn('Total games element not found');
     }
-    
+
     const loadingHtml = `
         <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
             <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
             <p>Loading games...</p>
         </div>
     `;
-    
+
     if (isCatalog) isCatalogLoading = true;
 
     if (!isAppendCatalogRequest) {
@@ -289,7 +289,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
     } else {
         toggleCatalogAppendLoader(true);
     }
-    
+
     try {
         let endpoint;
         let gamesData = [];
@@ -297,13 +297,13 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
 
         if (currentView === 'catalog' && !status) {
             if (query) {
-                 endpoint = `/api/Steam/catalog/search?query=${encodeURIComponent(query)}`;
+                endpoint = `/api/Steam/catalog/search?query=${encodeURIComponent(query)}`;
             } else {
-                 endpoint = `/api/Steam/catalog/GetAll?page=${page}`;
-                 if (genre) endpoint += `&genre=${encodeURIComponent(genre)}`;
-                 if (platform) endpoint += `&platforms=${encodeURIComponent(platform)}`;
-                 if (ordering) endpoint += `&ordering=${encodeURIComponent(ordering)}`;
-                 if (release) endpoint += `&dates=${encodeURIComponent(release)}`;
+                endpoint = `/api/Steam/catalog/GetAll?page=${page}`;
+                if (genre) endpoint += `&genre=${encodeURIComponent(genre)}`;
+                if (platform) endpoint += `&platforms=${encodeURIComponent(platform)}`;
+                if (ordering) endpoint += `&ordering=${encodeURIComponent(ordering)}`;
+                if (release) endpoint += `&dates=${encodeURIComponent(release)}`;
             }
         } else {
             // Fetch user games for Library/Favorites/Wishlist OR when filtering catalog by status
@@ -313,15 +313,15 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                 endpoint = `/api/UserGames/GetAllUserGames`;
             }
         }
-        
+
         const response = await apiRequest(endpoint, {
             method: 'GET'
         });
-        
+
         if (!response.ok) {
             // Handle 404 as empty collection (optional since we fixed backend, but good for safety)
             if (response.status === 404) {
-                result = []; 
+                result = [];
             } else {
                 throw new Error('Failed to load games');
             }
@@ -337,15 +337,15 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                 // Backend returns enum as string "whishlist" or int 2
                 const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
                 const inWishlist = ug.isInWishlist === true;
-                
+
                 return {
-                    externalId: ug.externalId, 
+                    externalId: ug.externalId,
                     id: ug.externalId,
                     title: ug.gameTitle,
                     imageUrl: ug.gameImageUrl,
                     releaseDate: ug.releaseDate,
                     rating: ug.rating,
-                    genres: ug.genres, 
+                    genres: ug.genres,
                     platforms: ug.platforms,
                     isFavorite: ug.isFavorite,
                     isInLibrary: inLibrary,
@@ -380,13 +380,13 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
             if (genre) {
                 // genre is a slug (e.g., 'action' or 'role-playing-games-rpg'); g.genres are names (e.g., 'RPG')
                 // Using inclusion instead of equality to handle cases like 'RPG' vs 'role-playing-games-rpg'
-                gamesData = gamesData.filter(g => 
+                gamesData = gamesData.filter(g =>
                     g.genres.some(name => {
                         const lowerName = name.toLowerCase();
                         const lowerGenre = genre.toLowerCase();
-                        return lowerName === lowerGenre || 
-                               lowerGenre.includes(lowerName) || 
-                               lowerName.includes(lowerGenre);
+                        return lowerName === lowerGenre ||
+                            lowerGenre.includes(lowerName) ||
+                            lowerName.includes(lowerGenre);
                     })
                 );
             }
@@ -400,7 +400,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
                 };
                 const targetSlug = platformMap[platform];
                 if (targetSlug) {
-                    gamesData = gamesData.filter(g => 
+                    gamesData = gamesData.filter(g =>
                         g.platforms.some(slug => slug.toLowerCase() === targetSlug)
                     );
                 }
@@ -445,7 +445,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
 
         } else {
             gamesData = result; // Already in RAWG format
-            
+
             // Annotate catalog games with user status
             try {
                 const userGamesResp = await apiRequest('/api/UserGames/GetAllUserGames', { method: 'GET' });
@@ -480,11 +480,11 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         if (currentView !== 'catalog') {
             const totalItems = gamesData.length;
             const totalPages = Math.ceil(totalItems / gamesPerPage);
-            
+
             // Slice the relevant page
             const startIndex = (page - 1) * gamesPerPage;
             allGames = gamesData.slice(startIndex, startIndex + gamesPerPage);
-            
+
             if (allGames && allGames.length > 0) {
                 if (totalGamesElement) {
                     const from = startIndex + 1;
@@ -495,7 +495,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
             } else {
                 handleEmptyState(container, totalGamesElement, query);
             }
-            
+
             updatePaginationControls(page, query, genre, platform, ordering, release, status, {
                 total: totalItems,
                 count: allGames.length,
@@ -536,7 +536,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
             } else if (!isAppendCatalogRequest) {
                 handleEmptyState(container, totalGamesElement, query);
             }
-            
+
             updatePaginationControls(page, query, genre, platform, ordering, release, '', {
                 count: allGames.length,
                 isCatalog: true
@@ -630,7 +630,7 @@ function displayGames(games) {
     // So displayGames always rerenders ALL games. This is fine for small lists but not efficient for large infinite scroll.
     // However, given the current constraints, rerendering is acceptable.
     container.innerHTML = '';
-    
+
     games.forEach(game => {
         container.appendChild(createGameCard(game));
     });
@@ -649,7 +649,7 @@ function appendGames(games) {
 function createGameCard(game) {
     const card = document.createElement('div');
     card.className = 'group bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10 hover:border-primary/30 transition-all duration-300 relative cursor-pointer';
-    
+
     const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
     const hqLandscapeImageUrl = String(imageUrl).includes('/header.jpg')
         ? String(imageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
@@ -678,20 +678,20 @@ function createGameCard(game) {
     }
 
     // Platform Icons
-    let platformIcons = ''; 
+    let platformIcons = '';
     if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
         const uniqueIcons = new Set();
         const icons = game.platforms.map(slug => {
             let svgIcon = '';
             const s = (typeof slug === 'string' ? slug : slug.slug || slug.name || '').toLowerCase();
-            
+
             if (s.includes('pc') || s.includes('windows')) svgIcon = `<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"></path></svg>`;
             else if (s.includes('playstation') || s.includes('ps5') || s.includes('ps4')) svgIcon = `<i class="fab fa-playstation text-[10px]"></i>`;
             else if (s.includes('xbox')) svgIcon = `<i class="fab fa-xbox text-[10px]"></i>`;
-            else if (s.includes('nintendo') || s.includes('switch')) svgIcon = `<i class="bi bi-nintendo-switch text-[11px]"></i>`; 
-            else return ''; 
+            else if (s.includes('nintendo') || s.includes('switch')) svgIcon = `<i class="bi bi-nintendo-switch text-[11px]"></i>`;
+            else return '';
 
-            if (uniqueIcons.has(svgIcon)) return ''; 
+            if (uniqueIcons.has(svgIcon)) return '';
             uniqueIcons.add(svgIcon);
             return svgIcon;
         }).filter(icon => icon !== '').join('');
@@ -851,7 +851,7 @@ function createGameCard(game) {
     card.addEventListener('click', () => {
         showGameDetails(game);
     });
-    
+
     return card;
 }
 
@@ -866,13 +866,13 @@ function updatePaginationControls(page, query, genre, platform, ordering, releas
         if (paginationInfo.isCatalog) paginationControls.classList.add('hidden');
         else paginationControls.classList.remove('hidden');
     }
-    
+
     if (prevBtn) prevBtn.disabled = page === 1;
-    
+
     if (paginationInfo.isCatalog) {
         // Catalog uses simple logic: if count < pageSize, we're at the end
         if (pageInfo) pageInfo.textContent = (query) ? 'Search Results' : `${allGames.length} loaded`;
-        
+
         if (nextBtn) {
             if (query) {
                 nextBtn.disabled = true; // Search is usually 1 page or deep pagination not supported
@@ -884,12 +884,12 @@ function updatePaginationControls(page, query, genre, platform, ordering, releas
         // User collections have full metadata
         const totalPages = Math.max(1, Math.ceil(paginationInfo.total / gamesPerPage));
         if (pageInfo) pageInfo.textContent = `Page ${page} of ${totalPages}`;
-        
+
         if (nextBtn) {
             nextBtn.disabled = page >= totalPages;
         }
     }
-    
+
     // Store current page state
     currentPage = page;
     currentQuery = query;
@@ -904,7 +904,7 @@ function updatePaginationControls(page, query, genre, platform, ordering, releas
 function initializePagination() {
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-    
+
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             if (currentPage > 1) {
@@ -913,7 +913,7 @@ function initializePagination() {
             }
         });
     }
-    
+
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             loadGames(currentPage + 1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
@@ -932,7 +932,7 @@ function initializeSearch() {
     searchInput.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
         const query = e.target.value.trim();
-        
+
         debounceTimer = setTimeout(() => {
             currentPage = 1; // Reset to page 1 on new search
             loadGames(1, query, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
@@ -951,10 +951,10 @@ async function initializeCategories() {
         const response = await apiRequest('/api/Steam/catalog/genres', { method: 'GET' });
         if (response.ok) {
             const genres = await response.json();
-            
+
             // Clear loading spinner
             categoryList.innerHTML = '';
-            
+
             // Add "All Categories" option
             const allOption = document.createElement('button');
             allOption.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
@@ -1000,10 +1000,10 @@ async function initializePlatforms() {
         const response = await apiRequest('/api/Steam/catalog/platforms', { method: 'GET' });
         if (response.ok) {
             const platforms = await response.json();
-            
+
             // Clear loading spinner
             platformList.innerHTML = '';
-            
+
             // Add "All Platforms" option
             const allOption = document.createElement('button');
             allOption.className = 'w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium';
@@ -1042,15 +1042,15 @@ function setRatingOrdering(ordering, label) {
     currentOrdering = ordering;
     const currentRatingDisplay = document.getElementById('current-rating');
     const ratingBtn = document.getElementById('rating-filter-btn');
-    
+
     if (currentRatingDisplay) currentRatingDisplay.textContent = label;
-    
+
     if (!ordering) {
         if (ratingBtn) ratingBtn.classList.remove('active-filter-btn');
     } else {
         if (ratingBtn) ratingBtn.classList.add('active-filter-btn');
     }
-    
+
     loadGames(1, currentQuery, currentGenre, currentPlatform, ordering, currentRelease, currentStatus);
 }
 
@@ -1058,15 +1058,15 @@ function setStatusFilter(statusId, label) {
     currentStatus = statusId;
     const currentStatusDisplay = document.getElementById('current-status');
     const statusBtn = document.getElementById('status-filter-btn');
-    
+
     if (currentStatusDisplay) currentStatusDisplay.textContent = label;
-    
+
     if (!statusId) {
         if (statusBtn) statusBtn.classList.remove('active-filter-btn');
     } else {
         if (statusBtn) statusBtn.classList.add('active-filter-btn');
     }
-    
+
     loadGames(1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, statusId);
 }
 
@@ -1076,7 +1076,7 @@ function clearAllFilters() {
     currentOrdering = '';
     currentRelease = '';
     currentStatus = '';
-    
+
     const currentCatDisplay = document.getElementById('current-category');
     const catBtn = document.getElementById('category-filter-btn');
     if (currentCatDisplay) currentCatDisplay.textContent = 'Category';
@@ -1180,7 +1180,7 @@ async function initializeReleaseYears() {
 }
 
 function scrollToTop() {
-    const contentArea = document.querySelector('.content-area'); 
+    const contentArea = document.querySelector('.content-area');
     if (contentArea) {
         contentArea.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -1191,16 +1191,16 @@ function scrollToTop() {
 // Add to Favorites
 async function addToFavorites(gameIdOrObj) {
     const gameId = (typeof gameIdOrObj === 'object') ? (gameIdOrObj.externalId || gameIdOrObj.id) : gameIdOrObj;
-    
+
     try {
         const response = await apiRequest(`/api/Steam/catalog/favorite/${gameId}`, {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             const result = await response.json();
             const isFavorite = result.isFavorite; // Backend result property name
-            
+
             // Notification toast
             const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
             showToast(`"${gameTitle}" ${isFavorite ? 'added to' : 'removed from'} favorites!`, isFavorite ? 'favorite' : 'unfavorite');
@@ -1219,7 +1219,7 @@ function updateFavoriteUI(gameId, isFavorite) {
         cachedGame.isFavorite = isFavorite;
         // If favorited, it cannot be in wishlist
         if (isFavorite) cachedGame.isInWishlist = false;
-        
+
         // Use central indicator update to refresh everything consistently
         updateStatusIndicators(gameId, cachedGame);
     }
@@ -1254,7 +1254,7 @@ function updateFavoriteUI(gameId, isFavorite) {
                 // Check if last game removed
                 const container = document.getElementById('library-games');
                 if (container && container.children.length === 0) {
-                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No favorite games found.</p></div>';
+                    container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No favorite games found.</p></div>';
                 }
             }, 300);
         }
@@ -1268,7 +1268,7 @@ function updateStatusIndicators(gameId, game) {
     const favButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="favorite"]`);
     const libButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="library"]`);
     const wishButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="wishlist"]`);
-    
+
     // Status Icon Logic (Helper)
     const getStatusIcon = (status) => {
         const s = String(status).toLowerCase();
@@ -1299,12 +1299,12 @@ function updateStatusIndicators(gameId, game) {
 
             let badgeHtml = '';
             if (isPending) {
-                 badgeHtml = `
+                badgeHtml = `
                     <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg">
                             <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
                     </div>`;
             } else if (statusObj) {
-                 badgeHtml = `
+                badgeHtml = `
                     <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
                             <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
                             <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
@@ -1336,7 +1336,7 @@ function updateStatusIndicators(gameId, game) {
                         </div>
                     </div>
                 </div>`;
-            
+
             // Fade In
             requestAnimationFrame(() => {
                 container.style.opacity = '1';
@@ -1393,26 +1393,26 @@ function updateStatusIndicators(gameId, game) {
 // Add to Library
 async function addToLibrary(gameIdOrObj) {
     const gameId = (typeof gameIdOrObj === 'object') ? (gameIdOrObj.externalId || gameIdOrObj.id) : gameIdOrObj;
-    
+
     try {
         const response = await apiRequest(`/api/Steam/catalog/library/${gameId}`, {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             const result = await response.json();
             const isInLibrary = result.added; // Use 'added' from backend response
-            
+
             // Show toast message
             const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
             showToast(`"${gameTitle}" ${isInLibrary ? 'added to' : 'removed from'} library!`, isInLibrary ? 'success' : 'error');
 
             // Update Button UI
-             updateLibraryUI(gameId, isInLibrary);
+            updateLibraryUI(gameId, isInLibrary);
 
             // Update local state
-             const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
-             if (cachedGame) cachedGame.isInLibrary = isInLibrary;
+            const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+            if (cachedGame) cachedGame.isInLibrary = isInLibrary;
         }
     } catch (error) {
         console.error('Error toggling library status:', error);
@@ -1420,34 +1420,34 @@ async function addToLibrary(gameIdOrObj) {
 }
 
 function updateLibraryUI(gameId, isInLibrary) {
-     const buttons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="library"]`);
-     
-     buttons.forEach(btn => {
-         const iconSpan = btn.querySelector('.material-symbols-outlined');
-         if (iconSpan && (iconSpan.textContent === 'inventory_2' || iconSpan.textContent === 'library_add')) {
+    const buttons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="library"]`);
+
+    buttons.forEach(btn => {
+        const iconSpan = btn.querySelector('.material-symbols-outlined');
+        if (iconSpan && (iconSpan.textContent === 'inventory_2' || iconSpan.textContent === 'library_add')) {
             // Clean up old transformations
             iconSpan.style.transition = 'none';
             iconSpan.style.transform = 'rotate(0deg)';
-            
+
             // Force reflow
-            iconSpan.offsetHeight; 
+            iconSpan.offsetHeight;
 
             // Full 360-degree spin
             iconSpan.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
             iconSpan.style.transform = 'rotate(360deg)';
-            
+
             if (isInLibrary) {
-                 btn.classList.add('text-green-500');
-                 btn.classList.remove('text-white/70', 'hover:text-primary');
-                 iconSpan.textContent = 'inventory_2';
-                 iconSpan.classList.add('fill-icon');
-                 btn.title = 'Remove from Library';
+                btn.classList.add('text-green-500');
+                btn.classList.remove('text-white/70', 'hover:text-primary');
+                iconSpan.textContent = 'inventory_2';
+                iconSpan.classList.add('fill-icon');
+                btn.title = 'Remove from Library';
             } else {
-                 btn.classList.remove('text-green-500');
-                 btn.classList.add('text-white/70', 'hover:text-primary');
-                 iconSpan.textContent = 'inventory_2';
-                 iconSpan.classList.remove('fill-icon');
-                 btn.title = 'Add to Library';
+                btn.classList.remove('text-green-500');
+                btn.classList.add('text-white/70', 'hover:text-primary');
+                iconSpan.textContent = 'inventory_2';
+                iconSpan.classList.remove('fill-icon');
+                btn.title = 'Add to Library';
             }
 
             // Reset rotation after animation so it can trigger again next time
@@ -1455,8 +1455,8 @@ function updateLibraryUI(gameId, isInLibrary) {
                 iconSpan.style.transition = 'none';
                 iconSpan.style.transform = 'rotate(0deg)';
             }, 600);
-         }
-     });
+        }
+    });
 
     // Handle view-specific item removal
     if (currentView === 'library' && !isInLibrary) {
@@ -1467,39 +1467,39 @@ function updateLibraryUI(gameId, isInLibrary) {
                 cardToRemove.remove();
                 const container = document.getElementById('library-games');
                 if (container && container.children.length === 0) {
-                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No games in library.</p></div>';
+                    container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No games in library.</p></div>';
                 }
             }, 300);
         }
     }
 
     // Update local state
-     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
-     if (cachedGame) {
-         cachedGame.isInLibrary = isInLibrary;
-         if (isInLibrary) {
-             cachedGame.gamestatus = 6; // Pending
-             // isInWishlist and isFavorite are untouched — independent
-         } else {
-             cachedGame.gamestatus = null;
-         }
-         updateStatusIndicators(gameId, cachedGame);
-     }
+    const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+    if (cachedGame) {
+        cachedGame.isInLibrary = isInLibrary;
+        if (isInLibrary) {
+            cachedGame.gamestatus = 6; // Pending
+            // isInWishlist and isFavorite are untouched — independent
+        } else {
+            cachedGame.gamestatus = null;
+        }
+        updateStatusIndicators(gameId, cachedGame);
+    }
 }
 
 // Add to Wishlist
 async function addToWishlist(gameIdOrObj) {
     const gameId = (typeof gameIdOrObj === 'object') ? (gameIdOrObj.externalId || gameIdOrObj.id) : gameIdOrObj;
-    
+
     try {
         const response = await apiRequest(`/api/Steam/catalog/wishlist/${gameId}`, {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             const result = await response.json();
-            const isInWishlist = result.added; 
-            
+            const isInWishlist = result.added;
+
             // Show toast message
             const gameTitle = allGames.find(g => (g.externalId || g.id) == gameId)?.title || "Game";
             showToast(`"${gameTitle}" ${isInWishlist ? 'added to' : 'removed from'} wishlist!`, isInWishlist ? 'info' : 'unfavorite');
@@ -1554,7 +1554,7 @@ function updateWishlistUI(gameId, isInWishlist) {
                 cardToRemove.remove();
                 const container = document.getElementById('library-games');
                 if (container && container.children.length === 0) {
-                     container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No games in wishlist.</p></div>';
+                    container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500"><p>No games in wishlist.</p></div>';
                 }
             }, 300);
         }
@@ -1581,7 +1581,7 @@ async function changeGameStatus(gameId, statusId) {
 
         if (response.ok) {
             const updated = await response.json();
-            
+
             // Toast
             const statusLabels = { 1: 'Playing', 3: 'Completed', 4: 'Dropped', 5: 'On Hold', 6: 'Pending' };
             showToast(`Status updated to "${statusLabels[statusId]}"!`, 'success');
@@ -1591,7 +1591,7 @@ async function changeGameStatus(gameId, statusId) {
             if (cachedGame) {
                 cachedGame.gamestatus = statusId;
                 updateStatusIndicators(gameId, cachedGame);
-                
+
                 // Re-render the selector on this specific card
                 updateStatusSelectorUI(gameId, statusId);
             }
@@ -1610,7 +1610,7 @@ function updateStatusSelectorUI(gameId, statusId) {
 
     const card = indicators.closest('.group');
     if (!card) return;
-    
+
     const buttons = card.querySelectorAll('button[onclick*="changeGameStatus"]');
     buttons.forEach(btn => {
         // Extract status from onclick
@@ -1618,13 +1618,13 @@ function updateStatusSelectorUI(gameId, statusId) {
         if (match) {
             const btnStatusId = parseInt(match[1]);
             const isActive = btnStatusId === parseInt(statusId);
-            
+
             if (isActive) {
                 btn.className = 'flex items-center gap-2.5 px-3 py-2 rounded-lg bg-primary/10 text-primary transition-colors text-left group/item';
             } else {
                 btn.className = 'flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item';
             }
-            
+
             // Re-sync label color if needed
             const label = btn.querySelector('span:not(.material-symbols-outlined)');
             if (label) {
@@ -1657,7 +1657,7 @@ function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     let bgColor = 'bg-primary/90';
     let icon = 'info';
-    
+
     if (type === 'success') {
         bgColor = 'bg-green-500/95';
         icon = 'check_circle';

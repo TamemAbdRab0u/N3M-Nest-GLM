@@ -56,7 +56,8 @@ function displayUserInfo() {
     });
 
     displayAvatar.forEach(el => {
-        el.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "U";
+        const initial = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "U";
+        el.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
     });
 
     if (avatarImg) {
@@ -220,7 +221,7 @@ async function fetchOwnSidebarAvatar() {
         if (!displayAvatar) return;
 
         const timestamp = new Date().getTime();
-        displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${(profile.displayName || 'U').charAt(0).toUpperCase()}'">`;
+        displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || 'U').charAt(0).toUpperCase()}'">`;
 
         // Remove gradient background so the image shows cleanly
         const parent = displayAvatar.parentElement;
@@ -327,14 +328,15 @@ function updateProfileUI(profile) {
     displayAvatars.forEach(displayAvatar => {
         if (displayAvatar) {
             if (resolvedAvatar) {
-                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
                 const parent = displayAvatar.parentElement;
                 if (parent && (parent.classList.contains("bg-gradient-to-tr") || parent.classList.contains("from-primary"))) {
                     parent.classList.remove("bg-gradient-to-tr", "from-primary", "to-purple-500", "to-purple-600");
                     parent.classList.add("bg-transparent");
                 }
             } else if (profile.displayName) {
-                displayAvatar.textContent = profile.displayName.charAt(0).toUpperCase();
+                const initial = profile.displayName.charAt(0).toUpperCase();
+                displayAvatar.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
             }
         }
     });
@@ -1165,7 +1167,7 @@ function renderCarousel() {
         // 2. Horizontal/Standard Image (game.gameImageUrl - resolved as HQ landscape)
         // 3. System Placeholder
         const horizontalImg = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
-        
+
         card.innerHTML = `
             <img src="${game.imageUrl}" 
                  data-fallback-img="${horizontalImg}"
@@ -1256,26 +1258,26 @@ function getHqGameImage(url, isVertical = false) {
 
     // Steam image processing - Support multiple CDNs and domains
     const isSteam = /steamstatic|steamcdn|steampowered/.test(url.toLowerCase());
-    
+
     if (isSteam) {
         const type = isVertical ? 'library_600x900_2x.jpg' : 'capsule_616x353.jpg';
-        
+
         // Remove trailing query params
         let cleanUrl = url.split('?')[0];
-        
+
         // Pattern: /apps/APPID/FILENAME.EXT
         const steamPattern = /\/apps\/(\d+)\/([^\/\?]+)/;
         const match = cleanUrl.match(steamPattern);
-        
+
         if (match) {
             const appId = match[1];
             const currentFilename = match[2];
-            
+
             // If it's already the type we want, just return the clean URL
             if (currentFilename.includes(isVertical ? 'library_600x900' : 'capsule_616x353')) {
                 return cleanUrl;
             }
-            
+
             // Reconstruct URL with target image type
             // Attempt to find the /steam/apps/ or /apps/ branch
             const appsIndex = cleanUrl.indexOf('/apps/');

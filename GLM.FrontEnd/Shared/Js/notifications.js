@@ -13,7 +13,7 @@
     // ── State ────────────────────────────────────────────────
     let _notifConnection = null;
     let _pendingRequests = []; // { FriendshipId, FromUserId, FromUsername, FromDisplayName, FromAvatarUrl }
-    let _initialized     = false;
+    let _initialized = false;
 
     // Build an absolute URL to profile.html regardless of which page we're on.
     // Strip the last 3 path segments (dir1/dir2/file.html) and re-attach the profile path.
@@ -28,7 +28,7 @@
         if (document.getElementById('notif-wrapper')) return; // already in DOM (profile page)
 
         const wrapper = document.createElement('div');
-        wrapper.id        = 'notif-wrapper';
+        wrapper.id = 'notif-wrapper';
         wrapper.className = 'fixed top-4 right-4 z-[300]';
         wrapper.innerHTML = `
             <button id="notification-btn"
@@ -57,7 +57,7 @@
     function _ensureToastContainer() {
         if (document.getElementById('notif-toast-container')) return;
         const div = document.createElement('div');
-        div.id        = 'notif-toast-container';
+        div.id = 'notif-toast-container';
         div.className = 'fixed top-6 right-6 z-[500] flex flex-col gap-3 pointer-events-none';
         document.body.appendChild(div);
     }
@@ -78,11 +78,11 @@
             if (!res.ok) return;
             const data = await res.json();
             _pendingRequests = data.map(d => ({
-                FriendshipId:    d.friendshipId,
-                FromUserId:      d.userId,
-                FromUsername:    d.username,
+                FriendshipId: d.friendshipId,
+                FromUserId: d.userId,
+                FromUsername: d.username,
                 FromDisplayName: d.displayName,
-                FromAvatarUrl:   d.avatarUrl
+                FromAvatarUrl: d.avatarUrl
             }));
             _renderDropdown();
         } catch (e) {
@@ -110,11 +110,11 @@
                 // Replace any existing request from the same sender (handles re-sends)
                 _pendingRequests = _pendingRequests.filter(r => r.FromUserId !== notification.fromUserId);
                 _pendingRequests.push({
-                    FriendshipId:    notification.friendshipId,
-                    FromUserId:      notification.fromUserId,
-                    FromUsername:    notification.fromUsername,
+                    FriendshipId: notification.friendshipId,
+                    FromUserId: notification.fromUserId,
+                    FromUsername: notification.fromUsername,
                     FromDisplayName: notification.fromDisplayName,
-                    FromAvatarUrl:   notification.fromAvatarUrl
+                    FromAvatarUrl: notification.fromAvatarUrl
                 });
                 _renderDropdown();
                 _showToast(notification, 'received');
@@ -143,9 +143,9 @@
 
     // ── Render dropdown items ──────────────────────────────────
     function _renderDropdown() {
-        const list     = document.getElementById('notif-list');
-        const empty    = document.getElementById('notif-empty');
-        const badge    = document.getElementById('notif-badge');
+        const list = document.getElementById('notif-list');
+        const empty = document.getElementById('notif-empty');
+        const badge = document.getElementById('notif-badge');
         const countLbl = document.getElementById('notif-count-label');
         if (!list) return;
 
@@ -261,12 +261,12 @@
             ? `${API_URL}/Uploads/${notification.fromAvatarUrl}`
             : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=080f0f&color=0df2f2&size=60`;
 
-        const isReceived  = type === 'received';
-        const borderColor = isReceived ? 'border-primary/40'     : 'border-emerald-500/40';
-        const iconColor   = isReceived ? 'text-primary'          : 'text-emerald-400';
-        const icon        = isReceived ? 'person_add'            : 'how_to_reg';
-        const label       = isReceived ? 'Friend Request'        : 'Request Accepted';
-        const sub         = isReceived
+        const isReceived = type === 'received';
+        const borderColor = isReceived ? 'border-primary/40' : 'border-emerald-500/40';
+        const iconColor = isReceived ? 'text-primary' : 'text-emerald-400';
+        const icon = isReceived ? 'person_add' : 'how_to_reg';
+        const label = isReceived ? 'Friend Request' : 'Request Accepted';
+        const sub = isReceived
             ? `<span class="font-bold text-white">${name}</span> wants to be your friend`
             : `<span class="font-bold text-white">${name}</span> accepted your request`;
 

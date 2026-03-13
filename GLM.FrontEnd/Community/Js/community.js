@@ -27,7 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const avatars = document.querySelectorAll('#sidebar-avatar, #display-avatar-header');
     avatars.forEach(av => {
-        if (av) av.textContent = currentUser.charAt(0).toUpperCase();
+        if (av) {
+            const initial = currentUser.charAt(0).toUpperCase();
+            av.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
+        }
     });
 
     loadAvatar();
@@ -46,10 +49,10 @@ async function loadAvatar() {
             const avatars = document.querySelectorAll('#sidebar-avatar, #display-avatar-header');
             avatars.forEach(av => {
                 if (av) {
-                    av.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${currentUser.charAt(0).toUpperCase()}'">`;
+                    av.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${currentUser.charAt(0).toUpperCase()}'">`;
                 }
             });
-            
+
             // Remove gradient for header avatar
             const headerAvatar = document.getElementById('display-avatar-header');
             if (headerAvatar) {
@@ -316,7 +319,7 @@ function renderOnlineUsers() {
 // ── Connection status badge ──────────────────────────────────────────────────
 function setConnStatus(state, label) {
     const badge = document.getElementById('conn-status-badge');
-    const lbl   = document.getElementById('conn-label');
+    const lbl = document.getElementById('conn-label');
     if (!badge || !lbl) return;
     badge.className = `ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] xirod-font conn-${state}`;
     lbl.textContent = label;
@@ -356,8 +359,8 @@ function formatDate(date) {
 function stringToColor(str) {
     // Deterministic pastel-accent color from string
     const palette = [
-        '#0df2f2','#a855f7','#f87171','#34d399','#facc15',
-        '#38bdf8','#fb923c','#c084fc','#4ade80','#f472b6'
+        '#0df2f2', '#a855f7', '#f87171', '#34d399', '#facc15',
+        '#38bdf8', '#fb923c', '#c084fc', '#4ade80', '#f472b6'
     ];
     let hash = 0;
     for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);

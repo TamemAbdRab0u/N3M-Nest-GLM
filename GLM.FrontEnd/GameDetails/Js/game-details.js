@@ -85,7 +85,7 @@ function initDragScroll() {
 function startAutoSlide() {
     stopAutoSlide(); // Ensure no duplicates
     if (screenshotUrls.length <= 1) return;
-    
+
     slideInterval = setInterval(() => {
         if (isVideoMain) return; // Don't slide while video is active
         nextMedia();
@@ -126,10 +126,11 @@ async function populateSidebarUser() {
 
         const avatarEls = document.querySelectorAll('#display-avatar, #display-avatar-header');
         const usernameEls = document.querySelectorAll('#display-username, #welcome-username');
-        
+
         usernameEls.forEach(el => el.textContent = userInfo.userName || 'User');
         avatarEls.forEach(el => {
-            el.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
+            const initial = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
+            el.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
         });
 
         const res = await apiRequest('/api/Profile');
@@ -140,7 +141,7 @@ async function populateSidebarUser() {
             }
             if (profile.avatarUrl) {
                 avatarEls.forEach(el => {
-                    el.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover rounded-full">`;
+                    el.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover">`;
                     const parent = el.parentElement;
                     if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
                         parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500', 'to-purple-600');
@@ -149,7 +150,8 @@ async function populateSidebarUser() {
                 });
             } else if (profile.displayName) {
                 avatarEls.forEach(el => {
-                    el.textContent = profile.displayName.charAt(0).toUpperCase();
+                    const initial = profile.displayName.charAt(0).toUpperCase();
+                    el.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
                 });
             }
         }
@@ -190,8 +192,8 @@ async function loadSimilarGames(id) {
 
         container.innerHTML = games.map(g => {
             const rating = g.rating > 0 ? `<span class="text-yellow-400">★</span> ${g.rating.toFixed(1)}` : '';
-            const genre  = g.genres?.[0] ?? '';
-            const meta   = [genre, rating].filter(Boolean).join(' · ');
+            const genre = g.genres?.[0] ?? '';
+            const meta = [genre, rating].filter(Boolean).join(' · ');
             return `
             <a href="game-details.html?id=${g.externalId}"
                class="flex gap-3 items-center group/sim hover:bg-white/5 rounded-xl p-1.5 -mx-1.5 transition-colors no-underline">
@@ -265,7 +267,7 @@ function renderGame(g) {
 
     // ── Main Titles ──────────────────────────
     setText('game-title', g.title);
-    
+
     // ── Meta info ───────────────────────────
 
     if (g.releaseDate) {
@@ -336,9 +338,9 @@ function renderGame(g) {
 function renderMediaStrip(g) {
     const strip = document.getElementById('screenshots-strip');
     if (!strip) return;
-    
+
     let html = '';
-    
+
     // 1. Add Video Square first
     if (g.trailerUrl) {
         html += `
@@ -350,26 +352,26 @@ function renderMediaStrip(g) {
             </div>
         `;
     }
-    
+
     // 2. Add Screenshot Squares
     if (g.screenshots?.length) {
         html += g.screenshots.map((url, i) => `
             <div id="thumb-img-${i}" class="screenshot-thumb group" onclick="setMainMedia('${url}', ${i})">
-                <img src="${url}" alt="Screenshot ${i+1}">
+                <img src="${url}" alt="Screenshot ${i + 1}">
                 <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span class="material-symbols-outlined text-white">zoom_in</span>
                 </div>
             </div>
         `).join('');
     }
-    
+
     strip.innerHTML = html;
 }
 
 function setMainVideo(g = null) {
     isVideoMain = true;
     stopAutoSlide();
-    
+
     const game = g || currentGame; // Use current if g not provided
     const placeholder = document.getElementById('main-media-placeholder');
     const trailer = document.getElementById('main-trailer');
@@ -389,12 +391,12 @@ function setMainVideo(g = null) {
     placeholder.classList.add('hidden');
     trailer.classList.remove('hidden');
     playBtn.classList.remove('hidden');
-    
+
     if (trailer.src !== game.trailerUrl) {
         trailer.src = game.trailerUrl;
         trailer.poster = game.trailerPreview || game.backgroundImage;
     }
-    
+
     if (label) label.textContent = "Official Trailer";
     if (title) title.textContent = "Cinematic Experience";
 
@@ -449,7 +451,7 @@ function setMainVideo(g = null) {
 function setMainMedia(url, index) {
     isVideoMain = false;
     currentMediaIndex = index;
-    
+
     const placeholder = document.getElementById('main-media-placeholder');
     const trailer = document.getElementById('main-trailer');
     const playBtn = document.getElementById('play-btn');
@@ -474,10 +476,10 @@ function setMainMedia(url, index) {
     // Hide seek bar
     const videoControls = document.getElementById('video-controls');
     if (videoControls) videoControls.classList.add('hidden');
-    
+
     if (label) label.textContent = `Screenshot ${index + 1}`;
     if (title) title.textContent = `Gallery Preview`;
-    
+
     // Resume auto-slide after selecting manually
     startAutoSlide();
 }
@@ -485,7 +487,7 @@ function setMainMedia(url, index) {
 function renderRequirements(g) {
     const minEl = document.getElementById('req-min');
     const recEl = document.getElementById('req-rec');
-    
+
     if (g.minimumRequirements) {
         minEl.innerHTML = g.minimumRequirements.replace(/\n/g, '<br>');
     }
@@ -1041,14 +1043,14 @@ async function voteReview(reviewId, isLike) {
     }
 
     // Determine the current vote state from button classes to support toggle
-    const likeBtn    = document.getElementById(`like-btn-${reviewId}`);
+    const likeBtn = document.getElementById(`like-btn-${reviewId}`);
     const dislikeBtn = document.getElementById(`dislike-btn-${reviewId}`);
-    const alreadyLiked    = likeBtn    && likeBtn.classList.contains('text-emerald-400');
+    const alreadyLiked = likeBtn && likeBtn.classList.contains('text-emerald-400');
     const alreadyDisliked = dislikeBtn && dislikeBtn.classList.contains('text-red-400');
 
     // Toggle logic: clicking the active button removes the vote
     let sendIsLike = isLike;
-    if (isLike === true  && alreadyLiked)    sendIsLike = null;
+    if (isLike === true && alreadyLiked) sendIsLike = null;
     if (isLike === false && alreadyDisliked) sendIsLike = null;
 
     try {
@@ -1066,30 +1068,28 @@ async function voteReview(reviewId, isLike) {
         const updated = await res.json();
 
         // Update counts
-        const likeCount    = document.getElementById(`like-count-${reviewId}`);
+        const likeCount = document.getElementById(`like-count-${reviewId}`);
         const dislikeCount = document.getElementById(`dislike-count-${reviewId}`);
-        if (likeCount)    likeCount.textContent    = updated.likes    ?? 0;
+        if (likeCount) likeCount.textContent = updated.likes ?? 0;
         if (dislikeCount) dislikeCount.textContent = updated.dislikes ?? 0;
 
         // Update button styles
         if (likeBtn) {
             const active = updated.userVote === true;
-            likeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                active
+            likeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active
                     ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
                     : 'bg-white/5 border border-white/10 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30'
-            }`;
+                }`;
             const icon = likeBtn.querySelector('.material-symbols-outlined');
             if (icon) icon.className = `material-symbols-outlined text-[14px] ${active ? 'fill-icon' : ''}`;
         }
 
         if (dislikeBtn) {
             const active = updated.userVote === false;
-            dislikeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                active
+            dislikeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active
                     ? 'bg-red-500/20 border border-red-500/40 text-red-400'
                     : 'bg-white/5 border border-white/10 text-slate-500 hover:text-red-400 hover:border-red-500/30'
-            }`;
+                }`;
             const icon = dislikeBtn.querySelector('.material-symbols-outlined');
             if (icon) icon.className = `material-symbols-outlined text-[14px] ${active ? 'fill-icon' : ''}`;
         }
@@ -1104,7 +1104,7 @@ function _setStarClasses(containerSel, filledCount, hoverCount) {
     const labels = document.querySelectorAll(`${containerSel} label`);
     labels.forEach((label, i) => {
         label.classList.toggle('star-filled', i < filledCount);
-        label.classList.toggle('star-hover',  i < hoverCount);
+        label.classList.toggle('star-hover', i < hoverCount);
     });
 }
 
