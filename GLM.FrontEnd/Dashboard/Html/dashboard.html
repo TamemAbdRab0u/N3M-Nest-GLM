@@ -215,102 +215,70 @@
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex overflow-hidden">
-
-    <!-- Sidebar -->
-    <aside class="w-20 lg:w-64 flex-shrink-0 bg-[#0a1618] border-r border-[#1e293b] flex flex-col transition-all duration-300 z-20">
-        <!-- Logo -->
-        <div class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-[#1e293b]">
-            <div class="h-8 w-8 relative">
-                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-full w-full object-contain scale-125">
-            </div>
-            <span class="hidden lg:block ml-3 neon-xirod font-bold text-lg tracking-wide">
-                N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
-            </span>
-        </div>
-
-        <!-- Nav -->
-        <nav class="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
-            <a href="javascript:void(0)" onclick="selectView('catalog')" id="nav-catalog" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-lg bg-primary/10 text-primary transition-colors group">
-                <span class="material-symbols-outlined">dashboard</span>
-                <span class="hidden lg:block font-medium">Dashboard</span>
-            </a>
-            <a href="javascript:void(0)" onclick="selectView('library')" id="nav-library" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
-                <span class="material-symbols-outlined">stadia_controller</span>
-                <span class="hidden lg:block font-medium">My Library</span>
-            </a>
-            <a href="javascript:void(0)" onclick="selectView('favorites')" id="nav-favorites" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
-                <span class="material-symbols-outlined">favorite</span>
-                <span class="hidden lg:block font-medium">Favorites</span>
-            </a>
-            <a href="javascript:void(0)" onclick="selectView('wishlist')" id="nav-wishlist" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
-                <span class="material-symbols-outlined">bookmark</span>
-                <span class="hidden lg:block font-medium">Wishlist</span>
-            </a>
-            <a href="../../Community/Html/community.html" id="nav-community" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
-                <span class="material-symbols-outlined">group</span>
-                <span class="hidden lg:block font-medium">Community</span>
-            </a>
-             <div class="my-2 border-t border-[#1e293b]"></div>
-            <a href="javascript:void(0)" onclick="selectView('settings')" id="nav-settings" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e293b] transition-colors group">
-                <span class="material-symbols-outlined">settings</span>
-                <span class="hidden lg:block font-medium">Settings</span>
-            </a>
-        </nav>
-
-        <!-- User Profile (Bottom Sidebar) -->
-        <div class="p-4 border-t border-[#1e293b]">
-            <a href="../../Profile/Html/profile.html" id="nav-profile" class="user-profile flex items-center gap-3 cursor-pointer group hover:bg-[#1e293b]/50 p-2 rounded-xl transition-all">
-                <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform overflow-hidden">
-                    <span id="display-avatar" class="flex items-center justify-center w-full h-full">U</span>
-                </div>
-                <div class="hidden lg:block overflow-hidden">
-                    <p id="display-username" class="text-xs xirod-font text-white truncate">User</p>
-                    <p class="text-xs text-slate-400 truncate">Online</p>
-                </div>
-                <button onclick="logout(); event.preventDefault(); event.stopPropagation();" class="ml-auto text-slate-400 hover:text-error transition-colors lg:block hidden" title="Logout">
-                    <span class="material-symbols-outlined text-[20px]">logout</span>
-                </button>
-            </a>
-            <!-- Mobile Logout (only icon) -->
-            <button onclick="logout()" class="lg:hidden mt-4 w-full flex justify-center text-slate-400 hover:text-error">
-                 <span class="material-symbols-outlined">logout</span>
-            </button>
-        </div>
-    </aside>
+<body class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex flex-col overflow-hidden">
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full relative overflow-hidden">
         <!-- Background Image with Overlay -->
         <div class="absolute inset-0 z-0 pointer-events-none">
-             <div class="absolute inset-0 bg-[#0f2023]/90 z-10"></div>
-             <img src="../../Assets/Images/Bg1.jpg" class="w-full h-full object-cover opacity-40">
+             <div class="absolute inset-0 bg-[#0f2023]/92 z-10"></div>
+             <img src="../../Assets/Images/Bg1.jpg" class="w-full h-full object-cover opacity-30">
         </div>
 
-        <!-- Top Bar -->
-        <header class="h-16 flex items-center justify-between px-6 border-b border-[#1e293b] bg-[#0a1618]/80 backdrop-blur-md sticky top-0 z-20">
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                Welcome back, <span id="welcome-username" class="neon-username">Gamer</span>
-            </h2>
-            
+        <!-- Top Bar Navigation (Replaces Sidebar) -->
+        <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
+            <!-- Left: Brand & Main Nav -->
+            <div class="flex items-center gap-10">
+                <div class="flex items-center gap-3">
+                    <img src="../../Assets/Images/logo.png" alt="Logo" class="h-7 w-7 object-contain">
+                    <span class="neon-xirod font-bold text-base tracking-widest hidden sm:block">
+                        N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
+                    </span>
+                </div>
+                
+                <nav id="top-nav" class="hidden xl:flex items-center gap-1">
+                    <a href="javascript:void(0)" onclick="selectView('catalog')" id="nav-catalog" class="nav-item active flex items-center gap-2 px-4 py-2 rounded-xl text-primary bg-primary/10 text-[10px] xirod-font hover:bg-primary/20 transition-all">
+                        <span class="material-symbols-outlined text-sm">dashboard</span> CATALOG
+                    </a>
+                    <a href="javascript:void(0)" onclick="selectView('library')" id="nav-library" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                        <span class="material-symbols-outlined text-sm">stadia_controller</span> LIBRARY
+                    </a>
+                    <a href="javascript:void(0)" onclick="selectView('favorites')" id="nav-favorites" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                        <span class="material-symbols-outlined text-sm">favorite</span> FAVORITES
+                    </a>
+                    <a href="javascript:void(0)" onclick="selectView('wishlist')" id="nav-wishlist" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                        <span class="material-symbols-outlined text-sm">bookmark</span> WISHLIST
+                    </a>
+                    <a href="../../Community/Html/community.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                        <span class="material-symbols-outlined text-sm">group</span> COMMUNITY
+                    </a>
+                </nav>
+
+            </div>
+
+            <!-- Right: Account & Notifications -->
             <div class="flex items-center gap-4">
-                <div class="relative" id="notif-wrapper">
-                    <button id="notification-btn" onclick="toggleNotifDropdown()"
-                        class="h-10 w-10 rounded-full bg-[#1e292b]/60 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-[#1e292b] transition-all group overflow-visible relative">
-                        <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
-                        <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(13,242,242,0.8)] animate-pulse">0</span>
-                    </button>
-                    <div id="notif-dropdown" class="hidden absolute top-[calc(100%+10px)] right-0 w-80 bg-[#0a1618] border border-[#1e293b] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[200] overflow-hidden backdrop-blur-xl">
-                        <div class="px-5 py-4 border-b border-[#1e293b] flex items-center justify-between">
-                            <h3 class="text-xs xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
-                            <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
-                        </div>
-                        <div id="notif-list" class="overflow-y-auto" style="max-height:360px;scrollbar-width:thin;scrollbar-color:#1e293b transparent"></div>
-                        <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
-                            <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                            <p class="text-xs xirod-font text-slate-600 uppercase tracking-wider">No pending requests</p>
-                        </div>
+                <!-- Header Search -->
+                <div class="hidden lg:flex items-center relative search-bar">
+                    <span class="absolute left-3 flex items-center pointer-events-none text-slate-500">
+                        <span class="material-symbols-outlined text-base">search</span>
+                    </span>
+                    <input type="text" placeholder="Search games..." 
+                           class="h-9 w-48 xl:w-64 rounded-xl bg-white/5 border border-white/10 text-xs text-white pl-10 pr-4 focus:outline-none focus:w-80 transition-all focus:border-primary/50 placeholder-slate-600 bg-black/20">
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex flex-col items-end">
+                         <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">Gamer</span>
+                         <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
                     </div>
+                    <a href="../../Profile/Html/profile.html" class="group relative">
+                        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                            <div class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                                <span id="display-avatar" class="text-sm font-bold text-white">U</span>
+                            </div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </header>
@@ -318,125 +286,14 @@
         <!-- Scrollable Content -->
         <div id="games-view" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
             
-            <!-- Header & Search Section -->
-            <div class="mb-14 w-full max-w-5xl mx-auto text-center">
-                <h3 class="header-title text-5xl font-black text-white mb-2 tracking-tight neon-text-white">Catalog Games</h3>
-                <p id="total-games" class="text-slate-500 font-medium mb-10 text-lg">0 Games</p>
-
-                <!-- Top Search Bar -->
-                <div class="relative w-full max-w-4xl mx-auto mb-10 search-bar">
-                    <span class="absolute inset-y-0 left-0 pl-8 flex items-center pointer-events-none text-slate-400">
-                        <span class="material-symbols-outlined text-[32px]">search</span>
-                    </span>
-                    <input type="text" placeholder="Search for games, platforms, and categories..." 
-                           class="h-16 w-full rounded-full bg-[#1e292b]/60 backdrop-blur-xl border border-[#2e616b]/40 text-white pl-20 pr-10 text-lg focus:outline-none placeholder-slate-500 shadow-2xl shadow-black/80 font-medium border-none ring-0 focus:ring-0">
-                </div>
-
-                <!-- Filters Row -->
-                <div class="flex flex-wrap items-center justify-center gap-6 px-4">
-                    <!-- Main Filters -->
-                    <div class="flex flex-wrap items-center justify-center gap-3">
-                        <div class="relative group" id="category-filter-container">
-                            <button id="category-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
-                                <span id="current-category">Category</span> <span class="material-symbols-outlined text-sm">expand_more</span>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div id="category-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] max-h-80 overflow-y-auto custom-scrollbar">
-                                <div class="p-2 space-y-1" id="category-list">
-                                    <!-- Dynamic categories -->
-                                    <div class="flex items-center justify-center py-4 text-slate-500">
-                                        <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="relative group" id="platform-filter-container">
-                            <button id="platform-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
-                                <span id="current-platform">Platforms</span> <span class="material-symbols-outlined text-sm">expand_more</span>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div id="platform-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] max-h-80 overflow-y-auto custom-scrollbar">
-                                <div class="p-2 space-y-1" id="platform-list">
-                                    <div class="flex items-center justify-center py-4 text-slate-500">
-                                        <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="relative group" id="rating-filter-container">
-                            <button id="rating-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
-                                <span id="current-rating">Rating</span> <span class="material-symbols-outlined text-sm">expand_more</span>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div id="rating-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] overflow-hidden">
-                                <div class="p-2 space-y-1">
-                                    <button onclick="setRatingOrdering('', 'Rating')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium">
-                                        All Ratings
-                                    </button>
-                                    <button onclick="setRatingOrdering('-rating', 'Highest to Lowest')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center justify-between">
-                                        Highest to Lowest <span class="material-symbols-outlined text-xs">arrow_downward</span>
-                                    </button>
-                                    <button onclick="setRatingOrdering('rating', 'Lowest to Highest')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center justify-between">
-                                        Lowest to Highest <span class="material-symbols-outlined text-xs">arrow_upward</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="relative group" id="release-filter-container">
-                            <button id="release-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
-                                <span id="current-release">Release</span> <span class="material-symbols-outlined text-sm">expand_more</span>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div id="release-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] max-h-80 overflow-y-auto custom-scrollbar">
-                                <div class="p-2 space-y-1" id="release-year-list">
-                                    <!-- Dynamic years -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="relative group hidden" id="status-filter-container">
-                            <button id="status-filter-btn" class="px-5 py-2.5 rounded-full bg-[#1e292b]/40 border border-[#2e616b]/30 text-slate-300 flex items-center gap-2 hover:bg-[#1e292b]/80 hover:text-white transition-all shadow-lg text-sm font-semibold">
-                                <span id="current-status">Status</span> <span class="material-symbols-outlined text-sm">expand_more</span>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div id="status-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618] border border-[#2e616b]/40 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] overflow-hidden">
-                                <div class="p-2 space-y-1" id="status-filter-list">
-                                    <button onclick="setStatusFilter('', 'Status')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium">
-                                        All Statuses
-                                    </button>
-                                    <button onclick="setStatusFilter('6', 'Pending')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-xs text-slate-400">schedule</span> Pending
-                                    </button>
-                                    <button onclick="setStatusFilter('1', 'Playing')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-xs text-primary">play_circle</span> Playing
-                                    </button>
-                                    <button onclick="setStatusFilter('3', 'Completed')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-xs text-green-500">task_alt</span> Completed
-                                    </button>
-                                    <button onclick="setStatusFilter('4', 'Dropped')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-xs text-red-400">do_not_disturb_on</span> Dropped
-                                    </button>
-                                    <button onclick="setStatusFilter('5', 'On Hold')" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-primary/20 hover:text-white rounded-xl transition-all font-medium flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-xs text-yellow-500">pause_circle</span> On Hold
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="hidden md:block h-6 w-px bg-slate-700 mx-2 opacity-50"></div>
-
-                        <button onclick="clearAllFilters()" class="px-6 py-2.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 flex items-center gap-2 hover:bg-red-500/20 transition-all shadow-lg text-sm font-bold">
-                            <span class="material-symbols-outlined text-lg">filter_alt_off</span> Clear All
-                        </button>
-                    </div>
-                </div>
+            <!-- Header Section -->
+            <div class="mb-10 w-full max-w-5xl mx-auto text-center">
+                <h3 class="header-title text-4xl font-black text-white mb-2 tracking-tight neon-text-white uppercase italic">Catalog Games</h3>
+                <p id="total-games" class="text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">0 Games loaded</p>
             </div>
 
             <!-- Games Grid -->
-            <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 md:gap-2">
                 <!-- Game Cards will be injected here by dashboard.js -->
                  <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
                     <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -461,12 +318,10 @@
             </footer>
         </div>
     </main>
-    </main>
 
     <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script src="../../Auth/Js/auth.js"></script>
-    <script src="../../Shared/Js/notifications.js"></script>
     <script src="../Js/dashboard.js"></script>
 </body>
 </html>

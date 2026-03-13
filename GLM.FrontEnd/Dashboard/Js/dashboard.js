@@ -126,8 +126,7 @@ function handleCatalogInfiniteScroll() {
 // Display user information
 function displayUserInfo() {
     const userInfo = getUserInfo();
-    const usernameElements = document.querySelectorAll('#display-username, #welcome-username');
-    const displayAvatar = document.getElementById('display-avatar');
+    const usernameElements = document.querySelectorAll('#display-username, #welcome-username, #display-username-top');
 
     usernameElements.forEach(el => {
         el.textContent = userInfo.userName || 'User';
@@ -142,8 +141,8 @@ async function fetchProfileInfo() {
         const response = await apiRequest('/api/Profile');
         if (response.ok) {
             const profile = await response.json();
-            const usernameElements = document.querySelectorAll('#display-username, #welcome-username');
-            const displayAvatar = document.getElementById('display-avatar');
+            const usernameElements = document.querySelectorAll('#display-username, #welcome-username, #display-username-top');
+            const avatarContainers = document.querySelectorAll('#display-avatar, #display-avatar-top');
 
             if (profile.displayName) {
                 usernameElements.forEach(el => {
@@ -157,18 +156,20 @@ async function fetchProfileInfo() {
             }
 
             const resolvedAvatar = profile.avatarUrl;
-            if (resolvedAvatar && displayAvatar) {
-                // Remove initial text icon and add image
-                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}" class="h-full w-full object-cover rounded-full">`;
-                
-                // Remove background gradient from parent div if it exists
-                const parent = displayAvatar.parentElement;
-                if (parent && parent.classList.contains('bg-gradient-to-tr')) {
-                    parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
-                    parent.classList.add('bg-transparent');
-                }
-            } else if (displayAvatar && profile.displayName) {
-                displayAvatar.textContent = profile.displayName.charAt(0).toUpperCase();
+            if (resolvedAvatar && avatarContainers.length > 0) {
+                avatarContainers.forEach(container => {
+                    container.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}" class="h-full w-full object-cover">`;
+                    
+                    // Remove background gradient from parent div if it exists
+                    const parent = container.parentElement;
+                    if (parent && parent.classList.contains('bg-gradient-to-tr')) {
+                        parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
+                    }
+                });
+            } else if (profile.displayName) {
+                avatarContainers.forEach(container => {
+                    container.textContent = profile.displayName.charAt(0).toUpperCase();
+                });
             }
         }
     } catch (error) {
@@ -225,13 +226,13 @@ function selectView(view) {
     // Update Nav UI
     document.querySelectorAll('.nav-item').forEach(el => {
         el.classList.remove('active', 'bg-primary/10', 'text-primary');
-        el.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-[#1e293b]');
+        el.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-white/5');
     });
     
     const activeNav = document.getElementById(`nav-${view}`);
     if (activeNav) {
         activeNav.classList.add('active', 'bg-primary/10', 'text-primary');
-        activeNav.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-[#1e293b]');
+        activeNav.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-white/5');
     }
 
     // Update Header Text
@@ -640,7 +641,7 @@ function appendGames(games) {
 // Create game card element
 function createGameCard(game) {
     const card = document.createElement('div');
-    card.className = 'group bg-[#1e292b] rounded-xl overflow-hidden border border-[#2e616b]/30 hover:border-primary/50 transition-all duration-300 relative hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 cursor-pointer';
+    card.className = 'group bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10 hover:border-primary/30 transition-all duration-300 relative cursor-pointer';
     
     const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
     const hqLandscapeImageUrl = String(imageUrl).includes('/header.jpg')
@@ -659,62 +660,28 @@ function createGameCard(game) {
         }
     }
 
-    // Platforms text (shown on card body, not only icons)
-    let platformsText = 'PC';
-    if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
-        const normalizedPlatforms = game.platforms
-            .map(p => {
-                if (typeof p === 'string') return p;
-                return p.name || p.slug || '';
-            })
-            .map(p => String(p).trim())
-            .filter(Boolean);
-
-        if (normalizedPlatforms.length > 0) {
-            platformsText = [...new Set(normalizedPlatforms)].join(' • ');
-        }
-    }
-
-    // Release Year Badge
-    let releaseYearBadge = '';
+    // Release Year
+    let releaseYear = '';
     const rawRelease = game.releaseDate || game.released || game.release_date || '';
     if (rawRelease) {
-        let releaseYear = null;
         const parsedDate = new Date(rawRelease);
         if (!Number.isNaN(parsedDate.getTime())) {
             releaseYear = parsedDate.getFullYear();
         }
-
-        if (!releaseYear) {
-            const yearMatch = String(rawRelease).match(/(19|20)\d{2}/);
-            if (yearMatch) releaseYear = parseInt(yearMatch[0], 10);
-        }
-
-        if (releaseYear) {
-            releaseYearBadge = `<span class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider h-fit mt-1">
-                ${releaseYear}
-            </span>`;
-        }
     }
 
-    // Platform Icons (Bottom Left)
-    let platformIconsPanel = ''; 
+    // Platform Icons
+    let platformIcons = ''; 
     if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
         const uniqueIcons = new Set();
         const icons = game.platforms.map(slug => {
             let svgIcon = '';
             const s = (typeof slug === 'string' ? slug : slug.slug || slug.name || '').toLowerCase();
             
-    // Map common slugs to icons (using even smaller sizes for compact view)
             if (s.includes('pc') || s.includes('windows')) svgIcon = `<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"></path></svg>`;
-            else if (s.includes('playstation') || s.includes('ps5')) svgIcon = `<i class="fab fa-playstation text-[10px]"></i>`;
-            else if (s.includes('ps4') || s.includes('ps3')) svgIcon = `<i class="fab fa-playstation text-[10px]"></i>`;
+            else if (s.includes('playstation') || s.includes('ps5') || s.includes('ps4')) svgIcon = `<i class="fab fa-playstation text-[10px]"></i>`;
             else if (s.includes('xbox')) svgIcon = `<i class="fab fa-xbox text-[10px]"></i>`;
             else if (s.includes('nintendo') || s.includes('switch')) svgIcon = `<i class="bi bi-nintendo-switch text-[11px]"></i>`; 
-            else if (s.includes('mac') || s.includes('macos') || s.includes('apple')) svgIcon = `<i class="fab fa-apple text-[11px]"></i>`;
-            else if (s.includes('linux')) svgIcon = `<i class="fab fa-linux text-[11px]"></i>`;
-            else if (s.includes('android')) svgIcon = `<i class="fab fa-android text-[11px]"></i>`;
-            else if (s.includes('ios') || s.includes('iphone')) svgIcon = `<i class="bi bi-phone text-[11px]"></i>`;
             else return ''; 
 
             if (uniqueIcons.has(svgIcon)) return ''; 
@@ -723,7 +690,7 @@ function createGameCard(game) {
         }).filter(icon => icon !== '').join('');
 
         if (icons) {
-            platformIconsPanel = `
+            platformIcons = `
                 <div class="absolute bottom-3 left-3 glass-panel px-2.5 py-1 rounded-full flex items-center gap-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-10 pointer-events-none">
                     ${icons}
                 </div>
@@ -731,9 +698,8 @@ function createGameCard(game) {
         }
     }
 
-    // Status Indicators (Small icons grouped)
+    // Status / Inventory Indicators
     const getStatusIcon = (status) => {
-        // Handle both string and numeric values from backend
         const s = String(status).toLowerCase();
         if (s === 'playing' || s === '1') return { icon: 'play_circle', color: 'text-primary', label: 'Playing' };
         if (s === 'whishlist' || s === '2') return { icon: 'bookmark', color: 'text-blue-400', label: 'Wishlist' };
@@ -745,148 +711,133 @@ function createGameCard(game) {
     };
 
     const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
-    
-    // Check if status is Pending (either string name or enum ID)
     const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
-    
+
     const gameStatusIndicator = isPending ? `
-        <div data-status-for="${gameId}" class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg" title="Status Pending">
+        <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg">
                 <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
         </div>` : (statusObj ? `
-        <div data-status-for="${gameId}" class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
+        <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
                 <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-        </div>` : `<div data-status-for="${gameId}"></div>`);
+        </div>` : '');
 
     const inventoryIndicators = `
-        <div data-inventory-for="${gameId}" class="flex justify-end gap-2 mt-2">
+        <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
             ${game.isInWishlist ? `
-                <div class="h-7 w-7 rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-blue-400/10" title="In Wishlist">
-                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon">bookmark</span>
+                <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist">
+                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span>
                 </div>` : ''}
             ${game.isFavorite ? `
-                <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
-                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
+                <div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm" title="Favorited">
+                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span>
                 </div>` : ''}
             ${game.isInLibrary ? `
-                <div class="h-7 w-7 rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-green-500/10" title="In Library">
-                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon">inventory_2</span>
+                <div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm" title="In Library">
+                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span>
                 </div>` : ''}
         </div>
     `;
 
-    // Status Selector (Only if in library)
-    let statusSelectorHtml = '';
-    if (game.isInLibrary && currentView === 'library') {
-        const statuses = [
-            { id: 1, label: 'Playing', icon: 'play_circle' },
-            { id: 3, label: 'Completed', icon: 'task_alt' },
-            { id: 4, label: 'Dropped', icon: 'do_not_disturb_on' },
-            { id: 5, label: 'On Hold', icon: 'pause_circle' }
-        ];
-        
-        statusSelectorHtml = `
-            <div class="mt-4 pt-4 border-t border-[#2e616b]/20 flex items-center justify-between pointer-events-auto">
-                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Game Status</span>
-                <div class="flex gap-1.5">
-                    ${statuses.map(s => `
-                        <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
-                                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all 
-                                ${String(game.gamestatus).toLowerCase() === String(s.id) || String(game.gamestatus).toLowerCase() === s.label.toLowerCase().replace(' ', '') ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-slate-800/40 text-slate-500 hover:bg-slate-700/60 hover:text-slate-300'}" 
-                                title="${s.label}">
-                            <span class="material-symbols-outlined text-[16px]">${s.icon}</span>
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // Favorite/Library Button State logic
-    const favTitle = game.isFavorite ? 'Remove from Favorites' : 'Add to Favorites';
-    const libTitle = game.isInLibrary ? 'Remove from Library' : 'Add to Library';
-    const wishlistTitle = game.isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist';
-    
-    // Icons are now consistent regardless of state
-    const libIcon = 'inventory_2';
-    const wishlistIcon = 'bookmark';
-    
-    // Timestamp for library/favorites views
-    let timestampDisplay = '';
-    
-    // Use clearer text colors and remove fill-icon from button context (move to span)
+    // Button states
     const favBtnClass = game.isFavorite ? 'text-red-500' : 'text-white/70 hover:text-red-400';
     const libClass = game.isInLibrary ? 'text-green-500' : 'text-white/70 hover:text-primary';
     const wishlistClass = game.isInWishlist ? 'text-blue-400' : 'text-white/70 hover:text-blue-400';
 
-    // Wishlist is mutually exclusive with Library and Favorite
-    const isFavDisabled = game.isInWishlist === true;
-    const isLibDisabled = game.isInWishlist === true;
-    const isWishlistDisabled = game.isFavorite === true || game.isInLibrary === true;
-
-    const favTitleMsg = isFavDisabled ? 'Remove from Wishlist first' : favTitle;
-    const libTitleMsg = isLibDisabled ? 'Remove from Wishlist first' : libTitle;
-    const wishTitleMsg = isWishlistDisabled ? (game.isInLibrary ? 'Remove from Library first' : 'Remove from Favorites first') : wishlistTitle;
+    // Show/Hide buttons based on current view
+    const showFavBtn = currentView !== 'wishlist';
+    const showLibBtn = currentView !== 'wishlist';
+    const showWishBtn = currentView !== 'library' && currentView !== 'favorites';
 
     card.innerHTML = `
-        <!-- Image & Actions -->
+        <!-- Image Container -->
         <div class="relative aspect-[16/9] overflow-hidden bg-[#0f1a1d]">
             <img
                 src="${hqLandscapeImageUrl}"
                 data-fallback-src="${imageUrl}"
                 alt="${title}"
                 loading="lazy"
-                decoding="async"
-                class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                 onerror="if (this.dataset.fallbackSrc && this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='../../Assets/Images/logo.png';"
             >
-
-            <!-- Action Buttons (Top Right) -->
-            <div class="absolute top-4 right-4 flex flex-col gap-3 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
-                <button data-fav-btn-for="${gameId}" class="w-11 h-11 glass-neon-btn ${favBtnClass} group/heart ${isFavDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
-                        title="${favTitleMsg}" 
-                        ${isFavDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToFavorites('${gameId}')"`}>
-                    <span class="material-symbols-outlined text-[24px] ${!isFavDisabled ? 'group-hover/heart:scale-110' : ''} transition-transform ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
-                </button>
-                <button data-lib-btn-for="${gameId}" class="w-11 h-11 glass-neon-btn ${libClass} group/add ${isLibDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
-                        title="${libTitleMsg}" 
-                        ${isLibDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToLibrary('${gameId}')"`}>
-                    <span class="material-symbols-outlined text-[24px] ${!isLibDisabled ? 'group-hover/add:scale-110' : ''} transition-transform ${game.isInLibrary ? 'fill-icon' : ''}">${libIcon}</span>
-                </button>
-                <button data-wish-btn-for="${gameId}" class="w-11 h-11 glass-neon-btn ${wishlistClass} group/wish ${isWishlistDisabled ? 'opacity-40 cursor-not-allowed' : ''}" 
-                        title="${wishTitleMsg}" 
-                        ${isWishlistDisabled ? 'disabled' : `onclick="event.stopPropagation(); addToWishlist('${gameId}')"`}>
-                    <span class="material-symbols-outlined text-[24px] ${!isWishlistDisabled ? 'group-hover/wish:scale-110' : ''} transition-transform ${game.isInWishlist ? 'fill-icon' : ''}">${wishlistIcon}</span>
-                </button>
+            
+            <!-- Side Actions (Old Design Style) -->
+            <div class="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
+                ${showFavBtn ? `
+                <button onclick="event.stopPropagation(); addToFavorites('${gameId}')" 
+                        data-game-id="${gameId}" data-btn-type="favorite"
+                        class="w-9 h-9 glass-neon-btn ${favBtnClass}" title="Favorite">
+                    <span class="material-symbols-outlined text-lg ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
+                </button>` : ''}
+                ${showLibBtn ? `
+                <button onclick="event.stopPropagation(); addToLibrary('${gameId}')" 
+                        data-game-id="${gameId}" data-btn-type="library"
+                        class="w-9 h-9 glass-neon-btn ${libClass}" title="Library">
+                    <span class="material-symbols-outlined text-lg ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
+                </button>` : ''}
+                ${showWishBtn ? `
+                <button onclick="event.stopPropagation(); addToWishlist('${gameId}')" 
+                        data-game-id="${gameId}" data-btn-type="wishlist"
+                        class="w-9 h-9 glass-neon-btn ${wishlistClass}" title="Wishlist">
+                    <span class="material-symbols-outlined text-lg ${game.isInWishlist ? 'fill-icon' : ''}">bookmark</span>
+                </button>` : ''}
             </div>
 
-            ${platformIconsPanel}
-            
-            <!-- Game Status & Added At Group -->
-            <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5">
-                ${gameStatusIndicator}
-                ${game.addedAt ? `
-                    <div data-added-at-for="${gameId}" class="${isPending ? 'hidden ' : ''}h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg">
-                        <span class="material-symbols-outlined text-[15px] text-primary/70 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">schedule</span>
-                        <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[200px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-primary/90 whitespace-nowrap">added ${getRelativeTime(game.addedAt)}</span>
+            ${platformIcons}
+
+            <!-- Status Indicator (Old Place) -->
+            <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
+                ${game.isInLibrary ? `
+                <div class="group/status relative">
+                    ${gameStatusIndicator}
+                    
+                    <!-- Status Dropdown (Hover) -->
+                    <div class="absolute bottom-full right-0 pb-3 opacity-0 translate-y-2 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-y-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+                        <div class="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[130px] p-1.5 flex flex-col gap-1">
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 1)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-primary">play_circle</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Playing</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 3)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-green-500">task_alt</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Completed</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 5)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-yellow-500">pause_circle</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">On Hold</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 4)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-red-500">do_not_disturb_on</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Dropped</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                ` : gameStatusIndicator}
+
+                ${(currentView !== 'catalog' && game.addedAt) ? `
+                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time" title="Added At">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">history</span>
+                        <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-slate-200 whitespace-nowrap">Added ${getRelativeTime(game.addedAt)}</span>
                     </div>
                 ` : ''}
             </div>
         </div>
 
-        <!-- Info Section -->
-        <div class="p-6">
-            <div class="flex items-start justify-between mb-2 gap-3">
-                <div class="overflow-hidden flex-1">
-                    <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate mb-1" title="${title}">${title}</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-5">${category}</p>
+        <!-- Info Area -->
+        <div class="px-2 py-3 bg-[#1e292b]">
+            <div class="flex items-start justify-between gap-2 overflow-hidden">
+                <div class="min-w-0 flex-1">
+                    <h2 class="text-[12px] font-bold text-[#4481eb] truncate group-hover:text-primary transition-colors leading-tight mb-1" title="${title}">${title}</h2>
+                    <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider truncate">${category.split(' • ')[0]}</p>
                 </div>
-                <div class="flex flex-col items-end">
-                    ${releaseYearBadge}
-                    ${inventoryIndicators}
+                <div class="flex flex-col items-end shrink-0 gap-1">
+                    ${releaseYear ? `<span class="text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded">${releaseYear}</span>` : ''}
+                    <div class="scale-75 origin-top-right -mt-1" data-inventory-for="${gameId}">
+                        ${inventoryIndicators}
+                    </div>
                 </div>
             </div>
-            ${statusSelectorHtml}
         </div>
     `;
 
@@ -1266,51 +1217,29 @@ function updateFavoriteUI(gameId, isFavorite) {
         updateStatusIndicators(gameId, cachedGame);
     }
 
-    // Update specific favorite buttons (animation and titles)
-    const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
+    // Update specific favorite buttons
+    const favButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="favorite"]`);
     favButtons.forEach(btn => {
         const iconSpan = btn.querySelector('.material-symbols-outlined');
         if (iconSpan) {
             if (isFavorite) {
-                 btn.classList.add('text-red-500');
-                 btn.classList.remove('text-white/70', 'hover:text-red-400');
-                 iconSpan.classList.add('fill-icon', 'animate-pop');
-                 btn.title = 'Remove from Favorites';
-                 setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
+                btn.classList.add('text-red-500');
+                btn.classList.remove('text-white/70', 'hover:text-red-400');
+                iconSpan.classList.add('fill-icon', 'animate-pop');
+                btn.title = 'Remove from Favorites';
+                setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
             } else {
-                 btn.classList.remove('text-red-500');
-                 btn.classList.add('text-white/70', 'hover:text-red-400');
-                 iconSpan.classList.remove('fill-icon');
-                 btn.title = 'Add to Favorites';
-            }
-        }
-    });
-
-    // Mutual exclusivity UI (Wishlist button)
-    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
-    wishButtons.forEach(btn => {
-        if (isFavorite) {
-            btn.disabled = true;
-            btn.classList.add('opacity-40', 'cursor-not-allowed');
-            btn.title = 'Cannot wishlist favorite games';
-            btn.classList.remove('text-blue-400');
-            btn.classList.add('text-white/70');
-            btn.querySelector('.material-symbols-outlined')?.classList.remove('fill-icon');
-        } else {
-            const isWishDisabledByView = currentView === 'favorites' || currentView === 'library';
-            btn.disabled = isWishDisabledByView;
-            if (!isWishDisabledByView) {
-                btn.classList.remove('opacity-40', 'cursor-not-allowed');
-                btn.title = 'Add to Wishlist';
-            } else {
-                btn.title = 'Management disabled in this view';
+                btn.classList.remove('text-red-500');
+                btn.classList.add('text-white/70', 'hover:text-red-400');
+                iconSpan.classList.remove('fill-icon');
+                btn.title = 'Add to Favorites';
             }
         }
     });
 
     // Handle view-specific item removal
     if (currentView === 'favorites' && !isFavorite) {
-        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        const cardToRemove = document.querySelector(`button[data-game-id="${gameId}"]`)?.closest('.group');
         if (cardToRemove) {
             cardToRemove.classList.add('opacity-0', 'scale-90');
             setTimeout(() => {
@@ -1329,9 +1258,9 @@ function updateStatusIndicators(gameId, game) {
     const statusContainers = document.querySelectorAll(`[data-status-for="${gameId}"]`);
     const addedAtContainers = document.querySelectorAll(`[data-added-at-for="${gameId}"]`);
     const inventoryContainers = document.querySelectorAll(`[data-inventory-for="${gameId}"]`);
-    const libButtons = document.querySelectorAll(`[data-lib-btn-for="${gameId}"]`);
-    const favButtons = document.querySelectorAll(`[data-fav-btn-for="${gameId}"]`);
-    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
+    const favButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="favorite"]`);
+    const libButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="library"]`);
+    const wishButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="wishlist"]`);
     
     // Status Icon Logic (Helper)
     const getStatusIcon = (status) => {
@@ -1350,23 +1279,63 @@ function updateStatusIndicators(gameId, game) {
 
     // Update Image Status
     statusContainers.forEach(container => {
-        if (!game.isInLibrary) {
-            // Not in library — clear status icon entirely
-            container.className = '';
-            container.innerHTML = '';
-            return;
-        }
-        if (isPending) {
-            container.className = 'h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg';
+        // Add fade out effect
+        container.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
+        container.style.opacity = '0';
+        container.style.transform = 'scale(0.95)';
+
+        setTimeout(() => {
+            if (!game.isInLibrary) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let badgeHtml = '';
+            if (isPending) {
+                 badgeHtml = `
+                    <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg">
+                            <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
+                    </div>`;
+            } else if (statusObj) {
+                 badgeHtml = `
+                    <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
+                            <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
+                            <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
+                    </div>`;
+            }
+
             container.innerHTML = `
-                <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>`;
-        } else {
-            container.className = 'h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg';
-            container.innerHTML = statusObj ? `
-                    <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
-                    <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-                ` : '';
-        }
+                <div class="group/status relative">
+                    ${badgeHtml}
+                    <!-- Status Dropdown (Hover) -->
+                    <div class="absolute bottom-full right-0 pb-3 opacity-0 translate-y-2 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-y-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+                        <div class="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[130px] p-1.5 flex flex-col gap-1">
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 1)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-primary">play_circle</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Playing</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 3)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-green-500">task_alt</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Completed</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 5)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-yellow-500">pause_circle</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">On Hold</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 4)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
+                                <span class="material-symbols-outlined text-[15px] text-red-500">do_not_disturb_on</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Dropped</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            
+            // Fade In
+            requestAnimationFrame(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'scale(1)';
+            });
+        }, 200);
     });
 
     addedAtContainers.forEach(container => {
@@ -1376,88 +1345,42 @@ function updateStatusIndicators(gameId, game) {
     // Update Inventory Indicators (Below title)
     inventoryContainers.forEach(container => {
         container.innerHTML = `
-            ${game.isInWishlist ? `
-                <div class="h-7 w-7 rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-blue-400/10" title="In Wishlist">
-                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon">bookmark</span>
-                </div>` : ''}
-            ${game.isFavorite ? `
-                <div class="h-7 w-7 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-red-500/10" title="Favorited">
-                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
-                </div>` : ''}
-            ${game.isInLibrary ? `
-                <div class="h-7 w-7 rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-green-500/10" title="In Library">
-                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon">inventory_2</span>
-                </div>` : ''}
+            <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
+                ${game.isInWishlist ? `
+                    <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist">
+                        <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span>
+                    </div>` : ''}
+                ${game.isFavorite ? `
+                    <div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm" title="Favorited">
+                        <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span>
+                    </div>` : ''}
+                ${game.isInLibrary ? `
+                    <div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm" title="In Library">
+                        <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span>
+                    </div>` : ''}
+            </div>
         `;
     });
 
-    // Update Overlay Buttons
-    const favLocked = game.isInWishlist === true;
-    const libLocked = game.isInWishlist === true;
-    const wishLocked = game.isFavorite === true || game.isInLibrary === true;
-
-    favButtons.forEach(btn => {
-        btn.classList.remove('text-red-500', 'text-white/70', 'hover:text-red-400', 'opacity-40', 'cursor-not-allowed');
-        btn.disabled = favLocked;
-        const icon = btn.querySelector('.material-symbols-outlined');
-        if (favLocked) {
-            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
-            btn.title = 'Remove from Wishlist first';
-            if (icon) icon.classList.remove('fill-icon');
-        } else if (game.isFavorite) {
-            btn.classList.add('text-red-500');
-            btn.title = 'Remove from Favorites';
-            if (icon) icon.classList.add('fill-icon');
-        } else {
-            btn.classList.add('text-white/70', 'hover:text-red-400');
-            btn.title = 'Add to Favorites';
-            if (icon) icon.classList.remove('fill-icon');
-        }
-    });
-
-    libButtons.forEach(btn => {
-        btn.classList.remove('text-green-500', 'text-white/70', 'hover:text-primary', 'opacity-40', 'cursor-not-allowed');
-        btn.disabled = libLocked;
-        const icon = btn.querySelector('.material-symbols-outlined');
-        if (libLocked) {
-            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
-            btn.title = 'Remove from Wishlist first';
-            if (icon) { icon.textContent = 'inventory_2'; icon.classList.remove('fill-icon'); }
-        } else if (game.isInLibrary) {
-            btn.classList.add('text-green-500');
-            btn.title = 'Remove from Library';
-            if (icon) { icon.textContent = 'inventory_2'; icon.classList.add('fill-icon'); }
-        } else {
-            btn.classList.add('text-white/70', 'hover:text-primary');
-            btn.title = 'Add to Library';
-            if (icon) { icon.textContent = 'inventory_2'; icon.classList.remove('fill-icon'); }
-        }
-    });
-
-    wishButtons.forEach(btn => {
-        btn.classList.remove('text-blue-400', 'text-white/70', 'hover:text-blue-400', 'opacity-40', 'cursor-not-allowed');
-        btn.disabled = wishLocked;
-        const icon = btn.querySelector('.material-symbols-outlined');
-        if (wishLocked) {
-            btn.classList.add('text-white/70', 'opacity-40', 'cursor-not-allowed');
-            btn.title = game.isInLibrary ? 'Remove from Library first' : 'Remove from Favorites first';
-            if (icon) { icon.textContent = 'bookmark'; icon.classList.remove('fill-icon'); }
-        } else if (game.isInWishlist) {
-            btn.classList.add('text-blue-400');
-            btn.title = 'Remove from Wishlist';
-            if (icon) { icon.textContent = 'bookmark'; icon.classList.add('fill-icon'); }
-            if (icon) {
-                icon.textContent = 'bookmark';
-                icon.classList.add('fill-icon', 'animate-pop');
-                // Remove pop animation after it completes
-                setTimeout(() => icon.classList.remove('animate-pop'), 450);
+    // Update Overlay Buttons Styles
+    const updateBtn = (btns, isActive, activeClass, inactiveClass) => {
+        btns.forEach(btn => {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (isActive) {
+                btn.classList.add(...activeClass.split(' '));
+                btn.classList.remove(...inactiveClass.split(' '));
+                icon?.classList.add('fill-icon');
+            } else {
+                btn.classList.remove(...activeClass.split(' '));
+                btn.classList.add(...inactiveClass.split(' '));
+                icon?.classList.remove('fill-icon');
             }
-        } else {
-            btn.classList.add('text-white/70', 'hover:text-blue-400');
-            btn.title = 'Add to Wishlist';
-            if (icon) { icon.textContent = 'bookmark'; icon.classList.remove('fill-icon'); }
-        }
-    });
+        });
+    };
+
+    updateBtn(favButtons, game.isFavorite, 'text-red-500', 'text-white/70 hover:text-red-400');
+    updateBtn(libButtons, game.isInLibrary, 'text-green-500', 'text-white/70 hover:text-primary');
+    updateBtn(wishButtons, game.isInWishlist, 'text-blue-400', 'text-white/70 hover:text-blue-400');
 }
 
 // Add to Library
@@ -1490,7 +1413,7 @@ async function addToLibrary(gameIdOrObj) {
 }
 
 function updateLibraryUI(gameId, isInLibrary) {
-     const buttons = document.querySelectorAll(`button[onclick*="'${gameId}'"]`);
+     const buttons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="library"]`);
      
      buttons.forEach(btn => {
          const iconSpan = btn.querySelector('.material-symbols-outlined');
@@ -1589,7 +1512,7 @@ function updateWishlistUI(gameId, isInWishlist) {
         // If on wishlist, it cannot be favorite
         if (isInWishlist) {
             cachedGame.isFavorite = false;
-            cachedGame.gamestatus = 'whishlist'; // Ensure the blue badge appears
+            // updateStatusIndicators handles the badge
         } else {
             // Only clear status if it was wishlist (don't clear if it was in library)
             if (cachedGame.gamestatus === 'whishlist' || cachedGame.gamestatus === 2) {
@@ -1599,30 +1522,25 @@ function updateWishlistUI(gameId, isInWishlist) {
         updateStatusIndicators(gameId, cachedGame);
     }
 
-    const wishButtons = document.querySelectorAll(`[data-wish-btn-for="${gameId}"]`);
+    const wishButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="wishlist"]`);
     wishButtons.forEach(btn => {
         const iconSpan = btn.querySelector('.material-symbols-outlined');
         if (iconSpan) {
             if (isInWishlist) {
-                btn.classList.add('text-blue-400');
+                btn.classList.add('text-blue-400', 'ring-1', 'ring-blue-400/30');
                 btn.classList.remove('text-white/70', 'hover:text-blue-400');
-                iconSpan.textContent = 'bookmark';
-                iconSpan.classList.add('fill-icon', 'animate-pop');
-                btn.title = 'Remove from Wishlist';
-                setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
+                iconSpan.classList.add('fill-icon');
             } else {
-                btn.classList.remove('text-blue-400');
+                btn.classList.remove('text-blue-400', 'ring-1', 'ring-blue-400/30');
                 btn.classList.add('text-white/70', 'hover:text-blue-400');
-                iconSpan.textContent = 'bookmark';
                 iconSpan.classList.remove('fill-icon');
-                btn.title = 'Add to Wishlist';
             }
         }
     });
 
     // Handle view-specific item removal (if on wishlist page)
     if (currentView === 'wishlist' && !isInWishlist) {
-        const cardToRemove = document.querySelector(`[data-wish-btn-for="${gameId}"]`).closest('.group');
+        const cardToRemove = document.querySelector(`button[data-game-id="${gameId}"]`)?.closest('.group');
         if (cardToRemove) {
             cardToRemove.classList.add('opacity-0', 'scale-90');
             setTimeout(() => {
@@ -1692,12 +1610,18 @@ function updateStatusSelectorUI(gameId, statusId) {
         const match = btn.getAttribute('onclick').match(/changeGameStatus\(.*?,[\s]*(\d+)\)/);
         if (match) {
             const btnStatusId = parseInt(match[1]);
-            const isActive = btnStatusId === statusId;
+            const isActive = btnStatusId === parseInt(statusId);
             
             if (isActive) {
-                btn.className = 'w-7 h-7 rounded-lg flex items-center justify-center transition-all bg-primary/20 text-primary border border-primary/40';
+                btn.className = 'flex items-center gap-2.5 px-3 py-2 rounded-lg bg-primary/10 text-primary transition-colors text-left group/item';
             } else {
-                btn.className = 'w-7 h-7 rounded-lg flex items-center justify-center transition-all bg-slate-800/40 text-slate-500 hover:bg-slate-700/60 hover:text-slate-300';
+                btn.className = 'flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item';
+            }
+            
+            // Re-sync label color if needed
+            const label = btn.querySelector('span:not(.material-symbols-outlined)');
+            if (label) {
+                label.className = `text-[10px] uppercase font-bold ${isActive ? 'text-primary' : 'text-slate-300 group-hover/item:text-white'}`;
             }
         }
     });
