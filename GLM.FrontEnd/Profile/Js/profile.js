@@ -157,14 +157,23 @@ function setProfileBannerImage(imageUrl) {
 
 // Hide all edit controls when in visitor mode
 function applyVisitorMode() {
-    // Only populate the sidebar elements — NOT #profile-username (that belongs to the visited user)
+    // Populate the logged-in user's info into the topbar (and sidebar if present)
     const userInfo = getUserInfo();
+    const initial = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
+
+    // Old sidebar IDs (kept for backwards compat if sidebar ever reappears)
     const sidebarUsername = document.getElementById('display-username');
     if (sidebarUsername) sidebarUsername.textContent = userInfo.userName || 'User';
     const displayAvatar = document.getElementById('display-avatar');
-    if (displayAvatar) displayAvatar.textContent = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
+    if (displayAvatar) displayAvatar.textContent = initial;
 
-    // Then fetch the real avatar for the sidebar
+    // New topbar IDs
+    const welcomeUsername = document.getElementById('welcome-username');
+    if (welcomeUsername) welcomeUsername.textContent = userInfo.userName || 'User';
+    const headerAvatar = document.getElementById('display-avatar-header');
+    if (headerAvatar) headerAvatar.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
+
+    // Then fetch the real avatar for the topbar
     fetchOwnSidebarAvatar();
 
     // Hide edit button
@@ -209,7 +218,7 @@ function applyVisitorMode() {
     document.title = `${_visitedUser}'s Profile - N3M|Nest`;
 }
 
-// Fetch logged-in user's own avatar to display in the sidebar while visiting another profile
+// Fetch logged-in user's own avatar to display in the topbar while visiting another profile
 async function fetchOwnSidebarAvatar() {
     try {
         const response = await apiRequest('/api/Profile');
@@ -217,20 +226,32 @@ async function fetchOwnSidebarAvatar() {
         const profile = await response.json();
         if (!profile.avatarUrl) return;
 
-        const displayAvatar = document.getElementById('display-avatar');
-        if (!displayAvatar) return;
-
         const timestamp = new Date().getTime();
-        displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || 'U').charAt(0).toUpperCase()}'">`;
+        const imgHtml = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}" class="h-full w-full object-cover">`;
 
-        // Remove gradient background so the image shows cleanly
-        const parent = displayAvatar.parentElement;
-        if (parent && parent.classList.contains('bg-gradient-to-tr')) {
-            parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
-            parent.classList.add('bg-transparent');
+        // Update old sidebar avatar if present
+        const displayAvatar = document.getElementById('display-avatar');
+        if (displayAvatar) {
+            displayAvatar.innerHTML = imgHtml;
+            const parent = displayAvatar.parentElement;
+            if (parent && parent.classList.contains('bg-gradient-to-tr')) {
+                parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500');
+                parent.classList.add('bg-transparent');
+            }
+        }
+
+        // Update new topbar avatar
+        const headerAvatar = document.getElementById('display-avatar-header');
+        if (headerAvatar) {
+            headerAvatar.innerHTML = imgHtml;
+            const headerParent = headerAvatar.parentElement;
+            if (headerParent && headerParent.classList.contains('bg-gradient-to-tr')) {
+                headerParent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600');
+                headerParent.classList.add('bg-transparent');
+            }
         }
     } catch (e) {
-        // Sidebar just stays as the initial letter — no problem
+        // Topbar just stays as the initial letter — no problem
     }
 }
 
@@ -561,15 +582,24 @@ function switchCarouselView(category) {
     }
 
     // Update Heading
-    const labels = {
+    const labels = isVisitorMode ? {
+        'favorite':  `In ${_visitedUser}'s Favorites`,
+        'owned':     `In ${_visitedUser}'s Library`,
+        'wishlist':  `In ${_visitedUser}'s Wishlist`,
+        'completed': `${_visitedUser}'s Completed Games`,
+        'playing':   `${_visitedUser} Is Currently Playing`,
+        'dropped':   `Games ${_visitedUser} Dropped`,
+        'onhold':    `${_visitedUser}'s Games On Hold`,
+        'pending':   `${_visitedUser}'s Pending Games`
+    } : {
         'favorite': 'a Quick Look To Your Favorite Games',
-        'owned': 'All Owned Games In Your Collection',
+        'owned':    'All Owned Games In Your Collection',
         'wishlist': 'Games On Your Current Wishlist',
-        'completed': 'Your Fully Completed Adventures',
-        'playing': 'What You Are Currently Playing',
-        'dropped': 'Games You Have Dropped',
-        'onhold': 'Games Currently On Hold',
-        'pending': 'Games Pending In Your Library'
+        'completed':'Your Fully Completed Adventures',
+        'playing':  'What You Are Currently Playing',
+        'dropped':  'Games You Have Dropped',
+        'onhold':   'Games Currently On Hold',
+        'pending':  'Games Pending In Your Library'
     };
 
     if (titleEl) {
