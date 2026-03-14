@@ -279,6 +279,22 @@ function renderGame(g) {
     setText('val-publisher', g.publishers?.[0] || 'Unknown');
     setText('val-metascore', g.metacritic || 'N/A');
 
+    // ── Price ────────────────────────────────
+    const priceEl = document.getElementById('val-price');
+    if (priceEl) {
+        if (g.price === 0) {
+            priceEl.textContent = 'Free to Play';
+            priceEl.className = 'font-black text-sm text-primary';
+            priceEl.style.textShadow = '0 0 10px rgba(74,125,255,0.5)';
+        } else if (g.price != null) {
+            priceEl.textContent = `$${g.price.toFixed(2)}`;
+        } else {
+            // No price data: hide the whole row
+            const priceRow = priceEl.closest('.flex.justify-between');
+            if (priceRow) priceRow.classList.add('hidden');
+        }
+    }
+
     // ── Platforms icons ─────────────────────
     const platIcons = document.getElementById('platforms-icons');
     if (platIcons && g.platforms) {

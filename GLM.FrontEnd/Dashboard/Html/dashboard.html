@@ -289,6 +289,74 @@
         .animate-pop {
             animation: heart-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+
+        /* Premium Dynamic Background */
+        .bg-mesh-container {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-color: #080f0f;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-blob {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            mix-blend-mode: screen;
+            animation: blob-float 25s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            background: radial-gradient(circle, #4a7dff 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+            animation-duration: 30s;
+        }
+
+        .blob-2 {
+            background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
+            bottom: -300px;
+            right: -100px;
+            animation-duration: 25s;
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            background: radial-gradient(circle, #0df2f2 0%, transparent 70%);
+            top: 40%;
+            left: 30%;
+            width: 600px;
+            height: 600px;
+            animation-duration: 40s;
+            animation-delay: -10s;
+        }
+
+        @keyframes blob-float {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, 150px) scale(1.1); }
+            66% { transform: translate(-50px, 200px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        .bg-grain {
+            position: absolute;
+            inset: 0;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            z-index: 1;
+        }
+
+        .bg-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 20%, rgba(8, 15, 15, 0.8) 100%);
+            z-index: 2;
+        }
     </style>
 </head>
 
@@ -297,10 +365,13 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full relative overflow-hidden">
-        <!-- Background Image with Overlay -->
-        <div class="absolute inset-0 z-0 pointer-events-none">
-            <div class="absolute inset-0 bg-[#0f2023]/92 z-10"></div>
-            <img src="../../Assets/Images/Bg1.jpg" class="w-full h-full object-cover opacity-30">
+        <!-- Premium Dynamic Background -->
+        <div class="bg-mesh-container">
+            <div class="bg-blob blob-1"></div>
+            <div class="bg-blob blob-2"></div>
+            <div class="bg-blob blob-3"></div>
+            <div class="bg-grain"></div>
+            <div class="bg-vignette"></div>
         </div>
 
         <!-- Top Bar Navigation (Replaces Sidebar) -->
@@ -410,7 +481,7 @@
         </header>
 
         <!-- Scrollable Content -->
-        <div id="games-view" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
+        <div id="games-view" style="background-color: #0a487330;" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
 
             <!-- Header Section -->
             <div class="mb-10 w-full max-w-5xl mx-auto text-center">

@@ -1,4 +1,5 @@
-﻿using System;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,8 @@ namespace Game_Library_Management_DAL.Models
         public string? RecommendedRequirements { get; set; }
         public bool IsDetailsHydrated { get; set; }
         public DateTime? DetailsLastSyncedAt { get; set; }
+        [Precision(10, 2)]
+        public decimal? Price { get; set; }
 
         public List<UserGame> UserGames { get; set; }
         public List<GameTag> GameTags { get; set; }

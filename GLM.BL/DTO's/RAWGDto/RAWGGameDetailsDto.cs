@@ -29,6 +29,7 @@ namespace Game_Library_Management_BL.DTO_s.RAWGDto
         public List<string> Screenshots { get; set; } = new();
         public string MinimumRequirements { get; set; }
         public string RecommendedRequirements { get; set; }
+        public decimal? Price { get; set; }
 
         // User state
         public bool IsFavorite { get; set; }

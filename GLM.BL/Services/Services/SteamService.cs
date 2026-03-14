@@ -565,7 +565,7 @@ namespace Game_Library_Management_BL.Services.Services
                 .FirstOrDefaultAsync(g => g.ExternalId == externalId);
         }
 
-        private async Task UpsertGameAggregateAsync(Game game, (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements) details, bool isNew)
+        private async Task UpsertGameAggregateAsync(Game game, (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price) details, bool isNew)
         {
             game.Title = details.name;
             game.Description = details.description;
@@ -582,6 +582,7 @@ namespace Game_Library_Management_BL.Services.Services
             game.Playtime = 0;
             game.MinimumRequirements = details.minimumRequirements;
             game.RecommendedRequirements = details.recommendedRequirements;
+            game.Price = details.price;
             game.IsDetailsHydrated = true;
             game.DetailsLastSyncedAt = DateTime.UtcNow;
 
@@ -805,7 +806,8 @@ namespace Game_Library_Management_BL.Services.Services
                 EsrbRating = game.EsrbRating,
                 Screenshots = game.Screenshots.OrderBy(x => x.DisplayOrder).Select(x => x.ImageUrl).ToList(),
                 MinimumRequirements = game.MinimumRequirements,
-                RecommendedRequirements = game.RecommendedRequirements
+                RecommendedRequirements = game.RecommendedRequirements,
+                Price = game.Price
             };
         }
 
@@ -1121,10 +1123,10 @@ namespace Game_Library_Management_BL.Services.Services
             return list;
         }
 
-        private async Task<(int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements)?> GetSteamAppDetailsAsync(int appId, bool forceRefresh = false)
+        private async Task<(int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price)?> GetSteamAppDetailsAsync(int appId, bool forceRefresh = false)
         {
             var cacheKey = $"steam:appdetails:{appId}";
-            if (!forceRefresh && _cache.TryGetValue(cacheKey, out (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements) cached))
+            if (!forceRefresh && _cache.TryGetValue(cacheKey, out (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price) cached))
             {
                 return cached;
             }
@@ -1226,7 +1228,20 @@ namespace Game_Library_Management_BL.Services.Services
 
             var rating = metacritic.HasValue ? Math.Round(metacritic.Value / 20.0, 1) : 0;
 
-            var result = (appId, name, description, headerImage, backgroundImage, releaseDate, metacritic, rating, website, genres, developers, publishers, platforms, trailerUrl, trailerPreview, screenshots, minimumRequirements, recommendedRequirements);
+            decimal? price = null;
+            if (data.TryGetProperty("is_free", out var isFreeNode) && isFreeNode.ValueKind == JsonValueKind.True)
+            {
+                price = 0m;
+            }
+            else if (data.TryGetProperty("price_overview", out var priceObj) && priceObj.ValueKind == JsonValueKind.Object)
+            {
+                if (priceObj.TryGetProperty("final", out var finalNode) && finalNode.ValueKind == JsonValueKind.Number)
+                {
+                    price = Math.Round(finalNode.GetDecimal() / 100m, 2);
+                }
+            }
+
+            var result = (appId, name, description, headerImage, backgroundImage, releaseDate, metacritic, rating, website, genres, developers, publishers, platforms, trailerUrl, trailerPreview, screenshots, minimumRequirements, recommendedRequirements, price);
             _cache.Set(cacheKey, result, AppDetailsCacheTtl);
             return result;
         }
