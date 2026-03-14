@@ -108,5 +108,15 @@ namespace Game_Library_Management.Controllers
             var games = await _steamService.GetSimilarGamesAsync(externalId);
             return Ok(games);
         }
+
+        [HttpGet("catalog/company")]
+        public async Task<IActionResult> GetCompanyGames([FromQuery] string companyName, [FromQuery] int page = 1)
+        {
+            if (string.IsNullOrWhiteSpace(companyName))
+                return BadRequest("companyName is required");
+                
+            var games = await _steamService.GetCompanyGamesAsync(companyName, page);
+            return Ok(games);
+        }
     }
 }

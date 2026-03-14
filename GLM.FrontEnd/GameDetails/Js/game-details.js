@@ -13,6 +13,8 @@ let isVideoMain = false;         // Is the video currently in the main container
 let currentRating = 0;           // Selected star rating for review form
 let editingReviewId = null;      // null = create mode, number = edit mode
 let editModalRating = 0;         // Rating selected inside the edit modal
+let currentCompanyPage = 1;      // Current page for company games
+let currentCompany = null;       // Current company name being displayed
 
 /* ──────────────────────────────────────────────
    Initialisation
@@ -46,6 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Drag-to-scroll for thumbnail strip
     initDragScroll();
+
+    // Load more company games listener
+    const loadMoreBtn = document.getElementById('load-more-company-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreCompanyGames);
+    }
 });
 
 function initDragScroll() {
@@ -168,7 +176,7 @@ async function loadGameDetails(id) {
 
         currentGame = await res.json();
         renderGame(currentGame);
-        loadSimilarGames(id);
+        loadCompanyGames(currentGame);
     } catch (err) {
         console.error('Game details load error:', err);
         showError();
@@ -176,43 +184,138 @@ async function loadGameDetails(id) {
 }
 
 /* ──────────────────────────────────────────────
-   Similar Games
+   Company Games
 ────────────────────────────────────────────── */
-async function loadSimilarGames(id) {
+async function loadCompanyGames(game) {
     const container = document.getElementById('similar-games-list');
+    const heading   = document.getElementById('company-games-heading');
+    const moreContainer = document.getElementById('more-company-games-container');
+    
     if (!container) return;
 
-    try {
-        const res = await apiRequest(`/api/Steam/catalog/${id}/similar`);
-        if (!res.ok) { hideSimilarGames(); return; }
+    // Pick developer first, fall back to publisher
+    const company = game?.developers?.[0] || game?.publishers?.[0] || null;
+    currentCompany = company;
+    currentCompanyPage = 1;
 
-        const games = ((await res.json()) || []).filter(g => g.externalId !== id).slice(0, 6);
-
-        if (games.length === 0) { hideSimilarGames(); return; }
-
-        container.innerHTML = games.map(g => {
-            const rating = g.rating > 0 ? `<span class="text-yellow-400">★</span> ${g.rating.toFixed(1)}` : '';
-            const genre = g.genres?.[0] ?? '';
-            const meta = [genre, rating].filter(Boolean).join(' · ');
-            return `
-            <a href="game-details.html?id=${g.externalId}"
-               class="flex gap-3 items-center group/sim hover:bg-white/5 rounded-xl p-1.5 -mx-1.5 transition-colors no-underline">
-                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
-                    <img src="${g.imageUrl || ''}" alt="${escapeHtml(g.title)}"
-                         class="w-full h-full object-cover group-hover/sim:scale-105 transition-transform duration-300"
-                         onerror="this.parentElement.classList.add('flex','items-center','justify-center');this.style.display='none'">
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-slate-200 group-hover/sim:text-primary transition-colors truncate leading-snug">${escapeHtml(g.title)}</p>
-                    ${meta ? `<p class="text-[10px] text-slate-500 mt-0.5">${meta}</p>` : ''}
-                </div>
-                <span class="material-symbols-outlined text-[16px] text-slate-700 group-hover/sim:text-primary transition-colors flex-shrink-0">chevron_right</span>
-            </a>`;
-        }).join('');
-    } catch (err) {
-        console.error('Similar games error:', err);
-        hideSimilarGames();
+    if (!company) { 
+        hideSimilarGames(); 
+        if (moreContainer) moreContainer.classList.add('hidden');
+        return; 
     }
+
+    // Update heading
+    if (heading) heading.textContent = company;
+
+    try {
+        const res = await apiRequest(`/api/Steam/catalog/company?companyName=${encodeURIComponent(company)}&page=${currentCompanyPage}`);
+        if (!res.ok) {
+            container.innerHTML = '<p class="text-[11px] text-slate-600 italic">Could not load games.</p>';
+            if (moreContainer) moreContainer.classList.add('hidden');
+            return;
+        }
+
+        const data = (await res.json()) || [];
+        // Filter out the current game
+        const filtered = data.filter(g => g.externalId !== game.externalId);
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<p class="text-[11px] text-slate-600 italic">No other games in the catalog yet.</p>';
+            if (moreContainer) moreContainer.classList.add('hidden');
+            return;
+        }
+
+        // Initially clear and show
+        container.innerHTML = renderCompanyGameCards(filtered);
+        
+        // If we got 6, there might be more
+        if (data.length === 6) {
+            if (moreContainer) moreContainer.classList.remove('hidden');
+        } else {
+            if (moreContainer) moreContainer.classList.add('hidden');
+        }
+
+    } catch (err) {
+        console.error('Company games error:', err);
+        container.innerHTML = '<p class="text-[11px] text-slate-600 italic">Could not load games.</p>';
+        if (moreContainer) moreContainer.classList.add('hidden');
+    }
+}
+
+async function loadMoreCompanyGames() {
+    if (!currentCompany) return;
+    
+    const container = document.getElementById('similar-games-list');
+    const moreContainer = document.getElementById('more-company-games-container');
+    const loadMoreBtn = document.getElementById('load-more-company-btn');
+    
+    if (!container) return;
+    
+    currentCompanyPage++;
+    
+    // Show loading state on button
+    if (loadMoreBtn) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.innerHTML = '<span class="text-[10px] xirod-font tracking-widest font-black italic">LOADING...</span>';
+    }
+    
+    try {
+        const res = await apiRequest(`/api/Steam/catalog/company?companyName=${encodeURIComponent(currentCompany)}&page=${currentCompanyPage}`);
+        if (!res.ok) throw new Error('Failed to fetch more games');
+        
+        const data = (await res.json()) || [];
+        // Filter out current game if it accidentally appears
+        const filtered = data.filter(g => g.externalId !== currentGame?.externalId);
+        
+        if (filtered.length > 0) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = renderCompanyGameCards(filtered);
+            while (tempDiv.firstChild) {
+                container.appendChild(tempDiv.firstChild);
+            }
+        }
+        
+        // If we got less than 6 (page size), we've reached the end
+        if (data.length < 6) {
+            if (moreContainer) moreContainer.classList.add('hidden');
+        } else {
+            if (moreContainer) moreContainer.classList.remove('hidden');
+        }
+        
+    } catch (err) {
+        console.error('Load more error:', err);
+        showToast('Could not load more games', 'error');
+    } finally {
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.innerHTML = `
+                <span class="text-[10px] xirod-font tracking-widest font-black italic">MORE</span>
+                <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+            `;
+        }
+    }
+}
+
+function renderCompanyGameCards(games) {
+    return games.map(g => {
+        const rating = g.rating > 0 ? `<span class="text-yellow-400">★</span> ${g.rating.toFixed(1)}` : '';
+        const genre  = g.genres?.[0] ?? '';
+        const meta   = [genre, rating].filter(Boolean).join(' · ');
+        return `
+        <a href="game-details.html?id=${g.externalId}"
+           class="flex gap-3 items-center group/sim hover:bg-white/5 rounded-xl p-1.5 -mx-1.5 transition-colors no-underline">
+            <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
+                <img src="${g.imageUrl || ''}" alt="${escapeHtml(g.title)}"
+                     class="w-full h-full object-cover group-hover/sim:scale-105 transition-transform duration-300"
+                     onerror="this.parentElement.classList.add('flex','items-center','justify-center');this.style.display='none'">
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold text-slate-200 group-hover/sim:text-primary transition-colors truncate leading-snug">${escapeHtml(g.title)}</p>
+                ${meta ? `<p class="text-[10px] text-slate-500 mt-0.5">${meta}</p>` : ''}
+            </div>
+            <span class="material-symbols-outlined text-[16px] text-slate-700 group-hover/sim:text-primary transition-colors flex-shrink-0">chevron_right</span>
+        </a>`;
+    }).join('');
 }
 
 function hideSimilarGames() {

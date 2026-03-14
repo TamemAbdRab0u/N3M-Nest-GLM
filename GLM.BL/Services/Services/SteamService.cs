@@ -3,6 +3,7 @@ using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
 using Game_Library_Management_PL.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Game_Library_Management_BL.Services.Services
 {
@@ -19,6 +22,7 @@ namespace Game_Library_Management_BL.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMemoryCache _cache;
+        private readonly IConfiguration _config;
 
         private const int PageSize = 12;
         private const string CatalogFeedVersion = "v3";
@@ -34,12 +38,13 @@ namespace Game_Library_Management_BL.Services.Services
             "simulation:Simulation", "sports:Sports", "racing:Racing", "casual:Casual", "fps:FPS"
         };
 
-        public SteamService(HttpClient http, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IMemoryCache cache)
+        public SteamService(HttpClient http, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IMemoryCache cache, IConfiguration config)
         {
             _http = http;
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _cache = cache;
+            _config = config;
         }
 
         private string? GetCurrentUserId()
@@ -501,30 +506,83 @@ namespace Game_Library_Management_BL.Services.Services
             return ranked;
         }
 
+        public async Task<IEnumerable<RAWGCatalogDto>> GetCompanyGamesAsync(string companyName, int page = 1)
+        {
+            if (string.IsNullOrWhiteSpace(companyName)) return Enumerable.Empty<RAWGCatalogDto>();
+
+            var normalized = companyName.Trim();
+            const int pageSize = 6;
+            var syncKey = $"company_sync:{normalized.ToLowerInvariant()}";
+
+            // 1. One-time Sync from Steam to DB (if not done recently)
+            if (!_cache.TryGetValue(syncKey, out _))
+            {
+                // A. Search Steam for IDs
+                var steamIds = await SearchSteamAppIdsAsync(normalized, 100);
+
+                // B. Broad search fallback (e.g. "Bethesda" if "Bethesda Game Studios" is thin)
+                if (steamIds.Count < 5)
+                {
+                    var words = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (words.Length > 0 && words[0].Length > 3)
+                    {
+                        var broader = await SearchSteamAppIdsAsync(words[0], 50);
+                        steamIds = steamIds.Concat(broader).Distinct().ToList();
+                    }
+                }
+
+                // C. Hydration (Sequential to avoid DbContext concurrency issues)
+                var existingIds = await _unitOfWork.Games.Query()
+                    .Where(g => steamIds.Contains(g.ExternalId))
+                    .Select(g => g.ExternalId)
+                    .ToListAsync();
+
+                var missingIds = steamIds.Except(existingIds).ToList();
+                foreach (var appId in missingIds)
+                {
+                    await EnsureGameExistsAsync(appId);
+                }
+
+                // D. Mark as synced for a while
+                _cache.Set(syncKey, true, TimeSpan.FromHours(24));
+            }
+
+            // 2. Query DB (The source of truth after sync)
+            var dbGamesQuery = _unitOfWork.Games.Query()
+                .Include(g => g.GameTags).ThenInclude(gt => gt.Tag)
+                .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+                .Where(g => g.GameDevelopers.Any(gd => gd.Developer.Name.ToLower() == normalized.ToLower()) ||
+                            g.GamePublishers.Any(gp => gp.PublisherEntity.Name.ToLower() == normalized.ToLower()))
+                .OrderByDescending(g => g.Rating ?? 0)
+                .ThenByDescending(g => g.ReleaseDate ?? DateTime.MinValue);
+
+            var totalInDb = await dbGamesQuery.CountAsync();
+            var pagedDbGames = await dbGamesQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var results = pagedDbGames.Select(MapGameToCatalogDto).ToList();
+            await PopulateUserStatesAsync(results);
+
+            return results;
+        }
+
         private async Task<Game?> EnsureGameExistsAsync(int externalId)
         {
-            var game = await _unitOfWork.Games.Query().FirstOrDefaultAsync(g => g.ExternalId == externalId);
-            if (game != null) return game;
+            var game = await _unitOfWork.Games.Query()
+                .Include(g => g.GameDevelopers)
+                .Include(g => g.GamePublishers)
+                .FirstOrDefaultAsync(g => g.ExternalId == externalId);
+
+            if (game != null && game.IsDetailsHydrated) return game;
 
             var details = await GetSteamAppDetailsAsync(externalId);
             if (details == null) return null;
 
-            game = new Game
-            {
-                ExternalId = details.Value.appId,
-                Title = details.Value.name,
-                ImgUrl = details.Value.headerImage,
-                PosterImageUrl = BuildSteamPosterImageUrl(details.Value.appId),
-                Description = details.Value.description,
-                Publisher = details.Value.publishers.FirstOrDefault(),
-                ReleaseDate = DateTime.TryParse(details.Value.releaseDate, out var d) ? d : null,
-                Rating = details.Value.rating,
-                Metacritic = details.Value.metacritic,
-                IsDetailsHydrated = false
-            };
-
-            await _unitOfWork.Games.Add(game);
-            _unitOfWork.Save();
+            game ??= new Game { ExternalId = externalId };
+            await UpsertGameAggregateAsync(game, details.Value, game.Id == 0);
+            
             return game;
         }
 
@@ -1079,7 +1137,7 @@ namespace Game_Library_Management_BL.Services.Services
 
         private async Task<List<int>> SearchSteamAppIdsAsync(string query, int count)
         {
-            var url = $"https://store.steampowered.com/api/storesearch/?term={Uri.EscapeDataString(query)}&l=english&cc=us";
+            var url = $"https://store.steampowered.com/api/storesearch/?term={Uri.EscapeDataString(query)}&l=english&cc=us&start=0&count={count}";
             using var response = await _http.GetAsync(url);
             if (!response.IsSuccessStatusCode) return new List<int>();
 
