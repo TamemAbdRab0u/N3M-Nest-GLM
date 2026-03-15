@@ -151,71 +151,7 @@
                 </p>
             </div>
 
-            <!-- Filters Section -->
-            <div class="mb-8 w-full max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-3">
-                <!-- Genre Filter -->
-                <div class="relative group">
-                    <button id="category-filter-btn" class="h-10 px-5 rounded-xl glass-panel flex items-center gap-2.5 text-[10px] font-bold text-slate-400 hover:text-white transition-all hover:border-primary/50 group/btn xirod-font">
-                        <span class="material-symbols-outlined text-[16px] group-hover/btn:text-primary transition-colors">filter_list</span>
-                        <span id="current-category">Category</span>
-                        <span class="material-symbols-outlined text-[16px] opacity-50 group-hover:rotate-180 transition-transform">expand_more</span>
-                    </button>
-                    <div id="category-list" class="absolute top-full left-0 mt-2 w-56 bg-[#0a1618]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 py-2 custom-scrollbar max-h-80 overflow-y-auto">
-                        <div class="px-4 py-8 flex flex-col items-center gap-3 text-slate-600">
-                            <div class="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                            <span class="text-[9px] uppercase tracking-widest font-bold">Loading...</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Platform Filter -->
-                <div class="relative group">
-                    <button id="platform-filter-btn" class="h-10 px-5 rounded-xl glass-panel flex items-center gap-2.5 text-[10px] font-bold text-slate-400 hover:text-white transition-all hover:border-primary/50 group/btn xirod-font">
-                        <span class="material-symbols-outlined text-[16px] group-hover/btn:text-primary transition-colors">devices</span>
-                        <span id="current-platform">Platform</span>
-                        <span class="material-symbols-outlined text-[16px] opacity-50 group-hover:rotate-180 transition-transform">expand_more</span>
-                    </button>
-                    <div id="platform-list" class="absolute top-full left-0 mt-2 w-48 bg-[#0a1618]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 py-2">
-                        <!-- Content via JS -->
-                    </div>
-                </div>
-
-                <!-- Release Year Filter -->
-                <div class="relative group">
-                    <button id="release-filter-btn" class="h-10 px-5 rounded-xl glass-panel flex items-center gap-2.5 text-[10px] font-bold text-slate-400 hover:text-white transition-all hover:border-primary/50 group/btn xirod-font">
-                        <span class="material-symbols-outlined text-[16px] group-hover/btn:text-primary transition-colors">calendar_month</span>
-                        <span id="current-release">Year</span>
-                        <span class="material-symbols-outlined text-[16px] opacity-50 group-hover:rotate-180 transition-transform">expand_more</span>
-                    </button>
-                    <div id="release-list" class="absolute top-full left-0 mt-2 w-48 bg-[#0a1618]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 py-2 max-h-80 overflow-y-auto custom-scrollbar">
-                        <!-- Content via JS -->
-                    </div>
-                </div>
-
-                <!-- Ordering Filter -->
-                <div class="relative group">
-                    <button id="sort-filter-btn" class="h-10 px-5 rounded-xl glass-panel flex items-center gap-2.5 text-[10px] font-bold text-slate-400 hover:text-white transition-all hover:border-primary/50 group/btn xirod-font">
-                        <span class="material-symbols-outlined text-[16px] group-hover/btn:text-primary transition-colors">sort</span>
-                        <span id="current-sort">Order By</span>
-                        <span class="material-symbols-outlined text-[16px] opacity-50 group-hover:rotate-180 transition-transform">expand_more</span>
-                    </button>
-                    <div id="sort-list" class="absolute top-full right-0 mt-2 w-56 bg-[#0a1618]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 py-2">
-                        <!-- Content via JS -->
-                    </div>
-                </div>
-
-                <!-- Status Filter (For Collections) -->
-                <div id="status-filter-wrapper" class="relative group hidden">
-                    <button id="status-filter-btn" class="h-10 px-5 rounded-xl glass-panel flex items-center gap-2.5 text-[10px] font-bold text-slate-400 hover:text-white transition-all hover:border-primary/50 group/btn xirod-font">
-                        <span class="material-symbols-outlined text-[16px] group-hover/btn:text-primary transition-colors">assignment</span>
-                        <span id="current-status">Status</span>
-                        <span class="material-symbols-outlined text-[16px] opacity-50 group-hover:rotate-180 transition-transform">expand_more</span>
-                    </button>
-                    <div id="status-list" class="absolute top-full right-0 mt-2 w-48 bg-[#0a1618]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 py-2">
-                        <!-- Content via JS -->
-                    </div>
-                </div>
-            </div>
 
             <!-- Games Grid -->
             <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 md:gap-2">

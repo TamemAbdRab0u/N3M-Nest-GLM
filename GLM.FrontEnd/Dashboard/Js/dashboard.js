@@ -92,9 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePagination();
     initializeCatalogInfiniteScroll();
     initializeSearch();
-    initializeCategories();
-    initializePlatforms();
-    initializeReleaseYears();
+    // initializeCategories();
+    // initializePlatforms();
+    // initializeReleaseYears();
 });
 
 function initializeCatalogInfiniteScroll() {

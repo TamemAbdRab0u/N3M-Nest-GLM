@@ -93,9 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
     displayUserInfo();
     initializePagination();
     initializeSearch();
-    initializeCategories();
-    initializePlatforms();
-    initializeReleaseYears();
+    // initializeCategories();
+    // initializePlatforms();
+    // initializeReleaseYears();
     loadGames(1);
 });
 

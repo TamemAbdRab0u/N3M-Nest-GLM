@@ -105,9 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializePagination();
     initializeSearch();
-    initializeCategories();
-    initializePlatforms();
-    initializeReleaseYears();
+    // initializeCategories();
+    // initializePlatforms();
+    // initializeReleaseYears();
 
     // Initial load
     loadGames(1);
@@ -394,6 +394,24 @@ function createGameCard(game) {
     const favBtnClass = game.isFavorite ? 'text-red-500 btn-fav-active' : 'text-white/70 hover:text-red-400';
     const libClass = game.isInLibrary ? 'text-green-500 btn-lib-active' : 'text-white/70 hover:text-primary';
 
+    const currentStatusId = String(game.gamestatus);
+    const statusSelectionHtml = game.isInLibrary ? `
+        <div class="mt-2.5 sm:mt-3 flex items-center justify-between gap-1 border-t border-white/5 pt-2" data-status-selector="${gameId}">
+            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 1)" title="Playing" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '1' ? 'bg-primary/20 text-primary' : 'text-slate-500 hover:text-primary hover:bg-white/5'}">
+                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">play_circle</span>
+            </button>
+            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 3)" title="Completed" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '3' ? 'bg-green-500/20 text-green-500' : 'text-slate-500 hover:text-green-500 hover:bg-white/5'}">
+                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">task_alt</span>
+            </button>
+            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 5)" title="On Hold" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '5' ? 'bg-yellow-500/20 text-yellow-500' : 'text-slate-500 hover:text-yellow-500 hover:bg-white/5'}">
+                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">pause_circle</span>
+            </button>
+            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 4)" title="Dropped" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '4' ? 'bg-red-500/20 text-red-500' : 'text-slate-500 hover:text-red-500 hover:bg-white/5'}">
+                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">do_not_disturb_on</span>
+            </button>
+        </div>
+    ` : '';
+
     card.innerHTML = `
         <!-- Image Container -->
         <div class="relative aspect-[16/9] overflow-hidden bg-[#0f1a1d]">
@@ -424,33 +442,7 @@ function createGameCard(game) {
 
             <!-- Status Indicator -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
-                ${game.isInLibrary ? `
-                <div class="group/status relative">
-                    ${gameStatusIndicator}
-                    
-                    <!-- Status Dropdown (Hover) -->
-                    <div class="absolute bottom-full right-0 pb-3 opacity-0 translate-y-2 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-y-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
-                        <div class="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[130px] p-1.5 flex flex-col gap-1">
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 1)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-primary">play_circle</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Playing</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 3)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-green-500">task_alt</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Completed</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 5)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-yellow-500">pause_circle</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">On Hold</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 4)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-red-500">do_not_disturb_on</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Dropped</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                ` : gameStatusIndicator}
+                ${gameStatusIndicator}
 
                 ${game.addedAt ? `
                     <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time" title="Added At">
@@ -472,6 +464,7 @@ function createGameCard(game) {
                     ${releaseYear ? `<span class="text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded">${releaseYear}</span>` : ''}
                 </div>
             </div>
+            ${statusSelectionHtml}
         </div>
     `;
 
@@ -887,16 +880,51 @@ function showGameDetails(game) {
     window.location.href = `../../../GameDetails/Html/game-details.html?id=${gameId}`;
 }
 
+function updateStatusSelectorUI(gameId, statusId) {
+    const selectorContainer = document.querySelector(`[data-status-selector="${gameId}"]`);
+    if (!selectorContainer) return;
+    
+    // reset all buttons
+    const buttons = selectorContainer.querySelectorAll('button');
+    buttons.forEach(btn => {
+        // extract statusId from onclick
+        const match = btn.getAttribute('onclick').match(/changeGameStatus\(.*?,[\s]*(\d+)\)/);
+        if (match) {
+            const btnStatusId = String(match[1]);
+            const isActive = btnStatusId === String(statusId);
+            
+            // clear old classes and assign base transition
+            btn.className = 'flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200';
+            
+            if (isActive) {
+                if (btnStatusId === '1') btn.classList.add('bg-primary/20', 'text-primary');
+                else if (btnStatusId === '3') btn.classList.add('bg-green-500/20', 'text-green-500');
+                else if (btnStatusId === '5') btn.classList.add('bg-yellow-500/20', 'text-yellow-500');
+                else if (btnStatusId === '4') btn.classList.add('bg-red-500/20', 'text-red-500');
+            } else {
+                btn.classList.add('text-slate-500', 'hover:bg-white/5');
+                if (btnStatusId === '1') btn.classList.add('hover:text-primary');
+                else if (btnStatusId === '3') btn.classList.add('hover:text-green-500');
+                else if (btnStatusId === '5') btn.classList.add('hover:text-yellow-500');
+                else if (btnStatusId === '4') btn.classList.add('hover:text-red-500');
+            }
+        }
+    });
+}
+
 async function changeGameStatus(gameId, statusId) {
     const cachedGame = allGames.find(g => g.id == gameId);
+    let originalStatus = null;
     // Optimistic UI update - apply immediately before API call
     if (cachedGame) {
+        originalStatus = cachedGame.gamestatus;
         cachedGame.gamestatus = statusId;
         const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
         if (statusContainer) {
             const badgeEl = statusContainer.querySelector('.h-7');
             if (badgeEl) badgeEl.outerHTML = renderStatusBadgeHTML(statusId);
         }
+        updateStatusSelectorUI(gameId, statusId);
     }
     try {
         const response = await apiRequest(`/api/UserGames/UpdateUserGame`, {
@@ -909,12 +937,13 @@ async function changeGameStatus(gameId, statusId) {
         } else {
             // Revert on failure
             if (cachedGame) {
-                cachedGame.gamestatus = null;
+                cachedGame.gamestatus = originalStatus;
                 const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
                 if (statusContainer) {
                     const badgeEl = statusContainer.querySelector('.h-7');
-                    if (badgeEl) badgeEl.outerHTML = renderStatusBadgeHTML(cachedGame.gamestatus);
+                    if (badgeEl) badgeEl.outerHTML = renderStatusBadgeHTML(originalStatus);
                 }
+                updateStatusSelectorUI(gameId, originalStatus);
             }
         }
     } catch (error) {
