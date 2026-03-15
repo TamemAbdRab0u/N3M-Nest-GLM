@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Dashboard - N3M|Nest</title>
+    <title>Wishlist - N3M|Nest</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
         rel="stylesheet" />
     <link
@@ -37,327 +37,7 @@
             },
         }
     </script>
-    <style>
-        @font-face {
-            font-family: 'Xirod';
-            src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
-        }
-
-        .xirod-font {
-            font-family: 'Xirod', sans-serif;
-            letter-spacing: 1px;
-        }
-
-        .neon-xirod {
-            font-family: 'Xirod', sans-serif;
-            color: #fff;
-            text-shadow:
-                0 0 5px rgba(74, 125, 255, 0.8),
-                0 0 10px rgba(74, 125, 255, 0.5),
-                0 0 15px rgba(74, 125, 255, 0.3);
-            letter-spacing: 2px;
-        }
-
-        .flicker-pipe {
-            display: inline-block;
-            animation: flicker-bulb 6s linear infinite;
-        }
-
-        @keyframes flicker-bulb {
-
-            0%,
-            8%,
-            10%,
-            12%,
-            40%,
-            42%,
-            65%,
-            66%,
-            68%,
-            100% {
-                opacity: 1;
-                text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
-            }
-
-            9%,
-            11%,
-            41%,
-            67% {
-                opacity: 0.08;
-                text-shadow: none;
-            }
-
-            13%,
-            39% {
-                opacity: 0.5;
-                text-shadow: 0 0 4px #fff;
-            }
-
-            64%,
-            69% {
-                opacity: 0.15;
-                text-shadow: none;
-            }
-        }
-
-        .animate-pop {
-            animation: pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes pop {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.4);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        /* High-End Neon Brand Text */
-        .neon-text-white {
-            font-family: 'Xirod', sans-serif;
-            color: #fff;
-            text-shadow:
-                0 0 4px #fff,
-                0 0 11px #fff,
-                0 0 19px #fff,
-                0 0 40px #00d2ff,
-                0 0 80px #00d2ff;
-            font-weight: 200;
-            letter-spacing: 0.1em;
-        }
-
-        .neon-username {
-            font-family: 'Xirod', sans-serif;
-            color: #fff;
-            text-shadow:
-                0 0 5px #fff,
-                0 0 10px #fff,
-                0 0 20px #4a7dff,
-                0 0 40px #4a7dff;
-            font-weight: 800;
-        }
-
-        /* Toast Animations */
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-
-            to {
-                transform: translateX(110%);
-                opacity: 0;
-            }
-        }
-
-        .toast-slide-in {
-            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .toast-slide-out {
-            animation: slideOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* Status Badge Glows */
-        .status-badge-fav {
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        .status-badge-lib {
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
-            background: rgba(34, 197, 94, 0.1);
-        }
-
-        .status-badge-wish {
-            box-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
-            background: rgba(96, 165, 250, 0.1);
-        }
-
-        @keyframes badgeEntrance {
-            from {
-                transform: scale(0) rotate(-45deg);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1) rotate(0);
-                opacity: 1;
-            }
-        }
-
-        .animate-badge {
-            animation: badgeEntrance 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        /* Glassmorphism Classes for Game Cards */
-        .glass-neon-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 9999px;
-            transition: all 0.3s ease;
-            background: rgba(15, 32, 35, 0.45);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 15px -3px rgba(74, 125, 255, 0.3);
-        }
-
-        .glass-neon-btn:hover {
-            background: rgba(15, 32, 35, 0.6);
-            box-shadow: 0 0 20px 2px rgba(74, 125, 255, 0.5);
-            transform: translateY(-2px);
-            border-color: rgba(74, 125, 255, 0.5);
-        }
-
-        .glass-panel {
-            background: rgba(15, 32, 35, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-
-        .fill-icon {
-            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-
-        /* Active Filter Effect */
-        .active-filter-btn {
-            background: rgba(74, 125, 255, 0.25) !important;
-            border-color: rgba(74, 125, 255, 0.5) !important;
-            color: #fff !important;
-            box-shadow: 0 0 20px rgba(74, 125, 255, 0.2) !important;
-        }
-
-        /* Heart Pop Animation */
-        @keyframes heart-pop {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.4);
-            }
-
-            100% {
-                transform: scale(1.1);
-            }
-        }
-
-        .animate-pop {
-            animation: heart-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        /* Premium Dynamic Background */
-        .bg-mesh-container {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            background-color: #080f0f;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .bg-blob {
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.15;
-            mix-blend-mode: screen;
-            animation: blob-float 25s infinite alternate ease-in-out;
-        }
-
-        .blob-1 {
-            background: radial-gradient(circle, #4a7dff 0%, transparent 70%);
-            top: -200px;
-            left: -200px;
-            animation-duration: 30s;
-        }
-
-        .blob-2 {
-            background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
-            bottom: -300px;
-            right: -100px;
-            animation-duration: 25s;
-            animation-delay: -5s;
-        }
-
-        .blob-3 {
-            background: radial-gradient(circle, #0df2f2 0%, transparent 70%);
-            top: 40%;
-            left: 30%;
-            width: 600px;
-            height: 600px;
-            animation-duration: 40s;
-            animation-delay: -10s;
-        }
-
-        @keyframes blob-float {
-            0% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(100px, 150px) scale(1.1); }
-            66% { transform: translate(-50px, 200px) scale(0.9); }
-            100% { transform: translate(0, 0) scale(1); }
-        }
-
-        .bg-grain {
-            position: absolute;
-            inset: 0;
-            opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            z-index: 1;
-        }
-
-        .bg-vignette {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle, transparent 20%, rgba(8, 15, 15, 0.8) 100%);
-            z-index: 2;
-        }
-    </style>
+    <link rel="stylesheet" href="../Css/wishlist.css">
 </head>
 
 <body
@@ -374,51 +54,40 @@
             <div class="bg-vignette"></div>
         </div>
 
-        <!-- Top Bar Navigation (Replaces Sidebar) -->
+        <!-- Top Bar Navigation -->
         <header
             class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
             <!-- Left: Brand & Main Nav -->
             <div class="flex items-center gap-10">
                 <div class="flex items-center gap-3">
-                    <img src="../../Assets/Images/logo.png" alt="Logo" class="h-7 w-7 object-contain">
+                    <img src="../../../Assets/Images/logo.png" alt="Logo" class="h-7 w-7 object-contain">
                     <span class="neon-xirod font-bold text-base tracking-widest hidden sm:block">
                         N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
                     </span>
                 </div>
 
                 <nav id="top-nav" class="hidden xl:flex items-center gap-1">
-                    <a href="dashboard.html" id="nav-catalog"
-                        class="nav-item active flex items-center gap-2 px-4 py-2 rounded-xl text-primary bg-primary/10 text-[10px] xirod-font hover:bg-primary/20 transition-all">
+                    <a href="../../../Dashboard/Html/dashboard.html" id="nav-catalog"
+                        class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                         <span class="material-symbols-outlined text-sm">dashboard</span> CATALOG
                     </a>
-                    <a href="../../Collections/Library/Html/library.html" id="nav-library"
+                    <a href="../../Library/Html/library.html" id="nav-library"
                         class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                         <span class="material-symbols-outlined text-sm">stadia_controller</span> LIBRARY
                     </a>
-                    <a href="../../Collections/Favorites/Html/favorites.html" id="nav-favorites"
+                    <a href="../../Favorites/Html/favorites.html" id="nav-favorites"
                         class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                         <span class="material-symbols-outlined text-sm">favorite</span> FAVORITES
                     </a>
-                    <a href="../../Collections/Wishlist/Html/wishlist.html" id="nav-wishlist"
-                        class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <a href="javascript:void(0)" id="nav-wishlist"
+                        class="nav-item active flex items-center gap-2 px-4 py-2 rounded-xl text-primary bg-primary/10 text-[10px] xirod-font hover:bg-primary/20 transition-all">
                         <span class="material-symbols-outlined text-sm">bookmark</span> WISHLIST
                     </a>
-
                 </nav>
-
             </div>
 
             <!-- Right: Account & Notifications -->
             <div class="flex items-center gap-4">
-                <!-- Header Search -->
-                <div class="hidden lg:flex items-center relative search-bar">
-                    <span class="absolute left-3 flex items-center pointer-events-none text-slate-500">
-                        <span class="material-symbols-outlined text-base">search</span>
-                    </span>
-                    <input type="text" placeholder="Search games..."
-                        class="h-9 w-48 xl:w-64 rounded-xl bg-white/5 border border-white/10 text-xs text-white pl-10 pr-4 focus:outline-none focus:w-80 transition-all focus:border-primary/50 placeholder-slate-600 bg-black/20">
-                </div>
-
                 <div class="flex items-center gap-4">
                     <div class="hidden md:flex flex-col items-end">
                         <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">Gamer</span>
@@ -426,7 +95,7 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <a href="../../Profile/Html/profile.html" class="group relative">
+                        <a href="../../../Profile/Html/profile.html" class="group relative">
                             <div
                                 class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
                                 <div
@@ -456,13 +125,6 @@
                                     <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
                                 </div>
                                 <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
-                                <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
-                                    <span
-                                        class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                                    <p
-                                        class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">
-                                        No pending requests</p>
-                                </div>
                             </div>
                         </div>
 
@@ -478,15 +140,14 @@
         </header>
 
         <!-- Scrollable Content -->
-        <div id="games-view" style="background-color: #0a487330;" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
+        <div id="games-view" style="background-color: #0a487330;" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative">
 
             <!-- Header Section -->
             <div class="mb-10 w-full max-w-5xl mx-auto text-center">
                 <h3
                     class="header-title text-4xl font-black text-white mb-2 tracking-tight neon-text-white uppercase italic">
-                    Catalog Games</h3>
-                <p id="total-games" class="text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">0 Games loaded
-                </p>
+                    Wishlist</h3>
+                <p id="total-games" class="text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">0 Games in wishlist
             </div>
 
             <!-- Filters Section -->
@@ -557,11 +218,10 @@
 
             <!-- Games Grid -->
             <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 md:gap-2">
-                <!-- Game Cards will be injected here by dashboard.js -->
                 <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
                     <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4">
                     </div>
-                    <p>Loading your library...</p>
+                    <p>Loading wishlist...</p>
                 </div>
             </div>
 
@@ -587,11 +247,10 @@
 
     <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-    <script src="../../Auth/Js/auth.js"></script>
-    <script src="../../Shared/Js/notifications.js"></script>
-    <script src="../Js/dashboard.js"></script>
+    <script src="../../../Auth/Js/auth.js"></script>
+    <script src="../../../Shared/Js/notifications.js"></script>
+    <script src="../Js/wishlist.js"></script>
     <script>
-        // Ensure notification system is initialized for dashboard
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof isLoggedIn === 'function' && isLoggedIn() && typeof initNotificationSystem === 'function') {
                 initNotificationSystem();
