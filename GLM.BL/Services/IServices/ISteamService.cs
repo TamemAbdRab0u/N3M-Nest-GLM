@@ -17,5 +17,6 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<IEnumerable<RAWGCatalogDto>> GetSimilarGamesAsync(int externalId);
         Task<IEnumerable<RAWGCatalogDto>> GetCompanyGamesAsync(string companyName, int page = 1);
         Task<(int Requested, int Stored, int Updated, int Failed)> PreloadPopularGamesAsync(int take = 1000, int hydrateTop = 200, int skip = 0);
+
     }
 }

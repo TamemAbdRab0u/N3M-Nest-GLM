@@ -381,6 +381,18 @@ function renderGame(g) {
     setText('val-developer', g.developers?.[0] || 'Unknown');
     setText('val-publisher', g.publishers?.[0] || 'Unknown');
     setText('val-metascore', g.metacritic || 'N/A');
+    
+    // ── Achievements ──────────────────────────
+    const achContainer = document.getElementById('achievements-container');
+    const achVal = document.getElementById('val-achievements');
+    if (achContainer && achVal) {
+        if (g.achievementsCount != null && g.achievementsCount > 0) {
+            achVal.textContent = g.achievementsCount;
+            achContainer.classList.remove('hidden');
+        } else {
+            achContainer.classList.add('hidden');
+        }
+    }
 
     // ── Price ────────────────────────────────
     const priceEl = document.getElementById('val-price');

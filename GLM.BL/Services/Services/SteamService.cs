@@ -224,6 +224,8 @@ namespace Game_Library_Management_BL.Services.Services
             return (selected.Count, stored, updated, failed);
         }
 
+
+
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
         {
             if (string.IsNullOrWhiteSpace(query)) return Enumerable.Empty<RAWGCatalogDto>();
@@ -623,7 +625,7 @@ namespace Game_Library_Management_BL.Services.Services
                 .FirstOrDefaultAsync(g => g.ExternalId == externalId);
         }
 
-        private async Task UpsertGameAggregateAsync(Game game, (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price) details, bool isNew)
+        private async Task UpsertGameAggregateAsync(Game game, (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price, int? achievementsCount) details, bool isNew)
         {
             game.Title = details.name;
             game.Description = details.description;
@@ -641,6 +643,9 @@ namespace Game_Library_Management_BL.Services.Services
             game.MinimumRequirements = details.minimumRequirements;
             game.RecommendedRequirements = details.recommendedRequirements;
             game.Price = details.price;
+            game.AchievementsCount = details.achievementsCount;
+            game.TrailerUrl = details.trailerUrl;
+            game.TrailerPreview = details.trailerPreview;
             game.IsDetailsHydrated = true;
             game.DetailsLastSyncedAt = DateTime.UtcNow;
 
@@ -854,8 +859,9 @@ namespace Game_Library_Management_BL.Services.Services
                 Metacritic = game.Metacritic,
                 Playtime = game.Playtime ?? 0,
                 Website = game.Website ?? string.Empty,
-                TrailerUrl = primaryTrailer?.VideoUrl ?? string.Empty,
-                TrailerPreview = primaryTrailer?.PreviewImageUrl ?? string.Empty,
+                AchievementsCount = game.AchievementsCount,
+                TrailerUrl = game.TrailerUrl ?? primaryTrailer?.VideoUrl ?? string.Empty,
+                TrailerPreview = game.TrailerPreview ?? primaryTrailer?.PreviewImageUrl ?? string.Empty,
                 Genres = game.GameTags.Select(x => x.Tag.Name).ToList(),
                 Platforms = game.GamePlatforms.Select(x => x.Platform.Name).ToList(),
                 Tags = game.GameTags.Select(x => x.Tag.Name).ToList(),
@@ -1181,10 +1187,10 @@ namespace Game_Library_Management_BL.Services.Services
             return list;
         }
 
-        private async Task<(int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price)?> GetSteamAppDetailsAsync(int appId, bool forceRefresh = false)
+        private async Task<(int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price, int? achievementsCount)?> GetSteamAppDetailsAsync(int appId, bool forceRefresh = false)
         {
             var cacheKey = $"steam:appdetails:{appId}";
-            if (!forceRefresh && _cache.TryGetValue(cacheKey, out (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price) cached))
+            if (!forceRefresh && _cache.TryGetValue(cacheKey, out (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price, int? achievementsCount) cached))
             {
                 return cached;
             }
@@ -1299,7 +1305,14 @@ namespace Game_Library_Management_BL.Services.Services
                 }
             }
 
-            var result = (appId, name, description, headerImage, backgroundImage, releaseDate, metacritic, rating, website, genres, developers, publishers, platforms, trailerUrl, trailerPreview, screenshots, minimumRequirements, recommendedRequirements, price);
+            int? achievementsCount = null;
+            if (data.TryGetProperty("achievements", out var achObj) && achObj.ValueKind == JsonValueKind.Object)
+            {
+                if (achObj.TryGetProperty("total", out var totalNode) && totalNode.ValueKind == JsonValueKind.Number)
+                    achievementsCount = totalNode.GetInt32();
+            }
+
+            var result = (appId, name, description, headerImage, backgroundImage, releaseDate, metacritic, rating, website, genres, developers, publishers, platforms, trailerUrl, trailerPreview, screenshots, minimumRequirements, recommendedRequirements, price, achievementsCount);
             _cache.Set(cacheKey, result, AppDetailsCacheTtl);
             return result;
         }

@@ -31,6 +31,9 @@ namespace Game_Library_Management_DAL.Models
         public DateTime? DetailsLastSyncedAt { get; set; }
         [Precision(10, 2)]
         public decimal? Price { get; set; }
+        public int? AchievementsCount { get; set; }
+        public string? TrailerUrl { get; set; }
+        public string? TrailerPreview { get; set; }
 
         public List<UserGame> UserGames { get; set; }
         public List<GameTag> GameTags { get; set; }

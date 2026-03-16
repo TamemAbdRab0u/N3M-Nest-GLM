@@ -17,6 +17,7 @@ namespace Game_Library_Management_BL.DTO_s.RAWGDto
         public string ReleaseDate { get; set; }
         public int? Metacritic { get; set; }
         public int Playtime { get; set; }
+        public int? AchievementsCount { get; set; }
         public string Website { get; set; }
         public string TrailerUrl { get; set; }
         public string TrailerPreview { get; set; }

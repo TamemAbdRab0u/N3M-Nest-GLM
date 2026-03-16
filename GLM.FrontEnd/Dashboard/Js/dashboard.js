@@ -56,10 +56,10 @@ function savePageState() {
         hasMoreCatalogPages,
         allGames: allGames // Store data for instant restoration
     };
-    
+
     // Update current history entry with our state
     history.replaceState(state, '');
-    
+
     // Also save to sessionStorage for cross-page navigation (e.g., returning from Profile)
     // This acts as a "Session Checkpoint"
     sessionStorage.setItem('DASHBOARD_CHECKPOINT', JSON.stringify(state));
@@ -70,18 +70,18 @@ function savePageState() {
  */
 async function restorePageState() {
     let state = history.state;
-    
+
     // If no history state (direct navigation/link click), check sessionStorage
     if (!state || !state.currentView) {
         const saved = sessionStorage.getItem('DASHBOARD_CHECKPOINT');
         if (saved) {
             const parsed = JSON.parse(saved);
-            
+
             // Safety: Only restore if the URL view matches the saved view, 
             // OR if the URL has no explicit view.
             const urlParams = new URLSearchParams(window.location.search);
             const urlView = urlParams.get('view');
-            
+
             if (!urlView || urlView === parsed.currentView) {
                 state = parsed;
                 // Sync history state so future back buttons work correctly
@@ -110,7 +110,7 @@ async function restorePageState() {
     selectView(currentView, true);
 
     // Restore UI Labels for filters
-    if (state.currentGenreLabel && document.getElementById('current-category')) 
+    if (state.currentGenreLabel && document.getElementById('current-category'))
         document.getElementById('current-category').textContent = state.currentGenreLabel;
     if (state.currentPlatformLabel && document.getElementById('current-platform'))
         document.getElementById('current-platform').textContent = state.currentPlatformLabel;
@@ -132,7 +132,7 @@ async function restorePageState() {
     if (state.allGames && Array.isArray(state.allGames) && state.allGames.length > 0) {
         allGames = state.allGames;
         displayGames(allGames);
-        
+
         // Sync UI counters
         const totalGamesElement = document.getElementById('total-games');
         if (totalGamesElement) {
@@ -160,18 +160,18 @@ async function restorePageState() {
         // Use multiple attempts with 'instant' behavior where possible to override CSS smooth scroll
         const jump = () => {
             if (scrollContainer.scrollTo) {
-                scrollContainer.scrollTo({ 
-                    top: state.scrollPos, 
+                scrollContainer.scrollTo({
+                    top: state.scrollPos,
                     behavior: 'auto' // 'auto' honors 'instant' jump if scrollRestoration is manual
                 });
             } else {
                 scrollContainer.scrollTop = state.scrollPos;
             }
         };
-        
+
         // Immediate jump
         jump();
-        
+
         // Follow-up jumps to counter delayed layout shifts
         setTimeout(jump, 50);
         setTimeout(jump, 150);
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializePagination();
     initializeCatalogInfiniteScroll();
     initializeSearch();
-    
+
     // Save state before leaving the page (e.g., clicking a link to Profile)
     window.addEventListener('beforeunload', savePageState);
 });
@@ -762,7 +762,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
     finally {
         if (isCatalog) isCatalogLoading = false;
         if (isAppendCatalogRequest) toggleCatalogAppendLoader(false);
-        
+
         // Save state after loading more games
         if (!isRestoring) {
             savePageState();
@@ -1772,10 +1772,10 @@ function updateWishlistUI(gameId, isInWishlist) {
 function showGameDetails(game) {
     const gameId = game.externalId || game.id;
     if (!gameId) return;
-    
+
     // Proactively save state before navigating away
     savePageState();
-    
+
     window.location.href = `../../GameDetails/Html/game-details.html?id=${gameId}`;
 }
 
