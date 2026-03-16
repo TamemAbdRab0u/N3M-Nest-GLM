@@ -6,11 +6,192 @@ let currentPlatform = ''; // Store current platform filter
 let currentOrdering = ''; // Store current sorting/ordering
 let currentRelease = ''; // Store current release year filter
 let currentStatus = ''; // Store current game status filter
-let gamesPerPage = 12; // Updated to 12 games per page
+let gamesPerPage = 12; // Reverted back to 12 per user request
 let allGames = []; // Will store just the current page of games now
 let currentView = 'catalog'; // 'catalog', 'library', 'favorites'
 let isCatalogLoading = false;
 let hasMoreCatalogPages = true;
+
+// Force manual scroll restoration to control it via History API
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
+/**
+ * --- HISTORY API STATE MANAGEMENT ---
+ * Saves the current dashboard state (scroll, view, filters, etc.)
+ */
+function savePageState() {
+    const scrollContainer = document.querySelector('.content-area');
+    if (!scrollContainer) return;
+
+    const scrollPos = scrollContainer.scrollTop;
+
+    // Don't save if we're at 0 but we have a saved checkpoint with a high scroll 
+    // (guards against browser resetting scroll to 0 during unload)
+    if (scrollPos === 0) {
+        const existing = sessionStorage.getItem('DASHBOARD_CHECKPOINT');
+        if (existing) {
+            const parsed = JSON.parse(existing);
+            if (parsed.scrollPos > 100) return; // Keep the old one
+        }
+    }
+
+    const state = {
+        scrollPos: scrollPos,
+        loadedCount: allGames.length,
+        currentPage,
+        currentView,
+        currentQuery,
+        currentGenre,
+        currentGenreLabel: document.getElementById('current-category')?.textContent,
+        currentPlatform,
+        currentPlatformLabel: document.getElementById('current-platform')?.textContent,
+        currentOrdering,
+        currentOrderingLabel: document.getElementById('current-rating')?.textContent,
+        currentRelease,
+        currentReleaseLabel: document.getElementById('current-release')?.textContent,
+        currentStatus,
+        currentStatusLabel: document.getElementById('current-status')?.textContent,
+        hasMoreCatalogPages,
+        allGames: allGames // Store data for instant restoration
+    };
+    
+    // Update current history entry with our state
+    history.replaceState(state, '');
+    
+    // Also save to sessionStorage for cross-page navigation (e.g., returning from Profile)
+    // This acts as a "Session Checkpoint"
+    sessionStorage.setItem('DASHBOARD_CHECKPOINT', JSON.stringify(state));
+}
+
+/**
+ * Restores the dashboard state from History API
+ */
+async function restorePageState() {
+    let state = history.state;
+    
+    // If no history state (direct navigation/link click), check sessionStorage
+    if (!state || !state.currentView) {
+        const saved = sessionStorage.getItem('DASHBOARD_CHECKPOINT');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            
+            // Safety: Only restore if the URL view matches the saved view, 
+            // OR if the URL has no explicit view.
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlView = urlParams.get('view');
+            
+            if (!urlView || urlView === parsed.currentView) {
+                state = parsed;
+                // Sync history state so future back buttons work correctly
+                history.replaceState(state, '');
+                console.log('Restoring from Session Checkpoint...', state);
+            }
+        }
+    }
+
+    if (!state || !state.currentView) return false;
+
+    console.log('Restoring from History State...', state);
+
+    // Restore variables
+    currentView = state.currentView;
+    currentPage = state.currentPage;
+    currentQuery = state.currentQuery;
+    currentGenre = state.currentGenre;
+    currentPlatform = state.currentPlatform;
+    currentOrdering = state.currentOrdering;
+    currentRelease = state.currentRelease;
+    currentStatus = state.currentStatus;
+    hasMoreCatalogPages = state.hasMoreCatalogPages;
+
+    // Apply View UI (without triggering a fresh loadGames call)
+    selectView(currentView, true);
+
+    // Restore UI Labels for filters
+    if (state.currentGenreLabel && document.getElementById('current-category')) 
+        document.getElementById('current-category').textContent = state.currentGenreLabel;
+    if (state.currentPlatformLabel && document.getElementById('current-platform'))
+        document.getElementById('current-platform').textContent = state.currentPlatformLabel;
+    if (state.currentOrderingLabel && document.getElementById('current-rating'))
+        document.getElementById('current-rating').textContent = state.currentOrderingLabel;
+    if (state.currentReleaseLabel && document.getElementById('current-release'))
+        document.getElementById('current-release').textContent = state.currentReleaseLabel;
+    if (state.currentStatusLabel && document.getElementById('current-status'))
+        document.getElementById('current-status').textContent = state.currentStatusLabel;
+
+    // Toggle active-filter-btn classes if needed
+    if (currentGenre) document.getElementById('category-filter-btn')?.classList.add('active-filter-btn');
+    if (currentPlatform) document.getElementById('platform-filter-btn')?.classList.add('active-filter-btn');
+    if (currentOrdering) document.getElementById('rating-filter-btn')?.classList.add('active-filter-btn');
+    if (currentRelease) document.getElementById('release-filter-btn')?.classList.add('active-filter-btn');
+    if (currentStatus) document.getElementById('status-filter-btn')?.classList.add('active-filter-btn');
+
+    // If we have saved allGames, render them immediately
+    if (state.allGames && Array.isArray(state.allGames) && state.allGames.length > 0) {
+        allGames = state.allGames;
+        displayGames(allGames);
+        
+        // Sync UI counters
+        const totalGamesElement = document.getElementById('total-games');
+        if (totalGamesElement) {
+            if (currentView === 'catalog') {
+                totalGamesElement.textContent = currentQuery ? `Search Results` : `${allGames.length} loaded`;
+            } else {
+                totalGamesElement.textContent = `${allGames.length} total`;
+            }
+        }
+    } else if (state.loadedCount > 0) {
+        // Fallback: reload if data is missing but count was saved
+        if (currentView === 'catalog' && !currentQuery && !currentStatus && currentPage > 1) {
+            allGames = [];
+            for (let p = 1; p <= currentPage; p++) {
+                await loadGames(p, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus, true);
+            }
+        } else {
+            await loadGames(currentPage, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus, true);
+        }
+    }
+
+    // After rendering, restore scroll position
+    const scrollContainer = document.querySelector('.content-area');
+    if (scrollContainer && state.scrollPos > 0) {
+        // Use multiple attempts with 'instant' behavior where possible to override CSS smooth scroll
+        const jump = () => {
+            if (scrollContainer.scrollTo) {
+                scrollContainer.scrollTo({ 
+                    top: state.scrollPos, 
+                    behavior: 'auto' // 'auto' honors 'instant' jump if scrollRestoration is manual
+                });
+            } else {
+                scrollContainer.scrollTop = state.scrollPos;
+            }
+        };
+        
+        // Immediate jump
+        jump();
+        
+        // Follow-up jumps to counter delayed layout shifts
+        setTimeout(jump, 50);
+        setTimeout(jump, 150);
+        setTimeout(jump, 300);
+        setTimeout(jump, 500);
+        setTimeout(jump, 1000); // Final check
+    }
+
+    // Restore search input UI
+    const searchInput = document.querySelector('.search-bar input');
+    if (searchInput && currentQuery) {
+        searchInput.value = currentQuery;
+    }
+
+    // Clear checkpoint if it was a successful restoration 
+    // (Optional: keeps things fresh for the next manual navigation)
+    // sessionStorage.removeItem('DASHBOARD_CHECKPOINT');
+
+    return true;
+}
 
 // Toast Notification State
 let activeToast = null;
@@ -53,7 +234,7 @@ function getRelativeTime(dateString) {
 }
 
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
     if (!isLoggedIn()) {
         window.location.href = '../../Auth/Html/login.html';
@@ -63,44 +244,50 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display user info
     displayUserInfo();
 
-    // Check for view in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const requestedView = urlParams.get('view') || 'catalog';
-    const requestedGenre = urlParams.get('genre');
+    // Check for saved state (Back navigation or Link click from other page)
+    const wasRestored = await restorePageState();
 
-    selectView(requestedView);
+    if (!wasRestored) {
+        // Normal initialization if no history state
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedView = urlParams.get('view') || 'catalog';
+        const requestedGenre = urlParams.get('genre');
 
-    // Apply genre filter if specified in URL
-    if (requestedGenre && requestedView === 'library') {
-        currentGenre = requestedGenre;
+        selectView(requestedView);
 
-        // Update category filter UI to show the selected genre
-        const currentCatDisplay = document.getElementById('current-category');
-        const catBtn = document.getElementById('category-filter-btn');
-        if (currentCatDisplay) {
-            currentCatDisplay.textContent = requestedGenre;
+        // Apply genre filter if specified in URL
+        if (requestedGenre && requestedView === 'library') {
+            currentGenre = requestedGenre;
+            const currentCatDisplay = document.getElementById('current-category');
+            const catBtn = document.getElementById('category-filter-btn');
+            if (currentCatDisplay) currentCatDisplay.textContent = requestedGenre;
+            if (catBtn) catBtn.classList.add('active-filter-btn');
+            loadGames(1, '', requestedGenre, '', '', '', '');
         }
-        if (catBtn) {
-            catBtn.classList.add('active-filter-btn');
-        }
-
-        // Reload library with genre filter
-        loadGames(1, '', requestedGenre, '', '', '', '');
     }
 
     initializeNavigation();
     initializePagination();
     initializeCatalogInfiniteScroll();
     initializeSearch();
-    // initializeCategories();
-    // initializePlatforms();
-    // initializeReleaseYears();
+    
+    // Save state before leaving the page (e.g., clicking a link to Profile)
+    window.addEventListener('beforeunload', savePageState);
 });
 
 function initializeCatalogInfiniteScroll() {
     const scrollContainer = document.querySelector('.content-area');
-    const target = scrollContainer || window;
-    target.addEventListener('scroll', handleCatalogInfiniteScroll, { passive: true });
+    if (!scrollContainer) return;
+
+    // Load next page on scroll
+    scrollContainer.addEventListener('scroll', handleCatalogInfiniteScroll, { passive: true });
+
+    // Save state on scroll (Checkpoint)
+    let scrollTimeout;
+    scrollContainer.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(savePageState, 150);
+    }, { passive: true });
 }
 
 function handleCatalogInfiniteScroll() {
@@ -109,7 +296,7 @@ function handleCatalogInfiniteScroll() {
     }
 
     const scrollContainer = document.querySelector('.content-area');
-    const threshold = 260;
+    const threshold = 400; // Increased threshold for smoother infinite loading
     let nearBottom = false;
 
     if (scrollContainer) {
@@ -184,42 +371,44 @@ async function fetchProfileInfo() {
     }
 }
 
-function selectView(view) {
+function selectView(view, isRestoring = false) {
     currentView = view;
-    currentPage = 1;
-    currentQuery = '';
-    currentGenre = ''; // Reset genre filter
-    currentPlatform = ''; // Reset platform filter
-    currentOrdering = ''; // Reset ordering filter
-    currentRelease = ''; // Reset release filter
-    currentStatus = ''; // Reset status filter
+    if (!isRestoring) {
+        currentPage = 1;
+        currentQuery = '';
+        currentGenre = ''; // Reset genre filter
+        currentPlatform = ''; // Reset platform filter
+        currentOrdering = ''; // Reset ordering filter
+        currentRelease = ''; // Reset release filter
+        currentStatus = ''; // Reset status filter
+    }
 
-    // Reset dropdown UI
+    // Reset dropdown UI (only if not restoring, though we usually want UI to match filters)
     const currentCatDisplay = document.getElementById('current-category');
     const catBtn = document.getElementById('category-filter-btn');
-    if (currentCatDisplay) currentCatDisplay.textContent = 'Category';
-    if (catBtn) catBtn.classList.remove('active-filter-btn');
+    if (currentCatDisplay && !isRestoring) currentCatDisplay.textContent = 'Category';
+    if (catBtn && !isRestoring) catBtn.classList.remove('active-filter-btn');
 
     const currentPlatDisplay = document.getElementById('current-platform');
     const platBtn = document.getElementById('platform-filter-btn');
-    if (currentPlatDisplay) currentPlatDisplay.textContent = 'Platforms';
-    if (platBtn) platBtn.classList.remove('active-filter-btn');
+    if (currentPlatDisplay && !isRestoring) currentPlatDisplay.textContent = 'Platforms';
+    if (platBtn && !isRestoring) platBtn.classList.remove('active-filter-btn');
 
     const currentRatingDisplay = document.getElementById('current-rating');
     const ratingBtn = document.getElementById('rating-filter-btn');
-    if (currentRatingDisplay) currentRatingDisplay.textContent = 'Rating';
-    if (ratingBtn) ratingBtn.classList.remove('active-filter-btn');
+    if (currentRatingDisplay && !isRestoring) currentRatingDisplay.textContent = 'Rating';
+    if (ratingBtn && !isRestoring) ratingBtn.classList.remove('active-filter-btn');
 
     const currentReleaseDisplay = document.getElementById('current-release');
     const releaseBtn = document.getElementById('release-filter-btn');
-    if (currentReleaseDisplay) currentReleaseDisplay.textContent = 'Release';
-    if (releaseBtn) releaseBtn.classList.remove('active-filter-btn');
+    if (currentReleaseDisplay && !isRestoring) currentReleaseDisplay.textContent = 'Release';
+    if (releaseBtn && !isRestoring) releaseBtn.classList.remove('active-filter-btn');
 
     const currentStatusDisplay = document.getElementById('current-status');
     const statusBtn = document.getElementById('status-filter-btn');
     const statusFilterContainer = document.getElementById('status-filter-container');
-    if (currentStatusDisplay) currentStatusDisplay.textContent = 'Status';
-    if (statusBtn) statusBtn.classList.remove('active-filter-btn');
+    if (currentStatusDisplay && !isRestoring) currentStatusDisplay.textContent = 'Status';
+    if (statusBtn && !isRestoring) statusBtn.classList.remove('active-filter-btn');
 
     // Only show status filter for My Library and Favorites
     if (statusFilterContainer) {
@@ -253,11 +442,13 @@ function selectView(view) {
         else if (view === 'community') headerTitle.textContent = 'Community';
     }
 
-    loadGames(1, '', '', '', '', '', '');
+    if (!isRestoring) {
+        loadGames(1, '', '', '', '', '', '');
+    }
 }
 
 // Load games from API (handles both catalog and search)
-async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '', status = '') {
+async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '', status = '', isRestoring = false) {
     const container = document.getElementById('library-games');
     const totalGamesElement = document.getElementById('total-games');
     const isCatalog = currentView === 'catalog' && !status;
@@ -560,6 +751,11 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
     finally {
         if (isCatalog) isCatalogLoading = false;
         if (isAppendCatalogRequest) toggleCatalogAppendLoader(false);
+        
+        // Save state after loading more games
+        if (!isRestoring) {
+            savePageState();
+        }
     }
 }
 
@@ -1565,6 +1761,10 @@ function updateWishlistUI(gameId, isInWishlist) {
 function showGameDetails(game) {
     const gameId = game.externalId || game.id;
     if (!gameId) return;
+    
+    // Proactively save state before navigating away
+    savePageState();
+    
     window.location.href = `../../GameDetails/Html/game-details.html?id=${gameId}`;
 }
 
