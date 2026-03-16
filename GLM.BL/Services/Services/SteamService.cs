@@ -224,6 +224,78 @@ namespace Game_Library_Management_BL.Services.Services
             return (selected.Count, stored, updated, failed);
         }
 
+        public async Task<(int Total, int Updated, int Skipped, int Failed, List<(int ExternalId, string TrailerUrl)> Results)>
+            SyncAchievementsAndTrailersAsync(bool overwriteExisting = false, CancellationToken cancellationToken = default)
+        {
+            var games = await _unitOfWork.Games.Query()
+                .Where(g => g.ExternalId > 0)
+                .ToListAsync(cancellationToken);
+
+            var total = games.Count;
+            var updated = 0;
+            var skipped = 0;
+            var failed = 0;
+            var results = new List<(int ExternalId, string TrailerUrl)>();
+
+            foreach (var game in games)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!overwriteExisting && !string.IsNullOrWhiteSpace(game.TrailerUrl))
+                {
+                    skipped++;
+                    results.Add((game.ExternalId, game.TrailerUrl));
+                    continue;
+                }
+
+                try
+                {
+                    // Delay to respect rate limits
+                    await Task.Delay(1500, cancellationToken);
+                    
+                    var details = await GetSteamAppDetailsAsync(game.ExternalId, forceRefresh: overwriteExisting);
+                    if (details == null)
+                    {
+                        Console.WriteLine($"[Sync] Failed to fetch details for {game.ExternalId}");
+                        failed++;
+                        continue;
+                    }
+
+                    var trailerUrl = details.Value.trailerUrl ?? "";
+                    
+                    // Only update if it actually changed or we are forcing overwrite
+                    if (game.TrailerUrl != trailerUrl || overwriteExisting)
+                    {
+                        game.TrailerUrl = trailerUrl;
+                        game.TrailerPreview = details.Value.trailerPreview ?? "";
+                        game.AchievementsCount = details.Value.achievementsCount;
+                        
+                        await _unitOfWork.Games.Update(game);
+                        _unitOfWork.Save();
+                        
+                        // Also sync trailers bridge table
+                        await ReplaceTrailersAsync(game.Id, game.TrailerUrl, game.TrailerPreview);
+                        
+                        updated++;
+                        Console.WriteLine($"[Sync] Updated {game.ExternalId}: {trailerUrl}");
+                    }
+                    else
+                    {
+                        skipped++;
+                    }
+
+                    results.Add((game.ExternalId, trailerUrl));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Sync] Error processing {game.ExternalId}: {ex.Message}");
+                    failed++;
+                }
+            }
+
+            return (total, updated, skipped, failed, results);
+        }
+
 
 
         public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
@@ -1266,6 +1338,25 @@ namespace Game_Library_Management_BL.Services.Services
                     {
                         if (mp4.TryGetProperty("480", out var p480)) trailerUrl = p480.GetString() ?? string.Empty;
                         if (string.IsNullOrWhiteSpace(trailerUrl) && mp4.TryGetProperty("max", out var pMax)) trailerUrl = pMax.GetString() ?? string.Empty;
+                    }
+
+                    // Fallback to WebM if MP4 is missing
+                    if (string.IsNullOrWhiteSpace(trailerUrl) && first.TryGetProperty("webm", out var webm) && webm.ValueKind == JsonValueKind.Object)
+                    {
+                        if (webm.TryGetProperty("480", out var w480)) trailerUrl = w480.GetString() ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(trailerUrl) && webm.TryGetProperty("max", out var wMax)) trailerUrl = wMax.GetString() ?? string.Empty;
+                    }
+
+                    // Fallback to HLS (Streaming Format - very common now)
+                    if (string.IsNullOrWhiteSpace(trailerUrl) && first.TryGetProperty("hls_h264", out var hls))
+                    {
+                        trailerUrl = hls.GetString() ?? string.Empty;
+                    }
+
+                    // Fallback to DASH (Streaming Format)
+                    if (string.IsNullOrWhiteSpace(trailerUrl) && first.TryGetProperty("dash_h264", out var dash))
+                    {
+                        trailerUrl = dash.GetString() ?? string.Empty;
                     }
                     if (first.TryGetProperty("thumbnail", out var thumb)) trailerPreview = thumb.GetString() ?? string.Empty;
                 }

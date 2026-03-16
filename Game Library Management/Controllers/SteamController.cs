@@ -72,6 +72,20 @@ namespace Game_Library_Management.Controllers
             });
         }
 
+        [HttpPost("catalog/sync-trailers")]
+        public async Task<IActionResult> SyncTrailers([FromQuery] bool overwrite = false)
+        {
+            var result = await _steamService.SyncAchievementsAndTrailersAsync(overwrite);
+            return Ok(new
+            {
+                result.Total,
+                result.Updated,
+                result.Skipped,
+                result.Failed,
+                Results = result.Results.Select(r => new { r.ExternalId, r.TrailerUrl })
+            });
+        }
+
         [HttpPost("catalog/favorite/{externalId}")]
         public async Task<IActionResult> ToggleFavorite(int externalId)
         {
