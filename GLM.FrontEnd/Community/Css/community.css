@@ -101,3 +101,7 @@
     from { opacity: 0; transform: translateX(10px); }
     to   { opacity: 1; transform: translateX(0); }
 }
+
+/* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
+html:not(.fonts-loaded) header { opacity: 0; }
+html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }

@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
         rel="stylesheet" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block"
         rel="stylesheet" />
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -357,6 +357,22 @@
             background: radial-gradient(circle, transparent 20%, rgba(8, 15, 15, 0.8) 100%);
             z-index: 2;
         }
+
+        /* Skeleton Loading */
+        @keyframes skeleton-shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-shimmer {
+            background: linear-gradient(90deg, #1a2428 25%, #243338 50%, #1a2428 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.6s infinite linear;
+        }
+
+        /* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
+        html:not(.fonts-loaded) header { opacity: 0; }
+        html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }
     </style>
 </head>
 
@@ -494,10 +510,35 @@
             <!-- Games Grid -->
             <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 md:gap-2">
                 <!-- Game Cards will be injected here by dashboard.js -->
-                <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
-                    <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4">
+                <!-- Skeleton placeholders (removed automatically by JS) -->
+                <div class="bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10">
+                    <div class="aspect-[16/9] skeleton-shimmer"></div>
+                    <div class="px-2 py-3">
+                        <div class="skeleton-shimmer h-3 rounded w-3/4 mb-2"></div>
+                        <div class="skeleton-shimmer h-2.5 rounded w-1/2"></div>
                     </div>
-                    <p>Loading your library...</p>
+                </div>
+                <!-- Repeat for initial layout -->
+                <div class="bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10">
+                    <div class="aspect-[16/9] skeleton-shimmer"></div>
+                    <div class="px-2 py-3">
+                        <div class="skeleton-shimmer h-3 rounded w-3/4 mb-2"></div>
+                        <div class="skeleton-shimmer h-2.5 rounded w-1/2"></div>
+                    </div>
+                </div>
+                <div class="bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10">
+                    <div class="aspect-[16/9] skeleton-shimmer"></div>
+                    <div class="px-2 py-3">
+                        <div class="skeleton-shimmer h-3 rounded w-3/4 mb-2"></div>
+                        <div class="skeleton-shimmer h-2.5 rounded w-1/2"></div>
+                    </div>
+                </div>
+                <div class="bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10">
+                    <div class="aspect-[16/9] skeleton-shimmer"></div>
+                    <div class="px-2 py-3">
+                        <div class="skeleton-shimmer h-3 rounded w-3/4 mb-2"></div>
+                        <div class="skeleton-shimmer h-2.5 rounded w-1/2"></div>
+                    </div>
                 </div>
             </div>
 

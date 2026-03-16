@@ -518,3 +518,7 @@ video::-webkit-media-controls {
 .animate-pop {
     animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
+
+/* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
+html:not(.fonts-loaded) header { opacity: 0; }
+html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }

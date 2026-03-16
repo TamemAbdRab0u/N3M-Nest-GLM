@@ -424,3 +424,19 @@
     background: radial-gradient(circle, transparent 20%, rgba(8, 15, 15, 0.8) 100%);
     z-index: 2;
 }
+
+/* Skeleton Loading */
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(90deg, #1a2428 25%, #243338 50%, #1a2428 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.6s infinite linear;
+}
+
+/* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
+html:not(.fonts-loaded) header { opacity: 0; }
+html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }

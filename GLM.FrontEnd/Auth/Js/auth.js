@@ -1,6 +1,9 @@
 // API Configuration
 const API_URL = 'http://localhost:5268';
 
+// Reveal header once fonts are ready — eliminates icon/text FOUC on page navigation
+document.fonts.ready.then(() => document.documentElement.classList.add('fonts-loaded'));
+
 // Helper to determine root path relative to current page
 function getRelativePath(path) {
     // Check if we are in Auth/Html or Dashboard/Html

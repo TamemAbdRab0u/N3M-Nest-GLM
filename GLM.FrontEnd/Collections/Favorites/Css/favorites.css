@@ -366,3 +366,40 @@
     background: radial-gradient(circle, transparent 20%, rgba(8, 15, 15, 0.8) 100%);
     z-index: 2;
 }
+
+/* Skeleton Loading */
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(90deg, #1a2428 25%, #243338 50%, #1a2428 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.6s infinite linear;
+}
+
+/* Card Exit Animation */
+@keyframes cardExit {
+    0%   { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(0.85) translateY(20px); }
+}
+
+.animate-card-exit {
+    animation: cardExit 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    pointer-events: none;
+}
+
+/* Status Change Animation */
+@keyframes statusFadeIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.status-change-animation {
+    animation: statusFadeIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
+html:not(.fonts-loaded) header { opacity: 0; }
+html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }

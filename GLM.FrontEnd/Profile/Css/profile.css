@@ -696,6 +696,10 @@
     animation: slideOutToast 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
+html:not(.fonts-loaded) header { opacity: 0; }
+html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }
+
 .fill-icon {
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }

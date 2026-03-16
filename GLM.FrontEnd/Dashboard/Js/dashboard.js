@@ -447,6 +447,24 @@ function selectView(view, isRestoring = false) {
     }
 }
 
+function createSkeletonCard() {
+    const card = document.createElement('div');
+    card.className = 'bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10';
+    card.innerHTML = `
+        <div class="aspect-[16/9] skeleton-shimmer"></div>
+        <div class="px-2 py-3">
+            <div class="skeleton-shimmer h-3 rounded w-3/4 mb-2"></div>
+            <div class="skeleton-shimmer h-2.5 rounded w-1/2"></div>
+        </div>
+    `;
+    return card;
+}
+
+function showSkeletonCards(container, count = 8) {
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) container.appendChild(createSkeletonCard());
+}
+
 // Load games from API (handles both catalog and search)
 async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '', status = '', isRestoring = false) {
     const container = document.getElementById('library-games');
@@ -466,17 +484,10 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         console.warn('Total games element not found');
     }
 
-    const loadingHtml = `
-        <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
-            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p>Loading games...</p>
-        </div>
-    `;
-
     if (isCatalog) isCatalogLoading = true;
 
     if (!isAppendCatalogRequest) {
-        if (container) container.innerHTML = loadingHtml;
+        if (container) showSkeletonCards(container, 8);
     } else {
         toggleCatalogAppendLoader(true);
     }
