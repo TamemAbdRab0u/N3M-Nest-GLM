@@ -8,6 +8,8 @@ let currentRelease = '';
 let currentStatus = '';
 let gamesPerPage = 12;
 let allGames = [];
+let rawUserGamesCache = null;
+let currentCacheEndpoint = null;
 // Toast Notification State
 let activeToast = null;
 let toastTimeout = null;
@@ -140,7 +142,9 @@ function createSkeletonCard() {
 
 function showSkeletonCards(container, count = 8) {
     container.innerHTML = '';
-    for (let i = 0; i < count; i++) container.appendChild(createSkeletonCard());
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) fragment.appendChild(createSkeletonCard());
+    container.appendChild(fragment);
 }
 
 async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '') {
@@ -148,26 +152,45 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
     const totalGamesElement = document.getElementById('total-games');
     if (container) showSkeletonCards(container, 8);
     try {
-        const response = await apiRequest('/api/UserGames/GetAllUserGames', { method: 'GET' });
-        if (!response.ok) {
-            if (response.status === 404) { renderGames([]); return; }
-            throw new Error('Failed to load games');
+        let endpoint = '/api/UserGames/GetAllUserGames';
+        let gamesData;
+
+        // Serve from Cache if available
+        if (rawUserGamesCache && currentCacheEndpoint === endpoint) {
+            gamesData = [...rawUserGamesCache];
+        } else {
+            const response = await apiRequest(endpoint, { method: 'GET' });
+            if (!response.ok) {
+                if (response.status === 404) { renderGames([]); return; }
+                throw new Error('Failed to load games');
+            }
+            const result = await response.json();
+
+            // Transform completely once and cache
+            rawUserGamesCache = result.map(ug => {
+                const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
+                return {
+                    externalId: ug.externalId,
+                    id: ug.externalId,
+                    title: ug.gameTitle,
+                    imageUrl: ug.gameImageUrl,
+                    releaseDate: ug.releaseDate,
+                    rating: ug.rating,
+                    genres: ug.genres,
+                    platforms: ug.platforms,
+                    isFavorite: ug.isFavorite,
+                    isInLibrary: inLibrary,
+                    isInWishlist: ug.isInWishlist === true || ug.gamestatus === 'whishlist' || ug.gamestatus === 2 || ug.gamestatus === "2",
+                    gamestatus: ug.gamestatus,
+                    addedAt: ug.addedAt
+                };
+            });
+            currentCacheEndpoint = endpoint;
+            gamesData = [...rawUserGamesCache];
         }
-        const result = await response.json();
-        let gamesData = result.map(ug => ({
-            externalId: ug.externalId,
-            id: ug.externalId,
-            title: ug.gameTitle,
-            imageUrl: ug.gameImageUrl,
-            releaseDate: ug.releaseDate,
-            rating: ug.rating,
-            genres: ug.genres,
-            isFavorite: ug.isFavorite,
-            isInLibrary: ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2,
-            isInWishlist: ug.isInWishlist === true || ug.gamestatus === 'whishlist' || ug.gamestatus === 2,
-            gamestatus: ug.gamestatus,
-            addedAt: ug.addedAt
-        })).filter(g => g.isInWishlist);
+
+        // Base filter for wishlist view
+        gamesData = gamesData.filter(g => g.isInWishlist);
 
         if (query) {
             const lowerQ = query.toLowerCase();
@@ -199,7 +222,9 @@ function renderGames(games) {
         return;
     }
     container.innerHTML = '';
-    games.forEach(game => container.appendChild(createGameCard(game)));
+    const fragment = document.createDocumentFragment();
+    games.forEach(game => fragment.appendChild(createGameCard(game)));
+    container.appendChild(fragment);
 }
 
 function createGameCard(game) {
@@ -265,7 +290,7 @@ function createGameCard(game) {
     const inventoryIndicators = `
         <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
             ${game.isInWishlist || true ? `
-                <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist">
+                <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center bg-slate-900/90 filter-none" title="In Wishlist">
                     <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span>
                 </div>` : ''}
         </div>
@@ -299,7 +324,7 @@ function createGameCard(game) {
             <!-- Status Indicator -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
                 ${game.addedAt ? `
-                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time" title="Added At">
+                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/90 filter-none flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time" title="Added At">
                         <span class="material-symbols-outlined text-[15px] text-slate-400 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">history</span>
                         <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-slate-200 whitespace-nowrap">Added ${getRelativeTime(game.addedAt)}</span>
                     </div>
@@ -357,18 +382,18 @@ function renderStatusBadgeHTML(gamestatus) {
     const isPending = key === 'pending' || key === '6';
     const statusObj = STATUS_ICON_MAP[key] || null;
     if (isPending) {
-        return `<div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg status-change-animation"><span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span></div>`;
+        return `<div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/90 filter-none flex items-center justify-center cursor-default shadow-lg status-change-animation"><span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span></div>`;
     }
     if (!statusObj) return '';
-    return `<div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg status-change-animation" title="${statusObj.label}"><span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span><span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span></div>`;
+    return `<div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center bg-slate-900/90 filter-none transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg status-change-animation" title="${statusObj.label}"><span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span><span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span></div>`;
 }
 
 function renderInventoryIndicatorsHTML(game) {
     return `
         <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
-            ${game.isInWishlist ? '<div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist"><span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span></div>' : ''}
-            ${game.isFavorite ? '<div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm" title="Favorited"><span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span></div>' : ''}
-            ${game.isInLibrary ? '<div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm" title="In Library"><span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span></div>' : ''}
+            ${game.isInWishlist ? '<div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center bg-slate-900/90 filter-none" title="In Wishlist"><span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span></div>' : ''}
+            ${game.isFavorite ? '<div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center bg-slate-900/90 filter-none" title="Favorited"><span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span></div>' : ''}
+            ${game.isInLibrary ? '<div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center bg-slate-900/90 filter-none" title="In Library"><span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span></div>' : ''}
         </div>
     `;
 }

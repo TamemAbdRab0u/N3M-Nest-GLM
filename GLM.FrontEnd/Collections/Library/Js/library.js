@@ -8,6 +8,8 @@ let currentRelease = ''; // Store current release year filter
 let currentStatus = ''; // Store current game status filter
 let gamesPerPage = 12;
 let allGames = [];
+let rawUserGamesCache = null;
+let currentCacheEndpoint = null;
 let currentView = 'library';
 
 // Toast Notification State
@@ -167,7 +169,9 @@ function createSkeletonCard() {
 
 function showSkeletonCards(container, count = 8) {
     container.innerHTML = '';
-    for (let i = 0; i < count; i++) container.appendChild(createSkeletonCard());
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) fragment.appendChild(createSkeletonCard());
+    container.appendChild(fragment);
 }
 
 // Load games from API
@@ -180,37 +184,49 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
     try {
         let endpoint = status ? `/api/UserGames/GetByStatus/${status}` : `/api/UserGames/GetAllUserGames`;
 
-        const response = await apiRequest(endpoint, { method: 'GET' });
+        let gamesData;
 
-        if (!response.ok) {
-            if (response.status === 404) {
-                renderGames([]);
-                return;
+        // Serve from Cache if available
+        if (rawUserGamesCache && currentCacheEndpoint === endpoint) {
+            gamesData = [...rawUserGamesCache];
+        } else {
+            const response = await apiRequest(endpoint, { method: 'GET' });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    renderGames([]);
+                    return;
+                }
+                throw new Error('Failed to load games');
             }
-            throw new Error('Failed to load games');
+
+            const result = await response.json();
+
+            // Transform completely once and cache
+            rawUserGamesCache = result.map(ug => {
+                const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
+                return {
+                    externalId: ug.externalId,
+                    id: ug.externalId,
+                    title: ug.gameTitle,
+                    imageUrl: ug.gameImageUrl,
+                    releaseDate: ug.releaseDate,
+                    rating: ug.rating,
+                    genres: ug.genres,
+                    platforms: ug.platforms,
+                    isFavorite: ug.isFavorite,
+                    isInLibrary: inLibrary,
+                    isInWishlist: ug.isInWishlist === true,
+                    gamestatus: ug.gamestatus,
+                    addedAt: ug.addedAt
+                };
+            });
+            currentCacheEndpoint = endpoint;
+            gamesData = [...rawUserGamesCache];
         }
 
-        const result = await response.json();
-
-        // Transform and filter
-        let gamesData = result.map(ug => {
-            const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
-            return {
-                externalId: ug.externalId,
-                id: ug.externalId,
-                title: ug.gameTitle,
-                imageUrl: ug.gameImageUrl,
-                releaseDate: ug.releaseDate,
-                rating: ug.rating,
-                genres: ug.genres,
-                platforms: ug.platforms,
-                isFavorite: ug.isFavorite,
-                isInLibrary: inLibrary,
-                isInWishlist: ug.isInWishlist === true,
-                gamestatus: ug.gamestatus,
-                addedAt: ug.addedAt
-            };
-        }).filter(g => g.isInLibrary);
+        // Base filter for library view
+        gamesData = gamesData.filter(g => g.isInLibrary);
 
         // Client-side search and filters
         if (query) {
@@ -297,9 +313,11 @@ function renderGames(games) {
     }
 
     container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
     games.forEach(game => {
-        container.appendChild(createGameCard(game));
+        fragment.appendChild(createGameCard(game));
     });
+    container.appendChild(fragment);
 }
 
 function createGameCard(game) {
@@ -376,27 +394,20 @@ function createGameCard(game) {
     const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
     const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
 
-    const gameStatusIndicator = isPending ? `
-        <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg">
-                <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
-        </div>` : (statusObj ? `
-        <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
-                <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
-                <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-        </div>` : '');
+    const gameStatusIndicator = renderStatusBadgeHTML(game.gamestatus, gameId);
 
     const inventoryIndicators = `
         <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
             ${game.isInWishlist ? `
-                <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist">
+                <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center bg-slate-900/90 filter-none" title="In Wishlist">
                     <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span>
                 </div>` : ''}
             ${game.isFavorite ? `
-                <div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm" title="Favorited">
+                <div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center bg-slate-900/90 filter-none" title="Favorited">
                     <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span>
                 </div>` : ''}
             ${game.isInLibrary ? `
-                <div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm" title="In Library">
+                <div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center bg-slate-900/90 filter-none" title="In Library">
                     <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span>
                 </div>` : ''}
         </div>
@@ -405,23 +416,7 @@ function createGameCard(game) {
     const favBtnClass = game.isFavorite ? 'text-red-500 btn-fav-active' : 'text-white/70 hover:text-red-400';
     const libClass = game.isInLibrary ? 'text-green-500 btn-lib-active' : 'text-white/70 hover:text-primary';
 
-    const currentStatusId = String(game.gamestatus);
-    const statusSelectionHtml = game.isInLibrary ? `
-        <div class="mt-2.5 sm:mt-3 flex items-center justify-between gap-1 border-t border-white/5 pt-2" data-status-selector="${gameId}">
-            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 1)" title="Playing" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '1' ? 'bg-primary/20 text-primary' : 'text-slate-500 hover:text-primary hover:bg-white/5'}">
-                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">play_circle</span>
-            </button>
-            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 3)" title="Completed" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '3' ? 'bg-green-500/20 text-green-500' : 'text-slate-500 hover:text-green-500 hover:bg-white/5'}">
-                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">task_alt</span>
-            </button>
-            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 5)" title="On Hold" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '5' ? 'bg-yellow-500/20 text-yellow-500' : 'text-slate-500 hover:text-yellow-500 hover:bg-white/5'}">
-                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">pause_circle</span>
-            </button>
-            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 4)" title="Dropped" class="flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200 ${currentStatusId === '4' ? 'bg-red-500/20 text-red-500' : 'text-slate-500 hover:text-red-500 hover:bg-white/5'}">
-                <span class="material-symbols-outlined text-[16px] sm:text-[18px]">do_not_disturb_on</span>
-            </button>
-        </div>
-    ` : '';
+    // statusSelectionHtml removed - now using hover expansion on status badge
 
     card.innerHTML = `
         <!-- Image Container -->
@@ -452,11 +447,11 @@ function createGameCard(game) {
             ${platformIcons}
 
             <!-- Status Indicator -->
-            <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
+            <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5 transform-gpu will-change-transform" data-status-for="${gameId}">
                 ${gameStatusIndicator}
 
                 ${game.addedAt ? `
-                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time" title="Added At">
+                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/90 filter-none flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time transform-gpu will-change-transform" title="Added At">
                         <span class="material-symbols-outlined text-[15px] text-slate-400 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">history</span>
                         <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-slate-200 whitespace-nowrap">Added ${getRelativeTime(game.addedAt)}</span>
                     </div>
@@ -475,7 +470,7 @@ function createGameCard(game) {
                     ${releaseYear ? `<span class="text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded">${releaseYear}</span>` : ''}
                 </div>
             </div>
-            ${statusSelectionHtml}
+            <!-- No status selector here anymore -->
         </div>
     `;
 
@@ -714,9 +709,9 @@ function updateFavoriteUI(gameId, isFavorite) {
         if (inventoryContainer) {
             inventoryContainer.innerHTML = `
                 <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
-                    ${cachedGame.isInWishlist ? '<div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm"><span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span></div>' : ''}
-                    ${cachedGame.isFavorite ? '<div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm"><span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span></div>' : ''}
-                    ${cachedGame.isInLibrary ? '<div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm"><span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span></div>' : ''}
+                    ${cachedGame.isInWishlist ? '<div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center bg-slate-900/90 filter-none"><span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span></div>' : ''}
+                    ${cachedGame.isFavorite ? '<div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center bg-slate-900/90 filter-none"><span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span></div>' : ''}
+                    ${cachedGame.isInLibrary ? '<div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center bg-slate-900/90 filter-none"><span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span></div>' : ''}
                 </div>
             `;
         }
@@ -820,20 +815,49 @@ const STATUS_ICON_MAP = {
     '6': { icon: 'schedule', color: 'text-slate-400', label: 'Pending' }
 };
 
-function renderStatusBadgeHTML(gamestatus) {
+function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
     const key = String(gamestatus).toLowerCase();
-    const isPending = key === 'pending' || key === '6';
-    const statusObj = STATUS_ICON_MAP[key] || null;
-    if (isPending) {
-        return `<div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg status-change-animation"><span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span></div>`;
-    }
-    if (!statusObj) return '';
-    return `<div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg status-change-animation" title="${statusObj.label}"><span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span><span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span></div>`;
+    const statusObj = STATUS_ICON_MAP[key] || { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
+
+    const selectorItems = [
+        { id: '1', icon: 'play_circle', color: 'text-primary', label: 'Playing' },
+        { id: '3', icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+        { id: '5', icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
+        { id: '4', icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' }
+    ];
+
+    const animationClass = isUpdating ? 'status-update-flash' : '';
+
+    return `
+        <div class="group/status relative min-h-[32px] flex items-center justify-end ${animationClass}">
+            <!-- Badge: Icon-only (Initial) -> Expands on Card Hover -> Hidden on Status Hover -->
+            <div class="h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
+                <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
+                <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">
+                    ${statusObj.label}
+                </span>
+            </div>
+
+            <!-- Selector: Hidden -> Visible only on Status Hover -->
+            <div class="absolute right-0 flex items-center gap-1.5 opacity-0 translate-x-4 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+                ${selectorItems.map(s => {
+        const isActive = (key === s.id || key === s.label.toLowerCase());
+        return `
+                        <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
+                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
+                                title="${s.label}">
+                            <span class="material-symbols-outlined text-[18px] ${s.color} ${isActive ? 'fill-icon' : ''}">${s.icon}</span>
+                        </button>
+                    `;
+    }).join('')}
+            </div>
+        </div>
+    `;
 }
 
 function renderInventoryIndicatorsHTML(game) {
     return `
-        ${game.isInWishlist ? '<div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist"><span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span></div>' : ''}
+        ${game.isInWishlist ? '<div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center bg-slate-900/90 filter-none" title="In Wishlist"><span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span></div>' : ''}
     `;
 }
 
@@ -894,7 +918,7 @@ function showGameDetails(game) {
 function updateStatusSelectorUI(gameId, statusId) {
     const selectorContainer = document.querySelector(`[data-status-selector="${gameId}"]`);
     if (!selectorContainer) return;
-    
+
     // reset all buttons
     const buttons = selectorContainer.querySelectorAll('button');
     buttons.forEach(btn => {
@@ -903,10 +927,10 @@ function updateStatusSelectorUI(gameId, statusId) {
         if (match) {
             const btnStatusId = String(match[1]);
             const isActive = btnStatusId === String(statusId);
-            
+
             // clear old classes and assign base transition
             btn.className = 'flex-1 flex justify-center p-1 sm:p-1.5 rounded-md transition-all duration-200';
-            
+
             if (isActive) {
                 if (btnStatusId === '1') btn.classList.add('bg-primary/20', 'text-primary');
                 else if (btnStatusId === '3') btn.classList.add('bg-green-500/20', 'text-green-500');
@@ -932,10 +956,14 @@ async function changeGameStatus(gameId, statusId) {
         cachedGame.gamestatus = statusId;
         const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
         if (statusContainer) {
-            const badgeEl = statusContainer.querySelector('.h-7');
-            if (badgeEl) badgeEl.outerHTML = renderStatusBadgeHTML(statusId);
+            const statusUiEl = statusContainer.querySelector('.group\\/status');
+            if (statusUiEl) {
+                statusUiEl.outerHTML = renderStatusBadgeHTML(statusId, gameId, true);
+            } else {
+                const firstChild = statusContainer.firstElementChild;
+                if (firstChild) firstChild.outerHTML = renderStatusBadgeHTML(statusId, gameId, true);
+            }
         }
-        updateStatusSelectorUI(gameId, statusId);
     }
     try {
         const response = await apiRequest(`/api/UserGames/UpdateUserGame`, {
@@ -951,10 +979,14 @@ async function changeGameStatus(gameId, statusId) {
                 cachedGame.gamestatus = originalStatus;
                 const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
                 if (statusContainer) {
-                    const badgeEl = statusContainer.querySelector('.h-7');
-                    if (badgeEl) badgeEl.outerHTML = renderStatusBadgeHTML(originalStatus);
+                    const statusUiEl = statusContainer.querySelector('.group\\/status');
+                    if (statusUiEl) {
+                        statusUiEl.outerHTML = renderStatusBadgeHTML(originalStatus, gameId);
+                    } else {
+                        const firstChild = statusContainer.firstElementChild;
+                        if (firstChild) firstChild.outerHTML = renderStatusBadgeHTML(originalStatus, gameId);
+                    }
                 }
-                updateStatusSelectorUI(gameId, originalStatus);
             }
         }
     } catch (error) {
