@@ -156,6 +156,23 @@
             }
         }
 
+        #search-results-dropdown::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #search-results-dropdown::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        #search-results-dropdown::-webkit-scrollbar-thumb {
+            background: rgba(74, 125, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        #search-results-dropdown::-webkit-scrollbar-thumb:hover {
+            background: rgba(74, 125, 255, 0.5);
+        }
+
         @keyframes slideOut {
             from {
                 transform: translateX(0);
@@ -433,6 +450,16 @@
                     </span>
                     <input type="text" placeholder="Search games..."
                         class="h-9 w-48 xl:w-64 rounded-xl bg-white/5 border border-white/10 text-xs text-white pl-10 pr-4 focus:outline-none focus:w-80 transition-all focus:border-primary/50 placeholder-slate-600 bg-black/20">
+                    
+                    <!-- Search Results Dropdown -->
+                    <div id="search-results-dropdown" class="hidden absolute top-full left-0 mt-2 w-full bg-[#0a1618]/95 border border-white/10 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl max-h-[480px] overflow-y-auto">
+                        <div id="search-results-list" class="flex flex-col py-2">
+                        </div>
+                        <div id="search-loading" class="hidden px-4 py-8 flex flex-col items-center justify-center gap-3">
+                            <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <span class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Searching...</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-4">
@@ -495,6 +522,12 @@
 
         <!-- Scrollable Content -->
         <div id="games-view" style="background-color: #0a487330;" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
+            
+            <!-- Search Back Button -->
+            <button id="search-back-btn" onclick="clearSearchAndReturn()" class="hidden absolute top-8 left-8 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-primary/50 transition-all group z-[60]">
+                <span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Back to Catalog</span>
+            </button>
 
             <!-- Header Section -->
             <div class="mb-10 w-full max-w-5xl mx-auto text-center">
@@ -560,6 +593,14 @@
                 <p class="text-xs text-slate-600">© 2026 N3M Library.</p>
             </footer>
         </div>
+
+        <!-- Go to Top Button -->
+        <button id="scroll-to-top" 
+            class="absolute bottom-10 right-10 w-14 h-14 glass-neon-btn text-primary z-[100] opacity-0 translate-y-10 pointer-events-none transition-all duration-500 group/scroll"
+            title="Go to Top">
+            <span class="material-symbols-outlined text-3xl font-black group-hover/scroll:-translate-y-1 transition-transform">arrow_upward</span>
+            <div class="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-0 group-hover/scroll:opacity-100 transition-opacity"></div>
+        </button>
     </main>
 
     <!-- Dependencies -->

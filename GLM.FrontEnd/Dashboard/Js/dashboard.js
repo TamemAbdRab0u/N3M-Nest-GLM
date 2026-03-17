@@ -63,12 +63,24 @@ function savePageState() {
     // Also save to sessionStorage for cross-page navigation (e.g., returning from Profile)
     // This acts as a "Session Checkpoint"
     sessionStorage.setItem('DASHBOARD_CHECKPOINT', JSON.stringify(state));
+
+    return state;
 }
 
 /**
  * Restores the dashboard state from History API
  */
 async function restorePageState() {
+    // Check if this is a page reload. If so, don't restore state, let it fetch fresh.
+    const navEntries = performance.getEntriesByType("navigation");
+    if (navEntries.length > 0 && navEntries[0].type === "reload") {
+        console.log("Page was reloaded, clearing dashboard checkpoint to fetch fresh data.");
+        sessionStorage.removeItem('DASHBOARD_CHECKPOINT');
+        sessionStorage.removeItem('PRE_SEARCH_CHECKPOINT');
+        history.replaceState(null, '');
+        return false;
+    }
+
     let state = history.state;
 
     // If no history state (direct navigation/link click), check sessionStorage
@@ -94,6 +106,14 @@ async function restorePageState() {
     if (!state || !state.currentView) return false;
 
     console.log('Restoring from History State...', state);
+    return await applyStateToDashboard(state);
+}
+
+/**
+ * Applies a specific state object to the dashboard UI and variables
+ */
+async function applyStateToDashboard(state) {
+    if (!state || !state.currentView) return false;
 
     // Restore variables
     currentView = state.currentView;
@@ -157,12 +177,11 @@ async function restorePageState() {
     // After rendering, restore scroll position
     const scrollContainer = document.querySelector('.content-area');
     if (scrollContainer && state.scrollPos > 0) {
-        // Use multiple attempts with 'instant' behavior where possible to override CSS smooth scroll
         const jump = () => {
             if (scrollContainer.scrollTo) {
                 scrollContainer.scrollTo({
                     top: state.scrollPos,
-                    behavior: 'auto' // 'auto' honors 'instant' jump if scrollRestoration is manual
+                    behavior: 'auto'
                 });
             } else {
                 scrollContainer.scrollTop = state.scrollPos;
@@ -182,13 +201,16 @@ async function restorePageState() {
 
     // Restore search input UI
     const searchInput = document.querySelector('.search-bar input');
-    if (searchInput && currentQuery) {
-        searchInput.value = currentQuery;
+    if (searchInput) {
+        searchInput.value = currentQuery || '';
     }
 
-    // Clear checkpoint if it was a successful restoration 
-    // (Optional: keeps things fresh for the next manual navigation)
-    // sessionStorage.removeItem('DASHBOARD_CHECKPOINT');
+    // Toggle Back Button visibility
+    const backBtn = document.getElementById('search-back-btn');
+    if (backBtn) {
+        if (currentQuery) backBtn.classList.remove('hidden');
+        else backBtn.classList.add('hidden');
+    }
 
     return true;
 }
@@ -233,6 +255,64 @@ function getRelativeTime(dateString) {
     return `${diffYear} year${diffYear === 1 ? '' : 's'} ago`;
 }
 
+// --- Status Icon Map (Shared with Library logic) ---
+const STATUS_ICON_MAP = {
+    'playing': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
+    '1': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
+    'completed': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+    '3': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+    'onhold': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
+    '5': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
+    'dropped': { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' },
+    '4': { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' },
+    'pending': { icon: 'schedule', color: 'text-slate-400', label: 'Pending' },
+    '6': { icon: 'schedule', color: 'text-slate-400', label: 'Pending' }
+};
+
+/**
+ * Renders the new horizontal status selector (Library Style)
+ */
+function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
+    if (!gamestatus) return '';
+    const key = String(gamestatus).toLowerCase();
+    const statusObj = STATUS_ICON_MAP[key] || { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
+
+    const selectorItems = [
+        { id: '1', icon: 'play_circle', color: 'text-primary', label: 'Playing' },
+        { id: '3', icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+        { id: '5', icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
+        { id: '4', icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' }
+    ];
+
+    const animationClass = isUpdating ? 'status-update-flash' : '';
+
+    return `
+        <div class="group/status relative min-h-[32px] flex items-center justify-end ${animationClass}">
+            <!-- Badge: Icon-only (Initial) -> Expands on Card Hover -> Hidden on Status Hover -->
+            <div class="h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
+                <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
+                <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">
+                    ${statusObj.label}
+                </span>
+            </div>
+
+            <!-- Selector: Hidden -> Visible only on Status Hover -->
+            <div class="absolute right-0 flex items-center gap-1.5 opacity-0 translate-x-4 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+                ${selectorItems.map(s => {
+        const isActive = (key === s.id || key === s.label.toLowerCase());
+        return `
+                        <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
+                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
+                                title="${s.label}">
+                            <span class="material-symbols-outlined text-[18px] ${s.color} ${isActive ? 'fill-icon' : ''}">${s.icon}</span>
+                        </button>
+                    `;
+    }).join('')}
+            </div>
+        </div>
+    `;
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
@@ -270,6 +350,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializePagination();
     initializeCatalogInfiniteScroll();
     initializeSearch();
+    initializeScrollToTopButton();
 
     // Save state before leaving the page (e.g., clicking a link to Profile)
     window.addEventListener('beforeunload', savePageState);
@@ -288,6 +369,33 @@ function initializeCatalogInfiniteScroll() {
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(savePageState, 150);
     }, { passive: true });
+}
+
+/**
+ * Initializes the Go to Top button visibility and click behavior
+ */
+function initializeScrollToTopButton() {
+    const btn = document.getElementById('scroll-to-top');
+    const scrollContainer = document.querySelector('.content-area');
+
+    if (!btn || !scrollContainer) return;
+
+    // Show/hide button based on scroll position
+    scrollContainer.addEventListener('scroll', () => {
+        if (scrollContainer.scrollTop > 600) {
+            btn.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+            btn.classList.add('opacity-100', 'translate-y-0');
+        } else {
+            btn.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+            btn.classList.remove('opacity-100', 'translate-y-0');
+        }
+    }, { passive: true });
+
+    // Click handler is already handled via scrollToTop() if needed, 
+    // but let's add it explicitly for the specific button
+    btn.addEventListener('click', () => {
+        scrollToTop();
+    });
 }
 
 function handleCatalogInfiniteScroll() {
@@ -482,6 +590,13 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
     // Ensure element exists before setting textContent
     if (!totalGamesElement) {
         console.warn('Total games element not found');
+    }
+
+    // Toggle Search Back Button visibility
+    const backBtn = document.getElementById('search-back-btn');
+    if (backBtn) {
+        if (query) backBtn.classList.remove('hidden');
+        else backBtn.classList.add('hidden');
     }
 
     if (isCatalog) isCatalogLoading = true;
@@ -999,38 +1114,12 @@ function createGameCard(game) {
 
             ${platformIcons}
 
-            <!-- Status Indicator (Old Place) -->
+            <!-- Status Indicator (Library Style) -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
-                ${game.isInLibrary ? `
-                <div class="group/status relative">
-                    ${gameStatusIndicator}
-                    
-                    <!-- Status Dropdown (Hover) -->
-                    <div class="absolute bottom-full right-0 pb-3 opacity-0 translate-y-2 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-y-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
-                        <div class="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[130px] p-1.5 flex flex-col gap-1">
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 1)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-primary">play_circle</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Playing</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 3)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-green-500">task_alt</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Completed</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 5)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-yellow-500">pause_circle</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">On Hold</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 4)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-red-500">do_not_disturb_on</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Dropped</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                ` : gameStatusIndicator}
+                ${game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId) : ''}
 
                 ${(currentView !== 'catalog' && game.addedAt) ? `
-                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time" title="Added At">
+                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time transform-gpu will-change-transform" title="Added At">
                         <span class="material-symbols-outlined text-[15px] text-slate-400 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">history</span>
                         <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-slate-200 whitespace-nowrap">Added ${getRelativeTime(game.addedAt)}</span>
                     </div>
@@ -1132,7 +1221,11 @@ function initializePagination() {
 // Initialize search
 function initializeSearch() {
     const searchInput = document.querySelector('.search-bar input');
-    if (!searchInput) return;
+    const resultsDropdown = document.getElementById('search-results-dropdown');
+    const resultsList = document.getElementById('search-results-list');
+    const searchLoading = document.getElementById('search-loading');
+    
+    if (!searchInput || !resultsDropdown || !resultsList) return;
 
     let debounceTimer;
 
@@ -1140,11 +1233,118 @@ function initializeSearch() {
         clearTimeout(debounceTimer);
         const query = e.target.value.trim();
 
-        debounceTimer = setTimeout(() => {
-            currentPage = 1; // Reset to page 1 on new search
-            loadGames(1, query, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
-        }, 500); // 500ms debounce
+        if (query.length < 2) {
+            resultsDropdown.classList.add('hidden');
+            return;
+        }
+
+        debounceTimer = setTimeout(async () => {
+            // Show loading
+            resultsDropdown.classList.remove('hidden');
+            resultsList.innerHTML = '';
+            searchLoading.classList.remove('hidden');
+
+            try {
+                const response = await apiRequest(`/api/Steam/catalog/search?query=${encodeURIComponent(query)}`, { method: 'GET' });
+                if (response.ok) {
+                    const games = await response.json();
+                    renderAjaxSearchResults(games.slice(0, 10), query);
+                }
+            } catch (error) {
+                console.error('AJAX Search error:', error);
+            } finally {
+                searchLoading.classList.add('hidden');
+            }
+        }, 300); // 300ms debounce for autocomplete
     });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query) {
+                // If we are currently NOT searching, backup the state first
+                if (!currentQuery) {
+                    const prevState = savePageState();
+                    if (prevState) sessionStorage.setItem('PRE_SEARCH_CHECKPOINT', JSON.stringify(prevState));
+                }
+
+                resultsDropdown.classList.add('hidden');
+                currentPage = 1;
+                // Full search - load 12 results (loadGames handles display)
+                loadGames(1, query, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
+                searchInput.blur();
+            }
+        }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !resultsDropdown.contains(e.target)) {
+            resultsDropdown.classList.add('hidden');
+        }
+    });
+}
+
+function renderAjaxSearchResults(games, query) {
+    const resultsList = document.getElementById('search-results-list');
+    if (!resultsList) return;
+
+    resultsList.innerHTML = '';
+
+    if (games.length === 0) {
+        resultsList.innerHTML = `
+            <div class="px-4 py-8 text-center">
+                <p class="text-sm text-slate-500 font-medium">No games found for "${query}"</p>
+            </div>
+        `;
+        return;
+    }
+
+    games.forEach(game => {
+        const item = document.createElement('div');
+        item.className = 'group flex items-center gap-3 px-4 py-3 hover:bg-white/5 cursor-pointer transition-all border-b border-white/[0.03] last:border-0';
+        
+        const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
+        const title = game.title || game.name || 'Unknown Game';
+        
+        item.innerHTML = `
+            <div class="w-12 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 shadow-lg">
+                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-semibold text-white truncate group-hover:text-primary transition-colors">${title}</h4>
+            </div>
+            <div class="opacity-0 group-hover:opacity-100 transition-all mr-2">
+                <span class="material-symbols-outlined text-primary text-lg">arrow_forward</span>
+            </div>
+        `;
+
+        item.onclick = () => {
+            showGameDetails(game);
+            document.getElementById('search-results-dropdown').classList.add('hidden');
+        };
+
+        resultsList.appendChild(item);
+    });
+
+    // Add "View all results" at bottom
+    const viewAll = document.createElement('div');
+    viewAll.className = 'px-4 py-3 bg-primary/5 hover:bg-primary/10 text-center cursor-pointer transition-all border-t border-white/5';
+    viewAll.innerHTML = `<span class="text-[11px] font-bold text-primary uppercase tracking-widest">Show All Results</span>`;
+    viewAll.onclick = () => {
+        const searchInput = document.querySelector('.search-bar input');
+        const query = searchInput.value.trim();
+
+        // Backup state before switching to full search results
+        if (!currentQuery) {
+            const prevState = savePageState();
+            if (prevState) sessionStorage.setItem('PRE_SEARCH_CHECKPOINT', JSON.stringify(prevState));
+        }
+
+        loadGames(1, query, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
+        document.getElementById('search-results-dropdown').classList.add('hidden');
+    };
+    resultsList.appendChild(viewAll);
 }
 
 // Initialize Categories dropdown
@@ -1493,63 +1693,7 @@ function updateStatusIndicators(gameId, game) {
 
     // Update Image Status
     statusContainers.forEach(container => {
-        // Add fade out effect
-        container.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
-        container.style.opacity = '0';
-        container.style.transform = 'scale(0.95)';
-
-        setTimeout(() => {
-            if (!game.isInLibrary) {
-                container.innerHTML = '';
-                return;
-            }
-
-            let badgeHtml = '';
-            if (isPending) {
-                badgeHtml = `
-                    <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg">
-                            <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
-                    </div>`;
-            } else if (statusObj) {
-                badgeHtml = `
-                    <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
-                            <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
-                            <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-                    </div>`;
-            }
-
-            container.innerHTML = `
-                <div class="group/status relative">
-                    ${badgeHtml}
-                    <!-- Status Dropdown (Hover) -->
-                    <div class="absolute bottom-full right-0 pb-3 opacity-0 translate-y-2 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-y-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
-                        <div class="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[130px] p-1.5 flex flex-col gap-1">
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 1)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-primary">play_circle</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Playing</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 3)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-green-500">task_alt</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Completed</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 5)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-yellow-500">pause_circle</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">On Hold</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', 4)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item">
-                                <span class="material-symbols-outlined text-[15px] text-red-500">do_not_disturb_on</span>
-                                <span class="text-[10px] uppercase font-bold text-slate-300 group-hover/item:text-white">Dropped</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-
-            // Fade In
-            requestAnimationFrame(() => {
-                container.style.opacity = '1';
-                container.style.transform = 'scale(1)';
-            });
-        }, 200);
+        container.innerHTML = game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId) : '';
     });
 
     addedAtContainers.forEach(container => {
@@ -1781,6 +1925,19 @@ function showGameDetails(game) {
 
 // Update game status in database
 async function changeGameStatus(gameId, statusId) {
+    const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+    let originalStatus = null;
+
+    // Optimistic UI update
+    if (cachedGame) {
+        originalStatus = cachedGame.gamestatus;
+        cachedGame.gamestatus = statusId;
+        const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
+        if (statusContainer) {
+            statusContainer.innerHTML = renderStatusBadgeHTML(statusId, gameId, true);
+        }
+    }
+
     try {
         const response = await apiRequest(`/api/UserGames/UpdateUserGame`, {
             method: 'PATCH',
@@ -1791,26 +1948,29 @@ async function changeGameStatus(gameId, statusId) {
         });
 
         if (response.ok) {
-            const updated = await response.json();
-
-            // Toast
             const statusLabels = { 1: 'Playing', 3: 'Completed', 4: 'Dropped', 5: 'On Hold', 6: 'Pending' };
             showToast(`Status updated to "${statusLabels[statusId]}"!`, 'success');
-
-            // Update local state
-            const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
-            if (cachedGame) {
-                cachedGame.gamestatus = statusId;
-                updateStatusIndicators(gameId, cachedGame);
-
-                // Re-render the selector on this specific card
-                updateStatusSelectorUI(gameId, statusId);
-            }
         } else {
+            // Revert on failure
+            if (cachedGame) {
+                cachedGame.gamestatus = originalStatus;
+                const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
+                if (statusContainer) {
+                    statusContainer.innerHTML = renderStatusBadgeHTML(originalStatus, gameId);
+                }
+            }
             showToast('Failed to update status', 'error');
         }
     } catch (error) {
         console.error('Error updating game status:', error);
+        // Revert on error
+        if (cachedGame) {
+            cachedGame.gamestatus = originalStatus;
+            const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
+            if (statusContainer) {
+                statusContainer.innerHTML = renderStatusBadgeHTML(originalStatus, gameId);
+            }
+        }
     }
 }
 
@@ -1899,4 +2059,20 @@ function showToast(message, type = 'success') {
             }
         }, 400);
     }, 3000);
+}
+
+function clearSearchAndReturn() {
+    const searchInput = document.querySelector('.search-bar input');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    const savedBackup = sessionStorage.getItem('PRE_SEARCH_CHECKPOINT');
+    if (savedBackup) {
+        const state = JSON.parse(savedBackup);
+        sessionStorage.removeItem('PRE_SEARCH_CHECKPOINT');
+        applyStateToDashboard(state);
+    } else {
+        selectView('catalog');
+    }
 }

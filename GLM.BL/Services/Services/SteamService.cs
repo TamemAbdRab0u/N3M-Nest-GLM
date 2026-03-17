@@ -312,7 +312,7 @@ namespace Game_Library_Management_BL.Services.Services
                 cachedSearch = games
                     .OrderByDescending(g => SimilarityScore(g.Title, query))
                     .ThenByDescending(g => g.Rating)
-                    .Take(15)
+                    .Take(12)
                     .Select(CloneCatalogDto)
                     .ToList();
 
