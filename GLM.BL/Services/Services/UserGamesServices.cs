@@ -1,4 +1,5 @@
 using Azure.Identity;
+using Game_Library_Management_BL.DTO_s.RAWGDto;
 using Game_Library_Management_BL.DTO_s.UserGamesDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
@@ -42,29 +43,31 @@ namespace Game_Library_Management_BL.Services.Services
             var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
             var rawgGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
 
-            return UserGames.Select(x => {
-                var rg = rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId);
-                return new UserGamesResponseDto
-                {
-                    UserName = x.User.Username,
-                    ExternalId = x.Game.ExternalId,
-                    IsFavorite = x.IsFavorite,
-                    IsInWishlist = x.IsInWishlist,
-                    GameTitle = rg?.Title ?? x.Game.Title,
-                    GameDescription = x.Game.Description,
-                    GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
-                    PosterImageUrl = x.Game.PosterImageUrl ?? (x.Game.ImgUrl != null && x.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{x.Game.ExternalId}/library_600x900_2x.jpg" : null),
-                    ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
-                    Genres = rg?.Genres ?? new List<string>(),
-                    Platforms = rg?.Platforms ?? new List<string>(),
-                    Gamestatus = x.Gamestatus,
-                    Review = x.Review,
-                    Rating = rg?.Rating ?? 0,
-                    UserRating = x.Rating,
-                    CompletedAt = x.CompletedAt,
-                    AddedAt = x.AddedAt
-                };
-            });
+            return UserGames.Select(x => MapToResponseDto(x, rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId)));
+        }
+
+        private static UserGamesResponseDto MapToResponseDto(UserGame x, RAWGCatalogDto? rg)
+        {
+            return new UserGamesResponseDto
+            {
+                UserName = x.User?.Username,
+                ExternalId = x.Game.ExternalId,
+                IsFavorite = x.IsFavorite,
+                IsInWishlist = x.IsInWishlist,
+                GameTitle = rg?.Title ?? x.Game.Title,
+                GameDescription = x.Game.Description,
+                GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
+                PosterImageUrl = x.Game.PosterImageUrl ?? (x.Game.ImgUrl != null && x.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{x.Game.ExternalId}/library_600x900_2x.jpg" : null),
+                ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
+                Genres = rg?.Genres ?? new List<string>(),
+                Platforms = rg?.Platforms ?? new List<string>(),
+                Gamestatus = x.Gamestatus,
+                Review = x.Review,
+                Rating = rg?.Rating ?? 0,
+                UserRating = x.Rating,
+                CompletedAt = x.CompletedAt,
+                AddedAt = x.AddedAt
+            };
         }
 
         public async Task<IEnumerable<UserGamesResponseDto>> GetPublicUserGamesAsync(string username)
@@ -97,29 +100,7 @@ namespace Game_Library_Management_BL.Services.Services
             var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
             var rawgGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
 
-            return UserGames.Select(x => {
-                var rg = rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId);
-                return new UserGamesResponseDto
-                {
-                    UserName = x.User.Username,
-                    ExternalId = x.Game.ExternalId,
-                    IsFavorite = x.IsFavorite,
-                    IsInWishlist = x.IsInWishlist,
-                    GameTitle = rg?.Title ?? x.Game.Title,
-                    GameDescription = x.Game.Description,
-                    GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
-                    PosterImageUrl = x.Game.PosterImageUrl ?? (x.Game.ImgUrl != null && x.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{x.Game.ExternalId}/library_600x900_2x.jpg" : null),
-                    ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
-                    Genres = rg?.Genres ?? new List<string>(),
-                    Platforms = rg?.Platforms ?? new List<string>(),
-                    Gamestatus = x.Gamestatus,
-                    Review = x.Review,
-                    Rating = rg?.Rating ?? 0,
-                    UserRating = x.Rating,
-                    CompletedAt = x.CompletedAt,
-                    AddedAt = x.AddedAt
-                };
-            });
+            return UserGames.Select(x => MapToResponseDto(x, rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId)));
         }
 
         public async Task<UserGamesResponseDto> UserGameByIdAsync(string UserId, int GameId)
@@ -143,23 +124,7 @@ namespace Game_Library_Management_BL.Services.Services
             var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { UserGame.Game.ExternalId });
             var rg = rawgGames.FirstOrDefault();
 
-            return new UserGamesResponseDto
-            {
-                UserName = UserGame.User.Username,
-                GameTitle = rg?.Title ?? UserGame.Game.Title,
-                GameDescription = UserGame.Game.Description,
-                GameImageUrl = rg?.ImageUrl ?? UserGame.Game.ImgUrl,
-                PosterImageUrl = UserGame.Game.PosterImageUrl ?? (UserGame.Game.ImgUrl != null && UserGame.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{UserGame.Game.ExternalId}/library_600x900_2x.jpg" : null),
-                ReleaseDate = UserGame.Game.ReleaseDate ?? DateTime.MinValue,
-                Genres = rg?.Genres ?? new List<string>(),
-                Platforms = rg?.Platforms ?? new List<string>(),
-                Gamestatus = UserGame.Gamestatus,
-                Review = UserGame.Review,
-                Rating = rg?.Rating ?? 0,
-                UserRating = UserGame.Rating,
-                CompletedAt = UserGame.CompletedAt,
-                AddedAt = UserGame.AddedAt
-            };
+            return MapToResponseDto(UserGame, rg);
         }
 
         public async Task<UserGamesResponseDto> AddUserGameAsync(string UserId, int GameId, UserGamesCreateDto createDto)
@@ -202,24 +167,10 @@ namespace Game_Library_Management_BL.Services.Services
             var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { game.ExternalId });
             var rg = rawgGames.FirstOrDefault();
 
-            return new UserGamesResponseDto
-            {
-                UserName = user.Username,
-                ExternalId = game.ExternalId,
-                GameTitle = rg?.Title ?? game.Title,
-                GameDescription = game.Description,
-                GameImageUrl = rg?.ImageUrl ?? game.ImgUrl,
-                PosterImageUrl = game.PosterImageUrl ?? (game.ImgUrl != null && game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{game.ExternalId}/library_600x900_2x.jpg" : null),
-                ReleaseDate = game.ReleaseDate ?? DateTime.MinValue,
-                Genres = rg?.Genres ?? new List<string>(),
-                Platforms = rg?.Platforms ?? new List<string>(),
-                Gamestatus = createDto.Gamestatus,
-                Review = createDto.Review,
-                UserRating = createDto.Rating,
-                Rating = rg?.Rating ?? 0,
-                CompletedAt = createDto.CompletedAt,
-                AddedAt = userGame.AddedAt
-            };
+            userGame.User = user;
+            userGame.Game = game;
+
+            return MapToResponseDto(userGame, rg);
         }
 
         public async Task<UserGamesResponseDto> UpdateUserGameAsync(string UserId, int GameId, UserGamesCreateDto updateDto)
@@ -242,25 +193,7 @@ namespace Game_Library_Management_BL.Services.Services
             var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { ExistedUserGame.Game.ExternalId });
             var rg = rawgGames.FirstOrDefault();
 
-            return new UserGamesResponseDto
-            {
-                UserName = ExistedUserGame.User.Username,
-                ExternalId = ExistedUserGame.Game.ExternalId,
-                IsFavorite = ExistedUserGame.IsFavorite,
-                GameTitle = rg?.Title ?? ExistedUserGame.Game.Title,
-                GameDescription = ExistedUserGame.Game.Description,
-                GameImageUrl = rg?.ImageUrl ?? ExistedUserGame.Game.ImgUrl,
-                PosterImageUrl = ExistedUserGame.Game.PosterImageUrl ?? (ExistedUserGame.Game.ImgUrl != null && ExistedUserGame.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{ExistedUserGame.Game.ExternalId}/library_600x900_2x.jpg" : null),
-                ReleaseDate = ExistedUserGame.Game.ReleaseDate ?? DateTime.MinValue,
-                Genres = rg?.Genres ?? new List<string>(),
-                Platforms = rg?.Platforms ?? new List<string>(),
-                Gamestatus = ExistedUserGame.Gamestatus,
-                Review = ExistedUserGame.Review,
-                UserRating = ExistedUserGame.Rating,
-                Rating = rg?.Rating ?? 0,
-                CompletedAt = ExistedUserGame.CompletedAt,
-                AddedAt = ExistedUserGame.AddedAt
-            };
+            return MapToResponseDto(ExistedUserGame, rg);
         }
 
         private void UpdateUserGameProperties(UserGame existingUserGame, UserGamesCreateDto updateDto)

@@ -658,6 +658,7 @@ function switchCarouselView(category) {
     currentCarouselGames = filtered.map(ug => ({
         id: ug.externalId,
         title: ug.gameTitle,
+        // The display 'imageUrl' will be used as the primary SRC (Vertical Poster preferred)
         imageUrl: getHqGameImage(ug.posterImageUrl || ug.gameImageUrl || "../../Assets/Images/Bg1.jpg", true),
         gameImageUrl: ug.gameImageUrl,
         posterImageUrl: ug.posterImageUrl,
@@ -1193,16 +1194,19 @@ function renderCarousel() {
         const statusIcon = iconMap[status] || 'analytics';
 
         // Use a cascading fallback for images: 
-        // 1. Vertical Poster (resolved by getHqGameImage)
-        // 2. Horizontal/Standard Image (game.gameImageUrl - resolved as HQ landscape)
-        // 3. System Placeholder
-        const horizontalImg = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
+        // 1. Vertical Poster (resolved by getHqGameImage) - already in game.imageUrl
+        // 2. Horizontal/Standard Image (resolved as HQ capsule)
+        // 3. Original Header/Image from API (no-transformation fallback)
+        // 4. System Placeholder
+        const capsuleImg = getHqGameImage(game.gameImageUrl || game.imageUrl, false);
+        const originalImg = game.gameImageUrl || "../../Assets/Images/Bg1.jpg";
 
         card.innerHTML = `
             <img src="${game.imageUrl}" 
-                 data-fallback-img="${horizontalImg}"
+                 data-fallback-capsule="${capsuleImg}"
+                 data-fallback-original="${originalImg}"
                  alt="${game.title}" 
-                 onerror="if(this.src !== this.getAttribute('data-fallback-img')) { this.src = this.getAttribute('data-fallback-img'); } else { this.src='../../Assets/Images/Bg1.jpg'; this.onerror=null; }">
+                 onerror="handleCarouselImageError(this)">
             <div class="card-overlay"></div>
             <div class="card-content">
                 <div class="flex items-center gap-2 mb-2">
@@ -1295,32 +1299,42 @@ function getHqGameImage(url, isVertical = false) {
         // Remove trailing query params
         let cleanUrl = url.split('?')[0];
 
-        // Pattern: /apps/APPID/FILENAME.EXT
-        const steamPattern = /\/apps\/(\d+)\/([^\/\?]+)/;
-        const match = cleanUrl.match(steamPattern);
-
-        if (match) {
-            const appId = match[1];
-            const currentFilename = match[2];
-
-            // If it's already the type we want, just return the clean URL
-            if (currentFilename.includes(isVertical ? 'library_600x900' : 'capsule_616x353')) {
+        // Pattern handles /apps/APPID/ or /steam/apps/APPID/
+        const appIdMatch = cleanUrl.match(/\/apps\/(\d+)\//);
+        if (appIdMatch) {
+            const appId = appIdMatch[1];
+            
+            // Reconstruct URL with target image type
+            const appsIndex = cleanUrl.indexOf('/apps/');
+            const domainPath = cleanUrl.substring(0, appsIndex);
+            
+            // Check if we already have the right type in the URL
+            if (cleanUrl.toLowerCase().includes(isVertical ? 'library_600x900' : 'capsule_616x353')) {
                 return cleanUrl;
             }
 
-            // Reconstruct URL with target image type
-            // Attempt to find the /steam/apps/ or /apps/ branch
-            const appsIndex = cleanUrl.indexOf('/apps/');
-            if (appsIndex !== -1) {
-                const domainPath = cleanUrl.substring(0, appsIndex);
-                return `${domainPath}/apps/${appId}/${type}`;
-            }
-
-            // Fallback to simple replace
-            return cleanUrl.replace(currentFilename, type);
+            return `${domainPath}/apps/${appId}/${type}`;
         }
     }
     return url;
+}
+
+/**
+ * Cascading error handler for carousel images
+ */
+function handleCarouselImageError(img) {
+    const capsule = img.getAttribute('data-fallback-capsule');
+    const original = img.getAttribute('data-fallback-original');
+    const defaultImg = '../../Assets/Images/Bg1.jpg';
+
+    if (img.src !== capsule && capsule && capsule !== img.src) {
+        img.src = capsule;
+    } else if (img.src !== original && original && original !== img.src) {
+        img.src = original;
+    } else if (img.src !== defaultImg) {
+        img.src = defaultImg;
+        img.onerror = null;
+    }
 }
 
 const _statusLabels = {
@@ -1356,7 +1370,11 @@ function renderRecentGames(listId, games, cfg) {
 
     list.innerHTML = '';
     sorted.forEach((game, i) => {
-        const img = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
+        // Priority for activity icons: Vertical Poster (better for square crop) -> Capsule -> Original
+        const posterImg = getHqGameImage(game.posterImageUrl || game.gameImageUrl || '../../Assets/Images/Bg1.jpg', true);
+        const capsuleImg = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
+        const originalImg = game.gameImageUrl || '../../Assets/Images/Bg1.jpg';
+        
         const sKey = String(game.gamestatus).toLowerCase();
         const st = cfg.statusOverride || _statusLabels[sKey] || { label: 'Library', color: 'text-slate-400', icon: 'inventory_2' };
         const time = _relativeTime(game.addedAt);
@@ -1367,7 +1385,11 @@ function renderRecentGames(listId, games, cfg) {
         row.onclick = () => window.location.href = cfg.viewHref;
         row.innerHTML = `
             <div class="relative size-12 rounded-lg bg-slate-800 overflow-hidden flex-shrink-0 shadow-md">
-                <img src="${img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='../../Assets/Images/Bg1.jpg'">
+                <img src="${posterImg}" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                     data-fallback-capsule="${capsuleImg}"
+                     data-fallback-original="${originalImg}"
+                     onerror="handleCarouselImageError(this)">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
             <div class="flex-1 min-w-0">
