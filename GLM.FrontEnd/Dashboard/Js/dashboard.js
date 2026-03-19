@@ -27,16 +27,6 @@ function savePageState() {
 
     const scrollPos = scrollContainer.scrollTop;
 
-    // Don't save if we're at 0 but we have a saved checkpoint with a high scroll 
-    // (guards against browser resetting scroll to 0 during unload)
-    if (scrollPos === 0) {
-        const existing = sessionStorage.getItem('DASHBOARD_CHECKPOINT');
-        if (existing) {
-            const parsed = JSON.parse(existing);
-            if (parsed.scrollPos > 100) return; // Keep the old one
-        }
-    }
-
     const state = {
         scrollPos: scrollPos,
         loadedCount: allGames.length,
@@ -287,17 +277,17 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
     const animationClass = isUpdating ? 'status-update-flash' : '';
 
     return `
-        <div class="group/status relative min-h-[32px] flex items-center justify-end ${animationClass}">
+        <div class="group/status relative min-h-[32px] flex items-center justify-start ${animationClass}">
             <!-- Badge: Icon-only (Initial) -> Expands on Card Hover -> Hidden on Status Hover -->
-            <div class="h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
-                <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
+            <div class="h-8 px-2.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
+                <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon || 'check_circle'}</span>
                 <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">
                     ${statusObj.label}
                 </span>
             </div>
 
             <!-- Selector: Hidden -> Visible only on Status Hover -->
-            <div class="absolute right-0 flex items-center gap-1.5 opacity-0 translate-x-4 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+            <div class="absolute left-0 flex items-center gap-1.5 opacity-0 -translate-x-4 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
         return `
@@ -575,6 +565,18 @@ function showSkeletonCards(container, count = 8) {
 
 // Load games from API (handles both catalog and search)
 async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '', status = '', isRestoring = false) {
+    // CRITICAL: Update global state variables BEFORE calling child UI functions
+    // This ensures things like displayGames() know they are in 'search' mode immediately.
+    if (!isRestoring) {
+        currentPage = page;
+        currentQuery = query;
+        currentGenre = genre;
+        currentPlatform = platform;
+        currentOrdering = ordering;
+        currentRelease = release;
+        currentStatus = status;
+    }
+
     const container = document.getElementById('library-games');
     const totalGamesElement = document.getElementById('total-games');
     const isCatalog = currentView === 'catalog' && !status;
@@ -943,16 +945,21 @@ function handleEmptyState(container, totalGamesElement, query) {
 // Display games
 function displayGames(games) {
     const container = document.getElementById('library-games');
-    // Important: Don't clear if appending (pagination > 1 in catalog view)
-    // But current logic clears in loadGames if page=1.
-    // If page > 1, allGames contains accumulated list. 
-    // Wait, loadGames logic:
-    // if (page === 1) allGames = games; else allGames = [...allGames, ...games];
-    // displayGames(allGames);
-    // So displayGames always rerenders ALL games. This is fine for small lists but not efficient for large infinite scroll.
-    // However, given the current constraints, rerendering is acceptable.
-    container.innerHTML = '';
+    if (!container) return;
 
+    // Toggle layout class based on view and search query
+    // If we're in catalog and HAVE a search query, use vertical simple view.
+    if (currentView === 'catalog' && currentQuery) {
+        container.classList.add('vertical-search-view');
+        // Remove standard grid classes
+        container.classList.remove('grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+    } else {
+        container.classList.remove('vertical-search-view');
+        // Add standard grid classes
+        container.classList.add('grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+    }
+
+    container.innerHTML = '';
     games.forEach(game => {
         container.appendChild(createGameCard(game));
     });
@@ -969,6 +976,115 @@ function appendGames(games) {
 
 // Create game card element
 function createGameCard(game) {
+    if (currentView === 'catalog' && currentQuery) {
+        return createVerticalGameCard(game);
+    } else {
+        return createGridGameCard(game);
+    }
+}
+
+// THE NEW: Simple Vertical Search Result Card
+function createVerticalGameCard(game) {
+    const card = document.createElement('div');
+    card.className = 'vertical-result-card group cursor-pointer';
+
+    const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image;
+    const safeImageUrl = (imageUrl && imageUrl !== 'null' && imageUrl !== 'undefined') ? imageUrl : '../../Assets/Images/default-game.jpg';
+
+    const hqLandscapeImageUrl = String(safeImageUrl).includes('/header.jpg')
+        ? String(safeImageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
+        : safeImageUrl;
+
+    const title = game.title || game.name || 'Unknown Game';
+    const gameId = game.externalId || game.id;
+
+    // Release Year
+    let releaseYear = '';
+    const rawRelease = game.releaseDate || game.released || game.release_date || '';
+    if (rawRelease) {
+        const parsedDate = new Date(rawRelease);
+        if (!Number.isNaN(parsedDate.getTime())) releaseYear = parsedDate.getFullYear();
+    }
+
+    // Platform Icons
+    let platformIcons = '';
+    if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
+        const uniqueIcons = new Set();
+        const icons = game.platforms.slice(0, 4).map(slug => {
+            let svgIcon = '';
+            const s = (typeof slug === 'string' ? slug : slug.slug || slug.name || '').toLowerCase();
+            if (s.includes('pc') || s.includes('windows')) svgIcon = `<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"></path></svg>`;
+            else if (s.includes('playstation')) svgIcon = `<i class="fab fa-playstation text-[11px]"></i>`;
+            else if (s.includes('xbox')) svgIcon = `<i class="fab fa-xbox text-[11px]"></i>`;
+            else if (s.includes('nintendo')) svgIcon = `<i class="bi bi-nintendo-switch text-[12px]"></i>`;
+            else return '';
+            if (uniqueIcons.has(svgIcon)) return '';
+            uniqueIcons.add(svgIcon);
+            return svgIcon;
+        }).filter(icon => icon !== '').join('');
+        if (icons) {
+            platformIcons = `<div class="absolute bottom-2 left-2 glass-panel px-2 py-0.5 rounded-lg flex items-center gap-2 text-white/50 z-10">${icons}</div>`;
+        }
+    }
+
+    const favBtnClass = game.isFavorite ? 'text-red-500' : 'text-white/40 hover:text-red-400';
+    const libClass = game.isInLibrary ? 'text-green-500' : 'text-white/40 hover:text-primary';
+    const wishlistClass = game.isInWishlist ? 'text-blue-400' : 'text-white/40 hover:text-blue-400';
+
+    card.innerHTML = `
+        <div class="thumb-container">
+            <img src="${hqLandscapeImageUrl}" 
+                 data-fallback-src="${safeImageUrl}"
+                 onerror="if (this.dataset.fallbackSrc && this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='../../Assets/Images/logo.png';" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                 alt="${title}">
+            ${platformIcons}
+            ${game.isInLibrary ? `<div class="absolute top-2 right-2 bg-green-500/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-md backdrop-blur-md border border-white/10 z-20">IN LIBRARY</div>` : ''}
+        </div>
+        
+        <div class="content-container flex flex-col justify-center gap-1.5">
+            <div class="flex items-center gap-3">
+                <h3 class="title-text truncate max-w-[400px]" title="${title}">${title}</h3>
+                ${releaseYear ? `<span class="bg-[#242b31] px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-500 tracking-wider h-fit">${releaseYear}</span>` : ''}
+            </div>
+            
+            <div class="flex flex-wrap gap-2">
+                ${(game.genres || []).slice(0, 3).map(g => `<span class="genre-pill transition-colors hover:bg-primary/20 hover:text-white cursor-default">${(typeof g === 'string' ? g : g.name).toUpperCase()}</span>`).join('')}
+                ${game.isInLibrary && game.addedAt ? `<span class="text-[9px] text-slate-600 font-bold uppercase tracking-wider ml-4 flex items-center gap-1" data-added-at-for="${gameId}"><span class="material-symbols-outlined text-[12px]">history</span> Added ${getRelativeTime(game.addedAt)}</span>` : ''}
+            </div>
+
+            <!-- Status Indicator (Now EXACTLY under title and genres, left-aligned) -->
+            <div data-status-for="${gameId}" class="flex-shrink-0 min-h-[32px] pt-1">
+                ${game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId) : ''}
+            </div>
+        </div>
+
+        <!-- The 3 Action Buttons Cluster -->
+        <div class="action-cluster flex items-center gap-2 pr-4">
+            <button onclick="event.stopPropagation(); addToFavorites('${gameId}')" 
+                    id="fav-btn-${gameId}" data-game-id="${gameId}" data-btn-type="favorite"
+                    class="w-11 h-11 glass-neon-btn ${favBtnClass}" title="Favorite">
+                <span class="material-symbols-outlined text-xl ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
+            </button>
+            <button onclick="event.stopPropagation(); addToLibrary('${gameId}')" 
+                    id="lib-btn-${gameId}" data-game-id="${gameId}" data-btn-type="library"
+                    class="w-11 h-11 glass-neon-btn ${libClass}" title="Add to Library">
+                <span class="material-symbols-outlined text-xl ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
+            </button>
+            <button onclick="event.stopPropagation(); addToWishlist('${gameId}')" 
+                    id="wish-btn-${gameId}" data-game-id="${gameId}" data-btn-type="wishlist"
+                    class="w-11 h-11 glass-neon-btn ${wishlistClass}" title="Add to Wishlist">
+                <span class="material-symbols-outlined text-xl ${game.isInWishlist ? 'fill-icon' : ''}">bookmark</span>
+            </button>
+        </div>
+    `;
+
+    card.onclick = () => showGameDetails(game);
+    return card;
+}
+
+// THE OLD: Standard Grid Game Card Component
+function createGridGameCard(game) {
     const card = document.createElement('div');
     card.className = 'group bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10 hover:border-primary/30 transition-all duration-300 relative cursor-pointer';
 
@@ -1027,30 +1143,6 @@ function createGameCard(game) {
         }
     }
 
-    // Status / Inventory Indicators
-    const getStatusIcon = (status) => {
-        const s = String(status).toLowerCase();
-        if (s === 'playing' || s === '1') return { icon: 'play_circle', color: 'text-primary', label: 'Playing' };
-        if (s === 'whishlist' || s === '2') return { icon: 'bookmark', color: 'text-blue-400', label: 'Wishlist' };
-        if (s === 'completed' || s === '3') return { icon: 'task_alt', color: 'text-green-500', label: 'Completed' };
-        if (s === 'dropped' || s === '4') return { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' };
-        if (s === 'onhold' || s === '5') return { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' };
-        if (s === 'pending' || s === '6') return { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
-        return null;
-    };
-
-    const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
-    const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
-
-    const gameStatusIndicator = isPending ? `
-        <div class="h-7 px-3 rounded-full border border-slate-500/30 bg-slate-900/60 backdrop-blur-md flex items-center justify-center cursor-default shadow-lg">
-                <span class="text-[10px] uppercase font-bold text-slate-300 tracking-wider whitespace-nowrap">Pending</span>
-        </div>` : (statusObj ? `
-        <div class="h-7 px-2.5 rounded-full border border-primary/20 flex items-center justify-center backdrop-blur-md transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg" title="${statusObj.label}">
-                <span class="material-symbols-outlined text-[15px] ${statusObj.color} fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">${statusObj.icon}</span>
-                <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
-        </div>` : '');
-
     const inventoryIndicators = `
         <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
             ${game.isInWishlist ? `
@@ -1073,11 +1165,6 @@ function createGameCard(game) {
     const libClass = game.isInLibrary ? 'text-green-500' : 'text-white/70 hover:text-primary';
     const wishlistClass = game.isInWishlist ? 'text-blue-400' : 'text-white/70 hover:text-blue-400';
 
-    // Show/Hide buttons based on current view
-    const showFavBtn = currentView !== 'wishlist';
-    const showLibBtn = currentView !== 'wishlist';
-    const showWishBtn = currentView !== 'library' && currentView !== 'favorites';
-
     card.innerHTML = `
         <!-- Image Container -->
         <div class="relative aspect-[16/9] overflow-hidden bg-[#0f1a1d]">
@@ -1090,31 +1177,24 @@ function createGameCard(game) {
                 onerror="if (this.dataset.fallbackSrc && this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='../../Assets/Images/logo.png';"
             >
             
-            <!-- Side Actions (Old Design Style) -->
             <div class="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
-                ${showFavBtn ? `
                 <button onclick="event.stopPropagation(); addToFavorites('${gameId}')" 
-                        data-game-id="${gameId}" data-btn-type="favorite"
                         class="w-9 h-9 glass-neon-btn ${favBtnClass}" title="Favorite">
                     <span class="material-symbols-outlined text-lg ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
-                </button>` : ''}
-                ${showLibBtn ? `
+                </button>
                 <button onclick="event.stopPropagation(); addToLibrary('${gameId}')" 
-                        data-game-id="${gameId}" data-btn-type="library"
                         class="w-9 h-9 glass-neon-btn ${libClass}" title="Library">
                     <span class="material-symbols-outlined text-lg ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
-                </button>` : ''}
-                ${showWishBtn ? `
+                </button>
                 <button onclick="event.stopPropagation(); addToWishlist('${gameId}')" 
-                        data-game-id="${gameId}" data-btn-type="wishlist"
                         class="w-9 h-9 glass-neon-btn ${wishlistClass}" title="Wishlist">
                     <span class="material-symbols-outlined text-lg ${game.isInWishlist ? 'fill-icon' : ''}">bookmark</span>
-                </button>` : ''}
+                </button>
             </div>
 
             ${platformIcons}
 
-            <!-- Status Indicator (Library Style) -->
+            <!-- Status Indicator -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
                 ${game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId) : ''}
 
@@ -1144,10 +1224,7 @@ function createGameCard(game) {
         </div>
     `;
 
-    card.addEventListener('click', () => {
-        showGameDetails(game);
-    });
-
+    card.onclick = () => showGameDetails(game);
     return card;
 }
 
@@ -1186,14 +1263,14 @@ function updatePaginationControls(page, query, genre, platform, ordering, releas
         }
     }
 
-    // Store current page state
-    currentPage = page;
-    currentQuery = query;
-    currentGenre = genre;
-    currentPlatform = platform;
-    currentOrdering = ordering;
-    currentRelease = release;
-    currentStatus = status;
+    // Variables are already updated at the top of loadGames, but we sync them here for callers other than loadGames
+    if (page !== undefined) currentPage = page;
+    if (query !== undefined) currentQuery = query;
+    if (genre !== undefined) currentGenre = genre;
+    if (platform !== undefined) currentPlatform = platform;
+    if (ordering !== undefined) currentOrdering = ordering;
+    if (release !== undefined) currentRelease = release;
+    if (status !== undefined) currentStatus = status;
 }
 
 // Initialize pagination buttons
@@ -1224,7 +1301,7 @@ function initializeSearch() {
     const resultsDropdown = document.getElementById('search-results-dropdown');
     const resultsList = document.getElementById('search-results-list');
     const searchLoading = document.getElementById('search-loading');
-    
+
     if (!searchInput || !resultsDropdown || !resultsList) return;
 
     let debounceTimer;
@@ -1270,7 +1347,7 @@ function initializeSearch() {
 
                 resultsDropdown.classList.add('hidden');
                 currentPage = 1;
-                // Full search - load 12 results (loadGames handles display)
+                // Full search - load 10 results (loadGames handles display)
                 loadGames(1, query, currentGenre, currentPlatform, currentOrdering, currentRelease, currentStatus);
                 searchInput.blur();
             }
@@ -1303,10 +1380,10 @@ function renderAjaxSearchResults(games, query) {
     games.forEach(game => {
         const item = document.createElement('div');
         item.className = 'group flex items-center gap-3 px-4 py-3 hover:bg-white/5 cursor-pointer transition-all border-b border-white/[0.03] last:border-0';
-        
+
         const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
         const title = game.title || game.name || 'Unknown Game';
-        
+
         item.innerHTML = `
             <div class="w-12 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 shadow-lg">
                 <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover">
@@ -2066,7 +2143,7 @@ function clearSearchAndReturn() {
     if (searchInput) {
         searchInput.value = '';
     }
-    
+
     const savedBackup = sessionStorage.getItem('PRE_SEARCH_CHECKPOINT');
     if (savedBackup) {
         const state = JSON.parse(savedBackup);

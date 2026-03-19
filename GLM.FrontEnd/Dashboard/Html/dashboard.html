@@ -5,7 +5,8 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Dashboard - N3M|Nest</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block"
@@ -23,15 +24,18 @@
                     colors: {
                         "primary": "#4a7dff",
                         "background-light": "#f5f8f8",
-                        "background-dark": "#0f2023",
-                        "surface-dark": "#121212",
+                        "background-dark": "#0f131a", // Deep Obsidian per DESIGN.md
+                        "surface-dark": "#1d2026",    // Surface Container per DESIGN.md
                         "surface-light": "#ffffff",
                         "input-bg": "#1e292b",
                         "input-border": "#2e616b",
+                        "kinetic-blue": "#82cfff",    // Kinetic Blue per DESIGN.md
+                        "neon-green": "#aad616",     // Neon Green per DESIGN.md
                     },
                     fontFamily: {
                         "display": ["Inter", "sans-serif"],
                         "body": ["Inter", "sans-serif"],
+                        "heading": ["Space Grotesk", "sans-serif"],
                     },
                 },
             },
@@ -354,10 +358,21 @@
         }
 
         @keyframes blob-float {
-            0% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(100px, 150px) scale(1.1); }
-            66% { transform: translate(-50px, 200px) scale(0.9); }
-            100% { transform: translate(0, 0) scale(1); }
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(100px, 150px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-50px, 200px) scale(0.9);
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
         }
 
         .bg-grain {
@@ -377,8 +392,13 @@
 
         /* Skeleton Loading */
         @keyframes skeleton-shimmer {
-            0%   { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         .skeleton-shimmer {
@@ -387,9 +407,92 @@
             animation: skeleton-shimmer 1.6s infinite linear;
         }
 
+        /* Kinetic Archive: Vertical Search Results */
+        #library-games.vertical-search-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 4rem;
+        }
+
+        .vertical-result-card {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: rgba(29, 32, 38, 0.4);
+            /* surface-dark */
+            border-radius: 12px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vertical-result-card:hover {
+            background: rgba(39, 42, 49, 0.7);
+            /* surface-container-high */
+            transform: scale(1.02);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .vertical-result-card .thumb-container {
+            width: 240px;
+            aspect-ratio: 16/9;
+            flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .vertical-result-card .content-container {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .vertical-result-card .action-cluster {
+            display: flex;
+            gap: 0.75rem;
+            margin-left: auto;
+        }
+
+        .vertical-result-card .title-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #fff;
+            margin-bottom: 0.25rem;
+            line-height: 1.2;
+        }
+
+        .vertical-result-card:hover .title-text {
+            color: #82cfff;
+            /* kinetic-blue */
+        }
+
+        .genre-pill {
+            display: inline-block;
+            padding: 2px 10px;
+            background: rgba(130, 207, 255, 0.1);
+            color: #82cfff;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
         /* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
-        html:not(.fonts-loaded) header { opacity: 0; }
-        html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }
+        html:not(.fonts-loaded) header {
+            opacity: 0;
+        }
+
+        html.fonts-loaded header {
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
     </style>
 </head>
 
@@ -450,14 +553,18 @@
                     </span>
                     <input type="text" placeholder="Search games..."
                         class="h-9 w-48 xl:w-64 rounded-xl bg-white/5 border border-white/10 text-xs text-white pl-10 pr-4 focus:outline-none focus:w-80 transition-all focus:border-primary/50 placeholder-slate-600 bg-black/20">
-                    
+
                     <!-- Search Results Dropdown -->
-                    <div id="search-results-dropdown" class="hidden absolute top-full left-0 mt-2 w-full bg-[#0a1618]/95 border border-white/10 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl max-h-[480px] overflow-y-auto">
+                    <div id="search-results-dropdown"
+                        class="hidden absolute top-full left-0 mt-2 w-full bg-[#0a1618]/95 border border-white/10 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl max-h-[480px] overflow-y-auto">
                         <div id="search-results-list" class="flex flex-col py-2">
                         </div>
-                        <div id="search-loading" class="hidden px-4 py-8 flex flex-col items-center justify-center gap-3">
-                            <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                            <span class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Searching...</span>
+                        <div id="search-loading"
+                            class="hidden px-4 py-8 flex flex-col items-center justify-center gap-3">
+                            <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin">
+                            </div>
+                            <span
+                                class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Searching...</span>
                         </div>
                     </div>
                 </div>
@@ -521,11 +628,14 @@
         </header>
 
         <!-- Scrollable Content -->
-        <div id="games-view" style="background-color: #0a487330;" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
-            
+        <div id="games-view" style="background-color: #0a487330;"
+            class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
+
             <!-- Search Back Button -->
-            <button id="search-back-btn" onclick="clearSearchAndReturn()" class="hidden absolute top-8 left-8 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-primary/50 transition-all group z-[60]">
-                <span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            <button id="search-back-btn" onclick="clearSearchAndReturn()"
+                class="hidden absolute top-8 left-8 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-primary/50 transition-all group z-[60]">
+                <span
+                    class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
                 <span class="text-[10px] font-bold uppercase tracking-widest">Back to Catalog</span>
             </button>
 
@@ -595,11 +705,14 @@
         </div>
 
         <!-- Go to Top Button -->
-        <button id="scroll-to-top" 
+        <button id="scroll-to-top"
             class="absolute bottom-10 right-10 w-14 h-14 glass-neon-btn text-primary z-[100] opacity-0 translate-y-10 pointer-events-none transition-all duration-500 group/scroll"
             title="Go to Top">
-            <span class="material-symbols-outlined text-3xl font-black group-hover/scroll:-translate-y-1 transition-transform">arrow_upward</span>
-            <div class="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-0 group-hover/scroll:opacity-100 transition-opacity"></div>
+            <span
+                class="material-symbols-outlined text-3xl font-black group-hover/scroll:-translate-y-1 transition-transform">arrow_upward</span>
+            <div
+                class="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-0 group-hover/scroll:opacity-100 transition-opacity">
+            </div>
         </button>
     </main>
 

@@ -305,14 +305,14 @@ namespace Game_Library_Management_BL.Services.Services
             var cacheKey = $"steam:search:{query.Trim().ToLowerInvariant()}";
             if (!_cache.TryGetValue(cacheKey, out List<RAWGCatalogDto>? cachedSearch))
             {
-                var appIds = await SearchSteamAppIdsAsync(query, 50);
+                var appIds = await SearchSteamAppIdsAsync(query, 10);
                 if (!appIds.Any()) return Enumerable.Empty<RAWGCatalogDto>();
 
-                var games = await EnrichCatalogByIdsAsync(appIds.Take(20).ToList());
+                var games = await EnrichCatalogByIdsAsync(appIds.Take(10).ToList());
                 cachedSearch = games
                     .OrderByDescending(g => SimilarityScore(g.Title, query))
                     .ThenByDescending(g => g.Rating)
-                    .Take(12)
+                    .Take(10)
                     .Select(CloneCatalogDto)
                     .ToList();
 
