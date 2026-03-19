@@ -262,7 +262,7 @@ const STATUS_ICON_MAP = {
 /**
  * Renders the new horizontal status selector (Library Style)
  */
-function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
+function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment = 'justify-start') {
     if (!gamestatus) return '';
     const key = String(gamestatus).toLowerCase();
     const statusObj = STATUS_ICON_MAP[key] || { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
@@ -275,9 +275,10 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
     ];
 
     const animationClass = isUpdating ? 'status-update-flash' : '';
+    const isRightAligned = alignment === 'justify-end';
 
     return `
-        <div class="group/status relative min-h-[32px] flex items-center justify-start ${animationClass}">
+        <div class="group/status relative min-h-[32px] flex items-center ${alignment} ${animationClass}">
             <!-- Badge: Icon-only (Initial) -> Expands on Card Hover -> Hidden on Status Hover -->
             <div class="h-8 px-2.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon || 'check_circle'}</span>
@@ -287,7 +288,7 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
             </div>
 
             <!-- Selector: Hidden -> Visible only on Status Hover -->
-            <div class="absolute left-0 flex items-center gap-1.5 opacity-0 -translate-x-4 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+            <div class="absolute ${isRightAligned ? 'right-0 translate-x-4' : 'left-0 -translate-x-4'} flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
         return `
@@ -988,10 +989,12 @@ function createVerticalGameCard(game) {
     const card = document.createElement('div');
     card.className = 'vertical-result-card group cursor-pointer';
 
+    const fallbackImage = '../../Assets/Images/logo.png';
     const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image;
-    const safeImageUrl = (imageUrl && imageUrl !== 'null' && imageUrl !== 'undefined') ? imageUrl : '../../Assets/Images/default-game.jpg';
+    const isImageInvalid = !imageUrl || String(imageUrl) === 'null' || String(imageUrl) === 'undefined' || imageUrl === '';
+    const safeImageUrl = isImageInvalid ? fallbackImage : imageUrl;
 
-    const hqLandscapeImageUrl = String(safeImageUrl).includes('/header.jpg')
+    const hqLandscapeImageUrl = (!isImageInvalid && String(safeImageUrl).includes('/header.jpg'))
         ? String(safeImageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
         : safeImageUrl;
 
@@ -1035,7 +1038,7 @@ function createVerticalGameCard(game) {
         <div class="thumb-container">
             <img src="${hqLandscapeImageUrl}" 
                  data-fallback-src="${safeImageUrl}"
-                 onerror="if (this.dataset.fallbackSrc && this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='../../Assets/Images/logo.png';" 
+                 onerror="if (this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='${fallbackImage}';" 
                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                  alt="${title}">
             ${platformIcons}
@@ -1088,10 +1091,14 @@ function createGridGameCard(game) {
     const card = document.createElement('div');
     card.className = 'group bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10 hover:border-primary/30 transition-all duration-300 relative cursor-pointer';
 
-    const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
-    const hqLandscapeImageUrl = String(imageUrl).includes('/header.jpg')
-        ? String(imageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
-        : imageUrl;
+    const fallbackImage = '../../Assets/Images/logo.png';
+    const rawImageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image;
+    const isImageInvalid = !rawImageUrl || String(rawImageUrl) === 'null' || String(rawImageUrl) === 'undefined' || rawImageUrl === '';
+    const safeImageUrl = isImageInvalid ? fallbackImage : rawImageUrl;
+
+    const hqLandscapeImageUrl = (!isImageInvalid && String(safeImageUrl).includes('/header.jpg'))
+        ? String(safeImageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
+        : safeImageUrl;
     const title = game.title || game.name || 'Unknown Game';
     const gameId = game.externalId || game.id;
 
@@ -1170,11 +1177,11 @@ function createGridGameCard(game) {
         <div class="relative aspect-[16/9] overflow-hidden bg-[#0f1a1d]">
             <img
                 src="${hqLandscapeImageUrl}"
-                data-fallback-src="${imageUrl}"
+                data-fallback-src="${safeImageUrl}"
                 alt="${title}"
                 loading="lazy"
                 class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                onerror="if (this.dataset.fallbackSrc && this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='../../Assets/Images/logo.png';"
+                onerror="if (this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='${fallbackImage}';"
             >
             
             <div class="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
@@ -1196,7 +1203,7 @@ function createGridGameCard(game) {
 
             <!-- Status Indicator -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
-                ${game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId) : ''}
+                ${game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, false, 'justify-end') : ''}
 
                 ${(currentView !== 'catalog' && game.addedAt) ? `
                     <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time transform-gpu will-change-transform" title="Added At">

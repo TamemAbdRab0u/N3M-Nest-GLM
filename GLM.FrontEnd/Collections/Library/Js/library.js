@@ -6,11 +6,12 @@ let currentPlatform = ''; // Store current platform filter
 let currentOrdering = ''; // Store current sorting/ordering
 let currentRelease = ''; // Store current release year filter
 let currentStatus = ''; // Store current game status filter
-let gamesPerPage = 12;
+let gamesPerPage = 9999;
 let allGames = [];
 let rawUserGamesCache = null;
 let currentCacheEndpoint = null;
 let currentView = 'library';
+let currentLibraryView = localStorage.getItem('libraryView') || 'grid';
 
 // Toast Notification State
 let activeToast = null;
@@ -111,9 +112,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // initializePlatforms();
     // initializeReleaseYears();
 
-    // Initial load
+    // Initial library load
+    initViewSwitcher();
+    initScrollOptimization();
     loadGames(1);
 });
+
+function initScrollOptimization() {
+    const container = document.getElementById('library-games');
+    const scrollArea = document.getElementById('games-view');
+    if (!container || !scrollArea) return;
+
+    let isScrollingTimer;
+    scrollArea.addEventListener('scroll', () => {
+        container.classList.add('is-scrolling');
+
+        clearTimeout(isScrollingTimer);
+        isScrollingTimer = setTimeout(() => {
+            container.classList.remove('is-scrolling');
+        }, 250);
+    }, { passive: true });
+}
+
+function initViewSwitcher() {
+    setLibraryView(currentLibraryView);
+}
 
 async function displayUserInfo() {
     try {
@@ -297,18 +320,66 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
     }
 }
 
+function setLibraryView(view) {
+    currentLibraryView = view;
+    localStorage.setItem('libraryView', view);
+
+    const container = document.getElementById('library-games');
+    const gridBtn = document.getElementById('view-grid-btn');
+    const listBtn = document.getElementById('view-list-btn');
+    const singleBtn = document.getElementById('view-single-btn');
+
+    const activeClasses = ['bg-primary/20', 'text-primary', 'border-primary/30', 'shadow-[0_0_15px_rgba(74,125,255,0.2)]'];
+    const inactiveClasses = ['text-slate-400', 'hover:text-white', 'hover:bg-white/5'];
+
+    // Reset all buttons
+    [gridBtn, listBtn, singleBtn].forEach(btn => {
+        if (!btn) return;
+        btn.classList.remove(...activeClasses);
+        btn.classList.add(...inactiveClasses);
+    });
+
+    // Handle container classes
+    container.classList.remove('list-view', 'single-view', 'grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+
+    if (view === 'grid') {
+        container.classList.add('grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+        gridBtn.classList.add(...activeClasses);
+        gridBtn.classList.remove(...inactiveClasses);
+    } else if (view === 'list') {
+        container.classList.add('list-view');
+        listBtn.classList.add(...activeClasses);
+        listBtn.classList.remove(...inactiveClasses);
+    } else if (view === 'single') {
+        container.classList.add('single-view');
+        singleBtn.classList.add(...activeClasses);
+        singleBtn.classList.remove(...inactiveClasses);
+    }
+
+    // Re-render current page
+    const startIndex = (currentPage - 1) * gamesPerPage;
+    const pagedGames = allGames.slice(startIndex, startIndex + gamesPerPage);
+
+    // Trigger transition animation
+    container.classList.remove('view-transition');
+    void container.offsetWidth; // Trigger reflow
+    container.classList.add('view-transition');
+
+    renderGames(pagedGames);
+}
+
 function renderGames(games) {
     const container = document.getElementById('library-games');
     if (!container) return;
 
     if (games.length === 0) {
         container.innerHTML = `
-            <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
-                <span class="material-symbols-outlined text-6xl mb-4 opacity-20">inventory_2</span>
-                <p class="text-xl font-medium">No games found in your library</p>
-                <p class="text-sm">Try adjusting your filters or search query.</p>
-            </div>
-        `;
+        <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
+            <span class="material-symbols-outlined text-6xl mb-4 opacity-20">inventory_2</span>
+            <p class="text-xl font-medium">No games found in your library</p>
+            <p class="text-sm">Try adjusting your filters or search query.</p>
+        </div>
+    `;
         return;
     }
 
@@ -321,13 +392,28 @@ function renderGames(games) {
 }
 
 function createGameCard(game) {
-    const card = document.createElement('div');
-    card.className = 'group bg-[#1e292b] rounded-md overflow-hidden border border-[#2e616b]/10 hover:border-primary/30 transition-all duration-300 relative cursor-pointer';
+    if (currentLibraryView === 'list' || currentLibraryView === 'single') {
+        return createVerticalGameCard(game);
+    } else {
+        return createGridGameCard(game);
+    }
+}
 
-    const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
-    const hqLandscapeImageUrl = String(imageUrl).includes('/header.jpg')
-        ? String(imageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
-        : imageUrl;
+function createGridGameCard(game) {
+    const card = document.createElement('div');
+    card.className = 'group relative overflow-hidden rounded-xl bg-[#1e292b] border border-white/5 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 cursor-pointer';
+    card.dataset.gameId = game.externalId || game.id;
+
+    const fallbackImage = '../../../Assets/Images/logo.png';
+    const rawImageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image;
+    const isImageInvalid = !rawImageUrl || String(rawImageUrl) === 'null' || String(rawImageUrl) === 'undefined' || rawImageUrl === '';
+    const safeImageUrl = isImageInvalid ? fallbackImage : rawImageUrl;
+
+    // Steam: Prefer larger capsule (616x353) over header (460x215) if available
+    const hqLandscapeImageUrl = (!isImageInvalid && String(safeImageUrl).includes('/header.jpg'))
+        ? String(safeImageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
+        : safeImageUrl;
+
     const title = game.title || game.name || 'Unknown Game';
     const gameId = game.externalId || game.id;
 
@@ -423,21 +509,20 @@ function createGameCard(game) {
         <div class="relative aspect-[16/9] overflow-hidden bg-[#0f1a1d]">
             <img
                 src="${hqLandscapeImageUrl}"
-                data-fallback-src="${imageUrl}"
+                data-fallback-src="${safeImageUrl}"
                 alt="${title}"
                 loading="lazy"
                 class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                onerror="if (this.dataset.fallbackSrc && this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='../../Assets/Images/logo.png';"
+                onerror="if (this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='${fallbackImage}';"
             >
-            
             <!-- Side Actions -->
             <div class="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
-                <button onclick="event.stopPropagation(); animateButtonClick(this); addToFavorites('${gameId}')" 
+                <button onclick="event.stopPropagation(); animateButtonClick(this); addToFavorites('${gameId}')"
                         data-game-id="${gameId}" data-btn-type="favorite"
                         class="w-9 h-9 glass-neon-btn ${favBtnClass}" title="Favorite">
                     <span class="material-symbols-outlined text-lg ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
                 </button>
-                <button onclick="event.stopPropagation(); animateButtonClick(this); addToLibrary('${gameId}')" 
+                <button onclick="event.stopPropagation(); animateButtonClick(this); addToLibrary('${gameId}')"
                         data-game-id="${gameId}" data-btn-type="library"
                         class="w-9 h-9 glass-neon-btn ${libClass}" title="Library">
                     <span class="material-symbols-outlined text-lg ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
@@ -448,7 +533,7 @@ function createGameCard(game) {
 
             <!-- Status Indicator -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5 transform-gpu will-change-transform" data-status-for="${gameId}">
-                ${gameStatusIndicator}
+                ${renderStatusBadgeHTML(game.gamestatus, gameId, false, 'justify-end')}
 
                 ${game.addedAt ? `
                     <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/90 filter-none flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time transform-gpu will-change-transform" title="Added At">
@@ -470,7 +555,6 @@ function createGameCard(game) {
                     ${releaseYear ? `<span class="text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded">${releaseYear}</span>` : ''}
                 </div>
             </div>
-            <!-- No status selector here anymore -->
         </div>
     `;
 
@@ -478,6 +562,111 @@ function createGameCard(game) {
         showGameDetails(game);
     });
 
+    return card;
+}
+
+function createVerticalGameCard(game) {
+    const card = document.createElement('div');
+    card.className = 'vertical-result-card group cursor-pointer';
+    card.dataset.gameId = game.externalId || game.id;
+
+    const fallbackImage = '../../../Assets/Images/logo.png';
+    const rawImageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image;
+    const isImageInvalid = !rawImageUrl || String(rawImageUrl) === 'null' || String(rawImageUrl) === 'undefined' || rawImageUrl === '';
+    const safeImageUrl = isImageInvalid ? fallbackImage : rawImageUrl;
+
+    const hqLandscapeImageUrl = (!isImageInvalid && String(safeImageUrl).includes('/header.jpg'))
+        ? String(safeImageUrl).replace('/header.jpg', '/capsule_616x353.jpg')
+        : safeImageUrl;
+    const title = game.title || game.name || 'Unknown Game';
+    const gameId = game.externalId || game.id;
+
+    // Genres
+    let category = 'Action • RPG';
+    if (game.genres && Array.isArray(game.genres) && game.genres.length > 0) {
+        if (typeof game.genres[0] === 'string') {
+            category = game.genres.join(' • ');
+        } else if (game.genres[0].name) {
+            category = game.genres.map(g => g.name).join(' • ');
+        }
+    }
+
+    // Release Year
+    let releaseYear = '';
+    const rawRelease = game.releaseDate || game.released || game.release_date || '';
+    if (rawRelease) {
+        const parsedDate = new Date(rawRelease);
+        if (!Number.isNaN(parsedDate.getTime())) {
+            releaseYear = parsedDate.getFullYear();
+        }
+    }
+
+    // Platform Icons
+    let platformIcons = '';
+    if (game.platforms && Array.isArray(game.platforms) && game.platforms.length > 0) {
+        const uniqueIcons = new Set();
+        const icons = game.platforms.slice(0, 4).map(slug => {
+            let svgIcon = '';
+            const s = (typeof slug === 'string' ? slug : slug.slug || slug.name || '').toLowerCase();
+            if (s.includes('pc') || s.includes('windows')) svgIcon = `<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"></path></svg>`;
+            else if (s.includes('playstation')) svgIcon = `<i class="fab fa-playstation text-[11px]"></i>`;
+            else if (s.includes('xbox')) svgIcon = `<i class="fab fa-xbox text-[11px]"></i>`;
+            else if (s.includes('nintendo')) svgIcon = `<i class="bi bi-nintendo-switch text-[12px]"></i>`;
+            else return '';
+            if (uniqueIcons.has(svgIcon)) return '';
+            uniqueIcons.add(svgIcon);
+            return svgIcon;
+        }).filter(icon => icon !== '').join('');
+        if (icons) {
+            platformIcons = `<div class="absolute bottom-2 left-2 glass-panel px-2 py-0.5 rounded-lg flex items-center gap-2 text-white/50 z-10">${icons}</div>`;
+        }
+    }
+
+    const favBtnClass = game.isFavorite ? 'text-red-500 btn-fav-active' : 'text-white/70 hover:text-red-400';
+    const libClass = game.isInLibrary ? 'text-green-500 btn-lib-active' : 'text-white/70 hover:text-primary';
+
+    card.innerHTML = `
+        <div class="thumb-container flex-shrink-0 relative overflow-hidden rounded-lg">
+            <img src="${hqLandscapeImageUrl}" 
+                 data-fallback-src="${safeImageUrl}"
+                 onerror="if (this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='${fallbackImage}';" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                 alt="${title}">
+            ${platformIcons}
+        </div>
+        
+        <div class="content-container flex flex-col justify-center gap-1.5 flex-1 min-w-0">
+            <div class="flex items-center gap-3">
+                <h3 class="title-text truncate text-lg font-bold" title="${title}">${title}</h3>
+                ${releaseYear ? `<span class="bg-white/10 px-2.5 py-0.5 rounded text-[10px] font-bold text-slate-500 tracking-wider h-fit">${releaseYear}</span>` : ''}
+            </div>
+            
+            <div class="flex flex-wrap gap-2">
+                ${(game.genres || []).slice(0, 3).map(g => `<span class="genre-pill">${(typeof g === 'string' ? g : g.name).toUpperCase()}</span>`).join('')}
+                ${game.addedAt ? `<span class="text-[9px] text-slate-600 font-bold uppercase tracking-wider ml-4 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">history</span> Added ${getRelativeTime(game.addedAt)}</span>` : ''}
+            </div>
+
+            <!-- Status Indicator -->
+            <div data-status-for="${gameId}" class="flex-shrink-0 min-h-[32px] w-fit pt-1">
+                ${renderStatusBadgeHTML(game.gamestatus, gameId)}
+            </div>
+        </div>
+
+        <div class="action-cluster flex items-center gap-2 pr-4">
+            <button onclick="event.stopPropagation(); animateButtonClick(this); addToFavorites('${gameId}')" 
+                    data-game-id="${gameId}" data-btn-type="favorite"
+                    class="w-10 h-10 glass-neon-btn ${favBtnClass}" title="Favorite">
+                <span class="material-symbols-outlined text-lg ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
+            </button>
+            <button onclick="event.stopPropagation(); animateButtonClick(this); addToLibrary('${gameId}')" 
+                    data-game-id="${gameId}" data-btn-type="library"
+                    class="w-10 h-10 glass-neon-btn ${libClass}" title="Remove from Library">
+                <span class="material-symbols-outlined text-lg ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
+            </button>
+        </div>
+    `;
+
+    card.onclick = () => showGameDetails(game);
     return card;
 }
 
@@ -815,7 +1004,8 @@ const STATUS_ICON_MAP = {
     '6': { icon: 'schedule', color: 'text-slate-400', label: 'Pending' }
 };
 
-function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
+function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment = 'justify-start') {
+    if (!gamestatus) return '';
     const key = String(gamestatus).toLowerCase();
     const statusObj = STATUS_ICON_MAP[key] || { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
 
@@ -827,9 +1017,10 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
     ];
 
     const animationClass = isUpdating ? 'status-update-flash' : '';
+    const isRightAligned = alignment === 'justify-end';
 
     return `
-        <div class="group/status relative min-h-[32px] flex items-center justify-end ${animationClass}">
+        <div class="group/status relative min-h-[32px] flex items-center w-fit ${alignment} ${animationClass}">
             <!-- Badge: Icon-only (Initial) -> Expands on Card Hover -> Hidden on Status Hover -->
             <div class="h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
@@ -839,7 +1030,7 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
             </div>
 
             <!-- Selector: Hidden -> Visible only on Status Hover -->
-            <div class="absolute right-0 flex items-center gap-1.5 opacity-0 translate-x-4 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+            <div class="absolute ${isRightAligned ? 'right-0 translate-x-4' : 'left-0 -translate-x-4'} flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
         return `

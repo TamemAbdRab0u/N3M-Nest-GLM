@@ -155,7 +155,26 @@
 
 
 
+            <!-- View Switcher -->
+            <div class="flex justify-center mb-8">
+                <div class="inline-flex bg-[#0a1618]/60 backdrop-blur-xl p-1 rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+                    <button id="view-grid-btn" onclick="setLibraryView('grid')" 
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] xirod-font transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                        <span class="material-symbols-outlined text-sm">grid_view</span> GRID
+                    </button>
+                    <button id="view-list-btn" onclick="setLibraryView('list')" 
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] xirod-font transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                        <span class="material-symbols-outlined text-sm">view_list</span> LIST
+                    </button>
+                    <button id="view-single-btn" onclick="setLibraryView('single')" 
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] xirod-font transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                        <span class="material-symbols-outlined text-sm">view_day</span> SINGLE
+                    </button>
+                </div>
+            </div>
+
             <!-- Games Grid -->
+
             <div id="library-games" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 md:gap-2">
                 <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
                     <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4">
@@ -165,7 +184,7 @@
             </div>
 
             <!-- Pagination -->
-            <div id="pagination-controls" class="mt-8 flex justify-center items-center gap-4">
+            <div id="pagination-controls" class="hidden mt-8 flex justify-center items-center gap-4">
                 <button id="prev-btn"
                     class="h-10 px-4 rounded-lg bg-[#1e292b] border border-[#333333] hover:bg-[#253235] text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined">arrow_back</span> Previous
