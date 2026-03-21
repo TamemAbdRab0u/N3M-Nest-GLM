@@ -381,12 +381,6 @@ function createGameCard(game) {
             <!-- Status Indicator -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5 transform-gpu will-change-transform" data-status-for="${gameId}">
                 ${gameStatusIndicator}
-                ${game.addedAt ? `
-                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/90 filter-none flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time transform-gpu will-change-transform" title="Added At">
-                        <span class="material-symbols-outlined text-[15px] text-slate-400 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">history</span>
-                        <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-slate-200 whitespace-nowrap">Added ${getRelativeTime(game.addedAt)}</span>
-                    </div>
-                ` : ''}
             </div>
         </div>
 

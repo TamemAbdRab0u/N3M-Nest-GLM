@@ -285,10 +285,24 @@ function renderInventoryIndicatorsHTML(game) {
 /**
  * Renders the new horizontal status selector (Library Style)
  */
-function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment = 'justify-start') {
+function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment = 'justify-start', readOnly = false) {
     if (!gamestatus) return '';
     const key = String(gamestatus).toLowerCase();
     const statusObj = STATUS_ICON_MAP[key] || { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
+
+    const animationClass = isUpdating ? 'status-update-flash' : '';
+
+    // Read-only mode: icon-only at rest, expands to show label on card hover (no selector)
+    if (readOnly) {
+        return `
+        <div class="relative min-h-[32px] flex items-center ${alignment} ${animationClass}">
+            <div class="h-8 px-2.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md shadow-lg flex items-center min-w-[32px] overflow-hidden transition-all duration-300 cursor-default" title="${statusObj.label}">
+                <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon || 'check_circle'}</span>
+                <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">${statusObj.label}</span>
+            </div>
+        </div>
+    `;
+    }
 
     const selectorItems = [
         { id: '1', icon: 'play_circle', color: 'text-primary', label: 'Playing' },
@@ -297,7 +311,6 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
         { id: '4', icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' }
     ];
 
-    const animationClass = isUpdating ? 'status-update-flash' : '';
     const isRightAligned = alignment === 'justify-end';
 
     const selectorPositionClass = isRightAligned 
@@ -1217,7 +1230,7 @@ function createGridGameCard(game) {
 
             <!-- Status Indicator -->
             <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5" data-status-for="${gameId}">
-                ${game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, false, 'justify-end') : ''}
+                ${game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, false, 'justify-end', true) : ''}
 
                 ${(currentView !== 'catalog' && game.addedAt) ? `
                     <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/40 backdrop-blur-md flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time transform-gpu will-change-transform" title="Added At">
@@ -1762,7 +1775,7 @@ function updateStatusIndicators(gameId, game) {
     statusContainers.forEach(container => {
         // Detect alignment from context (Grid cards are items-end, search cards are default)
         const alignment = container.classList.contains('items-end') ? 'justify-end' : 'justify-start';
-        container.innerHTML = game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, false, alignment) : '';
+        container.innerHTML = game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, false, alignment, true) : '';
     });
 
     addedAtContainers.forEach(container => {

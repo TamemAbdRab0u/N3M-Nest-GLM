@@ -497,7 +497,7 @@ function createGridGameCard(game) {
 
         if (icons) {
             platformIcons = `
-                <div class="absolute bottom-3 left-3 glass-panel px-2.5 py-1 rounded-full flex items-center gap-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-10 pointer-events-none">
+                <div class="absolute bottom-3 right-3 glass-panel px-2.5 py-1 rounded-full flex items-center gap-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-10 pointer-events-none">
                     ${icons}
                 </div>
             `;
@@ -568,12 +568,12 @@ function createGridGameCard(game) {
                 </button>
             </div>
 
-            ${platformIcons}
-
             <!-- Status Indicator Overlay -->
-            <div class="absolute bottom-3 right-3 z-20" data-status-for="${gameId}">
+            <div class="absolute bottom-3 left-3 z-20" data-status-for="${gameId}">
                 ${renderGridStatusBadgeFixedHTML(game.gamestatus, gameId)}
             </div>
+
+            ${platformIcons}
         </div>
 
         <!-- Optimized Info Area -->
@@ -1108,17 +1108,17 @@ function renderGridStatusBadgeFixedHTML(gamestatus, gameId, isUpdating = false) 
     const animationClass = isUpdating ? 'status-update-flash' : '';
 
     return `
-        <div class="group/status relative min-h-[32px] flex items-center justify-end ${animationClass}" style="width: 145px !important;">
-            <!-- Pill: Anchored to Right -->
-            <div class="absolute right-0 h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
+        <div class="group/status relative min-h-[32px] flex items-center justify-start ${animationClass}" style="width: 145px !important;">
+            <!-- Pill: Anchored to Left, expands rightward -->
+            <div class="absolute left-0 h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
                 <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">
                     ${statusObj.label}
                 </span>
             </div>
 
-            <!-- Icons: Anchored to Same Right Position -->
-            <div class="absolute right-0 flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+            <!-- Icons: Anchored to Same Left Position, expands rightward -->
+            <div class="absolute left-0 flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
         return `
