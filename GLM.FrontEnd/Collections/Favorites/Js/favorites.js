@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     displayUserInfo();
-    initializePagination();
     initializeSearch();
     // initializeCategories();
     // initializePlatforms();
@@ -227,10 +226,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         }
 
         allGames = gamesData;
-        const startIndex = (page - 1) * gamesPerPage;
-        const pagedGames = gamesData.slice(startIndex, startIndex + gamesPerPage);
-        renderGames(pagedGames);
-        updatePaginationControls(page, query, genre, platform, ordering, release, status, { total: gamesData.length, count: pagedGames.length, isCatalog: false });
+        renderGames(gamesData);
         if (totalGamesElement) totalGamesElement.textContent = `${gamesData.length} Favorites`;
     } catch (error) {
         console.error('Error loading favorites:', error);
@@ -415,16 +411,7 @@ function createGameCard(game) {
     return card;
 }
 
-function updatePaginationControls(page, query, genre, platform, ordering, release, status, paginationInfo) {
-    const pageInfo = document.getElementById('page-info');
-    if (pageInfo) pageInfo.textContent = `Page ${page} of ${Math.max(1, Math.ceil(paginationInfo.total / gamesPerPage))}`;
-    currentPage = page;
-}
 
-function initializePagination() {
-    document.getElementById('prev-btn')?.addEventListener('click', () => { if (currentPage > 1) loadGames(currentPage - 1); });
-    document.getElementById('next-btn')?.addEventListener('click', () => loadGames(currentPage + 1));
-}
 
 function initializeSearch() {
     document.querySelector('.search-bar input')?.addEventListener('input', (e) => {

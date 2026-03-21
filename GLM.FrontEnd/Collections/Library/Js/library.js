@@ -17,11 +17,9 @@ let currentLibraryView = localStorage.getItem('libraryView') || 'grid';
 let activeToast = null;
 let toastTimeout = null;
 
-// Helper to add click animation
+// Helper to provide instant visual feedback without transitions for the library page
 function animateButtonClick(btn) {
-    btn.classList.add('animate-pop');
-
-    // Real-time visual feedback
+    // Real-time visual feedback - Toggle classes immediately for responsiveness
     const type = btn.dataset.btnType;
     const icon = btn.querySelector('.material-symbols-outlined');
 
@@ -59,8 +57,6 @@ function animateButtonClick(btn) {
             if (icon) icon.classList.add('fill-icon');
         }
     }
-
-    setTimeout(() => btn.classList.remove('animate-pop'), 450);
 }
 
 // Helper function to convert DateTime to relative time
@@ -94,6 +90,49 @@ function getRelativeTime(dateString) {
     const diffYear = Math.floor(diffDay / 365);
     return `${diffYear} year${diffYear === 1 ? '' : 's'} ago`;
 }
+
+// Handle custom status dropdown
+function toggleStatusDropdown(event) {
+    if (event) event.stopPropagation();
+    const dropdown = document.getElementById('status-dropdown-menu');
+    const arrow = document.getElementById('status-dropdown-arrow');
+    const isVisible = !dropdown.classList.contains('hidden');
+
+    if (!isVisible) {
+        dropdown.classList.remove('hidden');
+        setTimeout(() => {
+            dropdown.classList.remove('opacity-0', 'invisible', 'translate-y-2');
+        }, 10);
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+    } else {
+        closeStatusDropdown();
+    }
+}
+
+function closeStatusDropdown() {
+    const dropdown = document.getElementById('status-dropdown-menu');
+    const arrow = document.getElementById('status-dropdown-arrow');
+    if (!dropdown) return;
+
+    dropdown.classList.add('opacity-0', 'invisible', 'translate-y-2');
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+    setTimeout(() => {
+        dropdown.classList.add('hidden');
+    }, 300);
+}
+
+function selectStatusFilter(statusId, label) {
+    setStatusFilter(statusId, label);
+    closeStatusDropdown();
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', (e) => {
+    const statusDropdown = document.getElementById('status-dropdown-container');
+    if (statusDropdown && !statusDropdown.contains(e.target)) {
+        closeStatusDropdown();
+    }
+});
 
 // Initialize library page
 document.addEventListener('DOMContentLoaded', () => {
@@ -401,7 +440,7 @@ function createGameCard(game) {
 
 function createGridGameCard(game) {
     const card = document.createElement('div');
-    card.className = 'group relative overflow-hidden rounded-xl bg-[#1e292b] border border-white/5 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 cursor-pointer';
+    card.className = 'group relative overflow-hidden rounded-[3px] bg-[#1e292b] border border-white/5 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 cursor-pointer';
     card.dataset.gameId = game.externalId || game.id;
 
     const fallbackImage = '../../../Assets/Images/logo.png';
@@ -506,52 +545,45 @@ function createGridGameCard(game) {
 
     card.innerHTML = `
         <!-- Image Container -->
-        <div class="relative aspect-[16/9] overflow-hidden bg-[#0f1a1d]">
+        <div class="relative aspect-[16/10] overflow-hidden bg-[#0f1a1d]">
             <img
                 src="${hqLandscapeImageUrl}"
                 data-fallback-src="${safeImageUrl}"
                 alt="${title}"
                 loading="lazy"
-                class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.05]"
                 onerror="if (this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='${fallbackImage}';"
             >
             <!-- Side Actions -->
             <div class="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
                 <button onclick="event.stopPropagation(); animateButtonClick(this); addToFavorites('${gameId}')"
                         data-game-id="${gameId}" data-btn-type="favorite"
-                        class="w-9 h-9 glass-neon-btn ${favBtnClass}" title="Favorite">
-                    <span class="material-symbols-outlined text-lg ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
+                        class="w-8 h-8 glass-neon-btn ${favBtnClass}" title="Favorite">
+                    <span class="material-symbols-outlined text-base ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
                 </button>
                 <button onclick="event.stopPropagation(); animateButtonClick(this); addToLibrary('${gameId}')"
                         data-game-id="${gameId}" data-btn-type="library"
-                        class="w-9 h-9 glass-neon-btn ${libClass}" title="Library">
-                    <span class="material-symbols-outlined text-lg ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
+                        class="w-8 h-8 glass-neon-btn ${libClass}" title="Library">
+                    <span class="material-symbols-outlined text-base ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
                 </button>
             </div>
 
             ${platformIcons}
 
-            <!-- Status Indicator -->
-            <div class="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-1.5 transform-gpu will-change-transform" data-status-for="${gameId}">
+            <!-- Status Indicator Overlay -->
+            <div class="absolute bottom-3 right-3 z-20" data-status-for="${gameId}">
                 ${renderStatusBadgeHTML(game.gamestatus, gameId, false, 'justify-end')}
-
-                ${game.addedAt ? `
-                    <div class="h-7 px-2.5 rounded-full border border-white/10 bg-slate-900/90 filter-none flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-fit group-hover:px-4 cursor-default shadow-lg group/time transform-gpu will-change-transform" title="Added At">
-                        <span class="material-symbols-outlined text-[15px] text-slate-400 fill-icon transition-all duration-300 group-hover:opacity-0 group-hover:w-0 group-hover:scale-0 group-hover:hidden">history</span>
-                        <span class="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 transition-all duration-500 ease-out text-[10px] uppercase font-bold text-slate-200 whitespace-nowrap">Added ${getRelativeTime(game.addedAt)}</span>
-                    </div>
-                ` : ''}
             </div>
         </div>
 
-        <!-- Info Area -->
-        <div class="px-2 py-3 bg-[#1e292b]">
-            <div class="flex items-start justify-between gap-2 overflow-hidden">
+        <!-- Optimized Info Area -->
+        <div class="px-2 py-3 bg-[#1e292b] border-t border-white/5 flex flex-col justify-center">
+            <div class="flex items-center justify-between gap-2 overflow-hidden">
                 <div class="min-w-0 flex-1">
-                    <h2 class="text-[12px] font-bold text-[#4481eb] truncate group-hover:text-primary transition-colors leading-tight mb-1" title="${title}">${title}</h2>
-                    <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider truncate">${category.split(' • ')[0]}</p>
+                    <h2 class="text-[12px] font-bold text-[#4481eb] truncate group-hover:text-primary transition-colors leading-tight" title="${title}">${title}</h2>
+                    <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider truncate mb-0.5">${category.split(' • ')[0]}</p>
                 </div>
-                <div class="flex flex-col items-end shrink-0 gap-1">
+                <div class="shrink-0">
                     ${releaseYear ? `<span class="text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded">${releaseYear}</span>` : ''}
                 </div>
             </div>
@@ -630,7 +662,7 @@ function createVerticalGameCard(game) {
             <img src="${hqLandscapeImageUrl}" 
                  data-fallback-src="${safeImageUrl}"
                  onerror="if (this.src !== this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; return; } this.src='${fallbackImage}';" 
-                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" 
                  alt="${title}">
             ${platformIcons}
         </div>
@@ -808,9 +840,21 @@ function setRatingOrdering(ordering, label) {
 
 function setStatusFilter(statusId, label) {
     currentStatus = statusId;
-    const currentStatusDisplay = document.getElementById('current-status');
+    const currentStatusDisplay = document.getElementById('current-status-text');
     if (currentStatusDisplay) currentStatusDisplay.textContent = label;
     loadGames(1, currentQuery, currentGenre, currentPlatform, currentOrdering, currentRelease, statusId);
+}
+
+function applyStatusFilter(status) {
+    const labelMap = {
+        'all': 'ALL STATUS',
+        '1': 'PLAYING',
+        '3': 'COMPLETED',
+        '5': 'ON HOLD',
+        '4': 'DROPPED',
+        '6': 'PENDING'
+    };
+    setStatusFilter(status === 'all' ? '' : status, labelMap[status] || 'ALL STATUS');
 }
 
 function clearAllFilters() {
@@ -1020,17 +1064,17 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
     const isRightAligned = alignment === 'justify-end';
 
     return `
-        <div class="group/status relative min-h-[32px] flex items-center w-fit ${alignment} ${animationClass}">
-            <!-- Badge: Icon-only (Initial) -> Expands on Card Hover -> Hidden on Status Hover -->
-            <div class="h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
+        <div class="group/status relative min-h-[32px] flex items-center ${isRightAligned ? 'w-[145px] justify-end' : 'w-fit justify-start'} ${animationClass}">
+            <!-- Initial Pill Badge -->
+            <div class="absolute right-0 h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
                 <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">
                     ${statusObj.label}
                 </span>
             </div>
 
-            <!-- Selector: Hidden -> Visible only on Status Hover -->
-            <div class="absolute ${isRightAligned ? 'right-0 translate-x-4' : 'left-0 -translate-x-4'} flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+            <!-- Selector Menu: Swaps in at same fixed position -->
+            <div class="absolute right-0 flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
         return `
@@ -1048,16 +1092,36 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
 
 function renderInventoryIndicatorsHTML(game) {
     return `
-        ${game.isInWishlist ? '<div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center bg-slate-900/90 filter-none" title="In Wishlist"><span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span></div>' : ''}
+        ${game.isInWishlist ? `
+            <div class="h-[28px] w-[36px] rounded-full border border-blue-400/30 flex items-center justify-center bg-slate-900/90" title="In Wishlist">
+                <span class="material-symbols-outlined text-[13px] text-blue-400 fill-icon">bookmark</span>
+            </div>` : ''}
+        ${game.isFavorite ? `
+            <div class="h-[28px] w-[36px] rounded-full border border-red-500/30 flex items-center justify-center bg-slate-900/90" title="Favorited">
+                <span class="material-symbols-outlined text-[13px] text-red-500 fill-icon">favorite</span>
+            </div>` : ''}
+        ${game.isInLibrary ? `
+            <div class="h-[28px] w-[36px] rounded-full border border-green-500/30 flex items-center justify-center bg-slate-900/90" title="In Library">
+                <span class="material-symbols-outlined text-[13px] text-green-500 fill-icon">inventory_2</span>
+            </div>` : ''}
     `;
 }
 
 function updateStatusIndicators(gameId, game) {
-    // Update status badge in-place
+    // Detect status container
     const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
     if (statusContainer) {
-        const badgeEl = statusContainer.querySelector('.h-7');
-        if (badgeEl) badgeEl.outerHTML = renderStatusBadgeHTML(game.gamestatus);
+        // Robust detection: Grid cards in library don't use 'vertical-result-card'
+        // If it's a grid card (no vertical-result-card parent), it's justify-end
+        const isGrid = !statusContainer.closest('.vertical-result-card');
+        const alignment = isGrid ? 'justify-end' : 'justify-start';
+
+        const badgeEl = statusContainer.querySelector('.group\\/status');
+        if (badgeEl) {
+            badgeEl.outerHTML = renderStatusBadgeHTML(game.gamestatus, gameId, true, alignment);
+        } else {
+            statusContainer.innerHTML = renderStatusBadgeHTML(game.gamestatus, gameId, true, alignment);
+        }
     }
     // Update inventory pills in-place
     const inventoryContainer = document.querySelector(`[data-inventory-for="${gameId}"]`);

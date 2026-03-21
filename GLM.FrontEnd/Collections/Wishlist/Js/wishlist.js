@@ -6,7 +6,7 @@ let currentPlatform = '';
 let currentOrdering = '';
 let currentRelease = '';
 let currentStatus = '';
-let gamesPerPage = 12;
+let gamesPerPage = 9999;
 let allGames = [];
 let rawUserGamesCache = null;
 let currentCacheEndpoint = null;
@@ -90,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     displayUserInfo();
-    initializePagination();
     initializeSearch();
     loadGames(1);
 });
@@ -198,15 +197,9 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         }
 
         allGames = gamesData;
-        const startIndex = (page - 1) * gamesPerPage;
-        const pagedGames = gamesData.slice(startIndex, startIndex + gamesPerPage);
-        renderGames(pagedGames);
+        renderGames(gamesData);
 
         if (totalGamesElement) totalGamesElement.textContent = `${gamesData.length} Games in Wishlist`;
-
-        const pageInfo = document.getElementById('page-info');
-        if (pageInfo) pageInfo.textContent = `Page ${page} of ${Math.max(1, Math.ceil(gamesData.length / gamesPerPage))}`;
-        currentPage = page;
 
     } catch (error) {
         console.error('Error loading wishlist:', error);
@@ -351,10 +344,7 @@ function createGameCard(game) {
     return card;
 }
 
-function initializePagination() {
-    document.getElementById('prev-btn')?.addEventListener('click', () => { if (currentPage > 1) loadGames(currentPage - 1); });
-    document.getElementById('next-btn')?.addEventListener('click', () => loadGames(currentPage + 1));
-}
+
 
 function initializeSearch() {
     document.querySelector('.search-bar input')?.addEventListener('input', (e) => {

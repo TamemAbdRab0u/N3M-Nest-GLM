@@ -260,6 +260,29 @@ const STATUS_ICON_MAP = {
 };
 
 /**
+ * Renders the small circular status indicators (Fav/Wish/Lib)
+ */
+function renderInventoryIndicatorsHTML(game) {
+    if (!game) return '';
+    return `
+        <div class="flex items-center gap-1.5 h-8">
+            ${game.isInWishlist ? `
+                <div class="h-8 w-10 rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm shadow-sm" title="In Wishlist">
+                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon">bookmark</span>
+                </div>` : ''}
+            ${game.isFavorite ? `
+                <div class="h-8 w-10 rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm shadow-sm" title="Favorited">
+                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon">favorite</span>
+                </div>` : ''}
+            ${game.isInLibrary ? `
+                <div class="h-8 w-10 rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm shadow-sm" title="In Library">
+                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon">inventory_2</span>
+                </div>` : ''}
+        </div>
+    `;
+}
+
+/**
  * Renders the new horizontal status selector (Library Style)
  */
 function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment = 'justify-start') {
@@ -277,6 +300,10 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
     const animationClass = isUpdating ? 'status-update-flash' : '';
     const isRightAligned = alignment === 'justify-end';
 
+    const selectorPositionClass = isRightAligned 
+        ? 'right-0 translate-x-4' 
+        : 'left-0 -translate-x-4';
+
     return `
         <div class="group/status relative min-h-[32px] flex items-center ${alignment} ${animationClass}">
             <!-- Badge: Icon-only (Initial) -> Expands on Card Hover -> Hidden on Status Hover -->
@@ -288,7 +315,7 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
             </div>
 
             <!-- Selector: Hidden -> Visible only on Status Hover -->
-            <div class="absolute ${isRightAligned ? 'right-0 translate-x-4' : 'left-0 -translate-x-4'} flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+            <div class="absolute ${selectorPositionClass} flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
         return `
@@ -1150,22 +1177,6 @@ function createGridGameCard(game) {
         }
     }
 
-    const inventoryIndicators = `
-        <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
-            ${game.isInWishlist ? `
-                <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist">
-                    <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span>
-                </div>` : ''}
-            ${game.isFavorite ? `
-                <div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm" title="Favorited">
-                    <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span>
-                </div>` : ''}
-            ${game.isInLibrary ? `
-                <div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm" title="In Library">
-                    <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span>
-                </div>` : ''}
-        </div>
-    `;
 
     // Button states
     const favBtnClass = game.isFavorite ? 'text-red-500' : 'text-white/70 hover:text-red-400';
@@ -1186,15 +1197,18 @@ function createGridGameCard(game) {
             
             <div class="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 z-20">
                 <button onclick="event.stopPropagation(); addToFavorites('${gameId}')" 
-                        class="w-9 h-9 glass-neon-btn ${favBtnClass}" title="Favorite">
+                        class="w-9 h-9 glass-neon-btn ${favBtnClass}" 
+                        data-game-id="${gameId}" data-btn-type="favorite" title="Favorite">
                     <span class="material-symbols-outlined text-lg ${game.isFavorite ? 'fill-icon' : ''}">favorite</span>
                 </button>
                 <button onclick="event.stopPropagation(); addToLibrary('${gameId}')" 
-                        class="w-9 h-9 glass-neon-btn ${libClass}" title="Library">
+                        class="w-9 h-9 glass-neon-btn ${libClass}" 
+                        data-game-id="${gameId}" data-btn-type="library" title="Library">
                     <span class="material-symbols-outlined text-lg ${game.isInLibrary ? 'fill-icon' : ''}">inventory_2</span>
                 </button>
                 <button onclick="event.stopPropagation(); addToWishlist('${gameId}')" 
-                        class="w-9 h-9 glass-neon-btn ${wishlistClass}" title="Wishlist">
+                        class="w-9 h-9 glass-neon-btn ${wishlistClass}" 
+                        data-game-id="${gameId}" data-btn-type="wishlist" title="Wishlist">
                     <span class="material-symbols-outlined text-lg ${game.isInWishlist ? 'fill-icon' : ''}">bookmark</span>
                 </button>
             </div>
@@ -1221,12 +1235,13 @@ function createGridGameCard(game) {
                     <h2 class="text-[12px] font-bold text-[#4481eb] truncate group-hover:text-primary transition-colors leading-tight mb-1" title="${title}">${title}</h2>
                     <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider truncate">${category.split(' • ')[0]}</p>
                 </div>
-                <div class="flex flex-col items-end shrink-0 gap-1">
-                    ${releaseYear ? `<span class="text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded">${releaseYear}</span>` : ''}
-                    <div class="scale-75 origin-top-right -mt-1" data-inventory-for="${gameId}">
-                        ${inventoryIndicators}
+                    <!-- Info Row (Year + Indicators) -->
+                    <div class="flex flex-col items-end shrink-0 gap-2.5">
+                        ${releaseYear ? `<span class="text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded">${releaseYear}</span>` : ''}
+                        <div class="scale-75 origin-top-right" data-inventory-for="${gameId}">
+                            ${renderInventoryIndicatorsHTML(game)}
+                        </div>
                     </div>
-                </div>
             </div>
         </div>
     `;
@@ -1715,29 +1730,9 @@ function updateFavoriteUI(gameId, isFavorite) {
         updateStatusIndicators(gameId, cachedGame);
     }
 
-    // Update specific favorite buttons
-    const favButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="favorite"]`);
-    favButtons.forEach(btn => {
-        const iconSpan = btn.querySelector('.material-symbols-outlined');
-        if (iconSpan) {
-            if (isFavorite) {
-                btn.classList.add('text-red-500');
-                btn.classList.remove('text-white/70', 'hover:text-red-400');
-                iconSpan.classList.add('fill-icon', 'animate-pop');
-                btn.title = 'Remove from Favorites';
-                setTimeout(() => iconSpan.classList.remove('animate-pop'), 450);
-            } else {
-                btn.classList.remove('text-red-500');
-                btn.classList.add('text-white/70', 'hover:text-red-400');
-                iconSpan.classList.remove('fill-icon');
-                btn.title = 'Add to Favorites';
-            }
-        }
-    });
-
     // Handle view-specific item removal
     if (currentView === 'favorites' && !isFavorite) {
-        const cardToRemove = document.querySelector(`button[data-game-id="${gameId}"]`)?.closest('.group');
+        const cardToRemove = document.querySelector(`button[data-game-id="${gameId}"][data-btn-type="favorite"]`)?.closest('.group');
         if (cardToRemove) {
             cardToRemove.classList.add('opacity-0', 'scale-90');
             setTimeout(() => {
@@ -1753,6 +1748,7 @@ function updateFavoriteUI(gameId, isFavorite) {
 }
 
 function updateStatusIndicators(gameId, game) {
+    if (!game) return;
     const statusContainers = document.querySelectorAll(`[data-status-for="${gameId}"]`);
     const addedAtContainers = document.querySelectorAll(`[data-added-at-for="${gameId}"]`);
     const inventoryContainers = document.querySelectorAll(`[data-inventory-for="${gameId}"]`);
@@ -1760,58 +1756,42 @@ function updateStatusIndicators(gameId, game) {
     const libButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="library"]`);
     const wishButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="wishlist"]`);
 
-    // Status Icon Logic (Helper)
-    const getStatusIcon = (status) => {
-        const s = String(status).toLowerCase();
-        if (s === 'playing' || s === '1') return { icon: 'play_circle', color: 'text-primary', label: 'Playing' };
-        if (s === 'whishlist' || s === '2') return { icon: 'bookmark', color: 'text-blue-400', label: 'Wishlist' };
-        if (s === 'completed' || s === '3') return { icon: 'task_alt', color: 'text-green-500', label: 'Completed' };
-        if (s === 'dropped' || s === '4') return { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' };
-        if (s === 'onhold' || s === '5') return { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' };
-        if (s === 'pending' || s === '6') return { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
-        return null;
-    };
-
-    const statusObj = game.isInLibrary ? getStatusIcon(game.gamestatus) : null;
     const isPending = game.isInLibrary && (String(game.gamestatus).toLowerCase() === 'pending' || String(game.gamestatus) === '6');
 
     // Update Image Status
     statusContainers.forEach(container => {
-        container.innerHTML = game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId) : '';
+        // Detect alignment from context (Grid cards are items-end, search cards are default)
+        const alignment = container.classList.contains('items-end') ? 'justify-end' : 'justify-start';
+        container.innerHTML = game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, false, alignment) : '';
     });
 
     addedAtContainers.forEach(container => {
         container.classList.toggle('hidden', isPending);
     });
 
-    // Update Inventory Indicators (Below title)
+    // Update Inventory Indicators with shared helper
     inventoryContainers.forEach(container => {
-        container.innerHTML = `
-            <div class="flex justify-end gap-1 min-w-[65px] h-8 items-center mt-2 relative">
-                ${game.isInWishlist ? `
-                    <div class="h-[30px] w-[40px] rounded-full border border-blue-400/30 flex items-center justify-center backdrop-blur-sm" title="In Wishlist">
-                        <span class="material-symbols-outlined text-[15px] text-blue-400 fill-icon scale-110">bookmark</span>
-                    </div>` : ''}
-                ${game.isFavorite ? `
-                    <div class="h-[30px] w-[40px] rounded-full border border-red-500/30 flex items-center justify-center backdrop-blur-sm" title="Favorited">
-                        <span class="material-symbols-outlined text-[15px] text-red-500 fill-icon scale-110">favorite</span>
-                    </div>` : ''}
-                ${game.isInLibrary ? `
-                    <div class="h-[30px] w-[40px] rounded-full border border-green-500/30 flex items-center justify-center backdrop-blur-sm" title="In Library">
-                        <span class="material-symbols-outlined text-[15px] text-green-500 fill-icon scale-110">inventory_2</span>
-                    </div>` : ''}
-            </div>
-        `;
+        container.innerHTML = renderInventoryIndicatorsHTML(game);
     });
 
-    // Update Overlay Buttons Styles
-    const updateBtn = (btns, isActive, activeClass, inactiveClass) => {
+    // Central robust button update logic with animations
+    const updateBtn = (btns, isActive, activeClass, inactiveClass, type) => {
         btns.forEach(btn => {
             const icon = btn.querySelector('.material-symbols-outlined');
             if (isActive) {
+                // Clear any potential clashing white-opacity classes from BOTH btn and icon
+                btn.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'text-white/60');
+                icon?.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'text-white/60');
+                
                 btn.classList.add(...activeClass.split(' '));
                 btn.classList.remove(...inactiveClass.split(' '));
                 icon?.classList.add('fill-icon');
+                
+                // Favorite and Wishlist get the pop animation
+                if (type === 'favorite' || type === 'wishlist') {
+                    icon?.classList.add('animate-pop');
+                    setTimeout(() => icon?.classList.remove('animate-pop'), 450);
+                }
             } else {
                 btn.classList.remove(...activeClass.split(' '));
                 btn.classList.add(...inactiveClass.split(' '));
@@ -1820,9 +1800,9 @@ function updateStatusIndicators(gameId, game) {
         });
     };
 
-    updateBtn(favButtons, game.isFavorite, 'text-red-500', 'text-white/70 hover:text-red-400');
-    updateBtn(libButtons, game.isInLibrary, 'text-green-500', 'text-white/70 hover:text-primary');
-    updateBtn(wishButtons, game.isInWishlist, 'text-blue-400', 'text-white/70 hover:text-blue-400');
+    updateBtn(favButtons, game.isFavorite, 'text-red-500', 'text-white/70 hover:text-red-400', 'favorite');
+    updateBtn(libButtons, game.isInLibrary, 'text-green-500', 'text-white/70 hover:text-primary', 'library');
+    updateBtn(wishButtons, game.isInWishlist, 'text-blue-400', 'text-white/70 hover:text-blue-400', 'wishlist');
 }
 
 // Add to Library
@@ -1872,8 +1852,11 @@ function updateLibraryUI(gameId, isInLibrary) {
             iconSpan.style.transform = 'rotate(360deg)';
 
             if (isInLibrary) {
+                // Clear any potential clashing white-opacity classes from BOTH btn and icon
+                btn.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'hover:text-primary');
+                iconSpan?.classList.remove('text-white/70', 'text-white/40', 'text-white/50');
+                
                 btn.classList.add('text-green-500');
-                btn.classList.remove('text-white/70', 'hover:text-primary');
                 iconSpan.textContent = 'inventory_2';
                 iconSpan.classList.add('fill-icon');
                 btn.title = 'Remove from Library';
@@ -1889,13 +1872,16 @@ function updateLibraryUI(gameId, isInLibrary) {
             setTimeout(() => {
                 iconSpan.style.transition = 'none';
                 iconSpan.style.transform = 'rotate(0deg)';
+                // Sync everything else
+                const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
+                if (cachedGame) updateStatusIndicators(gameId, cachedGame);
             }, 600);
         }
     });
 
     // Handle view-specific item removal
     if (currentView === 'library' && !isInLibrary) {
-        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`).closest('.group');
+        const cardToRemove = document.querySelector(`button[onclick*="'${gameId}'"]`)?.closest('.group');
         if (cardToRemove) {
             cardToRemove.classList.add('opacity-0', 'scale-90');
             setTimeout(() => {
@@ -1914,7 +1900,6 @@ function updateLibraryUI(gameId, isInLibrary) {
         cachedGame.isInLibrary = isInLibrary;
         if (isInLibrary) {
             cachedGame.gamestatus = 6; // Pending
-            // isInWishlist and isFavorite are untouched — independent
         } else {
             cachedGame.gamestatus = null;
         }
@@ -1951,12 +1936,9 @@ function updateWishlistUI(gameId, isInWishlist) {
     const cachedGame = allGames.find(g => (g.externalId || g.id) == gameId);
     if (cachedGame) {
         cachedGame.isInWishlist = isInWishlist;
-        // If on wishlist, it cannot be favorite
         if (isInWishlist) {
             cachedGame.isFavorite = false;
-            // updateStatusIndicators handles the badge
         } else {
-            // Only clear status if it was wishlist (don't clear if it was in library)
             if (cachedGame.gamestatus === 'whishlist' || cachedGame.gamestatus === 2) {
                 cachedGame.gamestatus = null;
             }
@@ -1964,25 +1946,9 @@ function updateWishlistUI(gameId, isInWishlist) {
         updateStatusIndicators(gameId, cachedGame);
     }
 
-    const wishButtons = document.querySelectorAll(`button[data-game-id="${gameId}"][data-btn-type="wishlist"]`);
-    wishButtons.forEach(btn => {
-        const iconSpan = btn.querySelector('.material-symbols-outlined');
-        if (iconSpan) {
-            if (isInWishlist) {
-                btn.classList.add('text-blue-400', 'ring-1', 'ring-blue-400/30');
-                btn.classList.remove('text-white/70', 'hover:text-blue-400');
-                iconSpan.classList.add('fill-icon');
-            } else {
-                btn.classList.remove('text-blue-400', 'ring-1', 'ring-blue-400/30');
-                btn.classList.add('text-white/70', 'hover:text-blue-400');
-                iconSpan.classList.remove('fill-icon');
-            }
-        }
-    });
-
     // Handle view-specific item removal (if on wishlist page)
     if (currentView === 'wishlist' && !isInWishlist) {
-        const cardToRemove = document.querySelector(`button[data-game-id="${gameId}"]`)?.closest('.group');
+        const cardToRemove = document.querySelector(`button[data-game-id="${gameId}"][data-btn-type="wishlist"]`)?.closest('.group');
         if (cardToRemove) {
             cardToRemove.classList.add('opacity-0', 'scale-90');
             setTimeout(() => {
