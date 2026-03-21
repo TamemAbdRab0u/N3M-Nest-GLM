@@ -572,7 +572,7 @@ function createGridGameCard(game) {
 
             <!-- Status Indicator Overlay -->
             <div class="absolute bottom-3 right-3 z-20" data-status-for="${gameId}">
-                ${renderStatusBadgeHTML(game.gamestatus, gameId, false, 'justify-end')}
+                ${renderGridStatusBadgeFixedHTML(game.gamestatus, gameId)}
             </div>
         </div>
 
@@ -1048,7 +1048,7 @@ const STATUS_ICON_MAP = {
     '6': { icon: 'schedule', color: 'text-slate-400', label: 'Pending' }
 };
 
-function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment = 'justify-start') {
+function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
     if (!gamestatus) return '';
     const key = String(gamestatus).toLowerCase();
     const statusObj = STATUS_ICON_MAP[key] || { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
@@ -1061,19 +1061,63 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
     ];
 
     const animationClass = isUpdating ? 'status-update-flash' : '';
-    const isRightAligned = alignment === 'justify-end';
 
     return `
-        <div class="group/status relative min-h-[32px] flex items-center ${isRightAligned ? 'w-[145px] justify-end' : 'w-fit justify-start'} ${animationClass}">
-            <!-- Initial Pill Badge -->
-            <div class="absolute right-0 h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
+        <div class="group/status relative min-h-[32px] flex items-center w-fit justify-start ${animationClass}">
+            <!-- Original Dynamic Pill -->
+            <div class="relative h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transform-gpu transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
                 <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
                 <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">
                     ${statusObj.label}
                 </span>
             </div>
 
-            <!-- Selector Menu: Swaps in at same fixed position -->
+            <!-- Original Expanding Selector -->
+            <div class="absolute left-0 flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
+                ${selectorItems.map(s => {
+        const isActive = (key === s.id || key === s.label.toLowerCase());
+        return `
+                        <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
+                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
+                                title="${s.label}">
+                            <span class="material-symbols-outlined text-[18px] ${s.color} ${isActive ? 'fill-icon' : ''}">${s.icon}</span>
+                        </button>
+                    `;
+    }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * NEW INDEPENDENT FUNCTION: Fixed Position Status for Grid View.
+ * No expansion, icons appear in the same spot.
+ */
+function renderGridStatusBadgeFixedHTML(gamestatus, gameId, isUpdating = false) {
+    if (!gamestatus) return '';
+    const key = String(gamestatus).toLowerCase();
+    const statusObj = STATUS_ICON_MAP[key] || { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
+
+    const selectorItems = [
+        { id: '1', icon: 'play_circle', color: 'text-primary', label: 'Playing' },
+        { id: '3', icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+        { id: '5', icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
+        { id: '4', icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' }
+    ];
+
+    const animationClass = isUpdating ? 'status-update-flash' : '';
+
+    return `
+        <div class="group/status relative min-h-[32px] flex items-center justify-end ${animationClass}" style="width: 145px !important;">
+            <!-- Pill: Anchored to Right -->
+            <div class="absolute right-0 h-8 px-2.5 rounded-full border border-white/10 bg-slate-900/90 shadow-lg transition-all duration-300 flex items-center group-hover/status:opacity-0 group-hover/status:scale-90 group-hover/status:pointer-events-none min-w-[32px] overflow-hidden" title="${statusObj.label}">
+                <span class="material-symbols-outlined text-[16px] ${statusObj.color} fill-icon shrink-0">${statusObj.icon}</span>
+                <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 ease-out text-[10px] uppercase font-bold ${statusObj.color} whitespace-nowrap">
+                    ${statusObj.label}
+                </span>
+            </div>
+
+            <!-- Icons: Anchored to Same Right Position -->
             <div class="absolute right-0 flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
@@ -1111,16 +1155,20 @@ function updateStatusIndicators(gameId, game) {
     // Detect status container
     const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
     if (statusContainer) {
-        // Robust detection: Grid cards in library don't use 'vertical-result-card'
-        // If it's a grid card (no vertical-result-card parent), it's justify-end
-        const isGrid = !statusContainer.closest('.vertical-result-card');
-        const alignment = isGrid ? 'justify-end' : 'justify-start';
+        // Find current view mode: Grid cards have unique fixed-position needs
+        const libraryContainer = document.getElementById('library-games');
+        const isGrid = libraryContainer && libraryContainer.classList.contains('grid-view');
 
         const badgeEl = statusContainer.querySelector('.group\\/status');
         if (badgeEl) {
-            badgeEl.outerHTML = renderStatusBadgeHTML(game.gamestatus, gameId, true, alignment);
+            // Route to independent renderers
+            badgeEl.outerHTML = isGrid 
+                ? renderGridStatusBadgeFixedHTML(game.gamestatus, gameId, true)
+                : renderStatusBadgeHTML(game.gamestatus, gameId, true);
         } else {
-            statusContainer.innerHTML = renderStatusBadgeHTML(game.gamestatus, gameId, true, alignment);
+            statusContainer.innerHTML = isGrid
+                ? renderGridStatusBadgeFixedHTML(game.gamestatus, gameId, true)
+                : renderStatusBadgeHTML(game.gamestatus, gameId, true);
         }
     }
     // Update inventory pills in-place
