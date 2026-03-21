@@ -1760,7 +1760,7 @@ function updateFavoriteUI(gameId, isFavorite) {
     }
 }
 
-function updateStatusIndicators(gameId, game) {
+function updateStatusIndicators(gameId, game, isUpdating = false) {
     if (!game) return;
     const statusContainers = document.querySelectorAll(`[data-status-for="${gameId}"]`);
     const addedAtContainers = document.querySelectorAll(`[data-added-at-for="${gameId}"]`);
@@ -1774,8 +1774,10 @@ function updateStatusIndicators(gameId, game) {
     // Update Image Status
     statusContainers.forEach(container => {
         // Detect alignment from context (Grid cards are items-end, search cards are default)
-        const alignment = container.classList.contains('items-end') ? 'justify-end' : 'justify-start';
-        container.innerHTML = game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, false, alignment, true) : '';
+        const isGrid = container.classList.contains('items-end');
+        const alignment = isGrid ? 'justify-end' : 'justify-start';
+        // Grid cards in dashboard remain read-only, search cards (vertical) are interactive
+        container.innerHTML = game.isInLibrary ? renderStatusBadgeHTML(game.gamestatus, gameId, isUpdating, alignment, isGrid) : '';
     });
 
     addedAtContainers.forEach(container => {
@@ -1995,10 +1997,9 @@ async function changeGameStatus(gameId, statusId) {
     if (cachedGame) {
         originalStatus = cachedGame.gamestatus;
         cachedGame.gamestatus = statusId;
-        const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
-        if (statusContainer) {
-            statusContainer.innerHTML = renderStatusBadgeHTML(statusId, gameId, true);
-        }
+        // Optimistic UI update across all visible cards for this game
+        updateStatusIndicators(gameId, cachedGame, true);
+        updateStatusSelectorUI(gameId, statusId);
     }
 
     try {
@@ -2017,10 +2018,8 @@ async function changeGameStatus(gameId, statusId) {
             // Revert on failure
             if (cachedGame) {
                 cachedGame.gamestatus = originalStatus;
-                const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
-                if (statusContainer) {
-                    statusContainer.innerHTML = renderStatusBadgeHTML(originalStatus, gameId);
-                }
+                updateStatusIndicators(gameId, cachedGame);
+                updateStatusSelectorUI(gameId, originalStatus);
             }
             showToast('Failed to update status', 'error');
         }
@@ -2029,42 +2028,43 @@ async function changeGameStatus(gameId, statusId) {
         // Revert on error
         if (cachedGame) {
             cachedGame.gamestatus = originalStatus;
-            const statusContainer = document.querySelector(`[data-status-for="${gameId}"]`);
-            if (statusContainer) {
-                statusContainer.innerHTML = renderStatusBadgeHTML(originalStatus, gameId);
-            }
+            updateStatusIndicators(gameId, cachedGame);
+            updateStatusSelectorUI(gameId, originalStatus);
         }
     }
 }
 
 function updateStatusSelectorUI(gameId, statusId) {
-    // Find all selector buttons for this game
-    const indicators = document.querySelector(`[data-status-for="${gameId}"]`);
-    if (!indicators) return;
+    // Find all selector containers for this game
+    const indicators = document.querySelectorAll(`[data-status-for="${gameId}"]`);
+    if (!indicators || indicators.length === 0) return;
 
-    const card = indicators.closest('.group');
-    if (!card) return;
+    indicators.forEach(indicatorContainer => {
+        const card = indicatorContainer.closest('.group');
+        if (!card) return;
 
-    const buttons = card.querySelectorAll('button[onclick*="changeGameStatus"]');
-    buttons.forEach(btn => {
-        // Extract status from onclick
-        const match = btn.getAttribute('onclick').match(/changeGameStatus\(.*?,[\s]*(\d+)\)/);
-        if (match) {
-            const btnStatusId = parseInt(match[1]);
-            const isActive = btnStatusId === parseInt(statusId);
+        const buttons = card.querySelectorAll('button[onclick*="changeGameStatus"]');
+        buttons.forEach(btn => {
+            // Extract status from onclick
+            const match = btn.getAttribute('onclick').match(/changeGameStatus\(.*?,[\s]*(\d+)\)/);
+            if (match) {
+                const btnStatusId = String(match[1]);
+                const isActive = btnStatusId === String(statusId);
 
-            if (isActive) {
-                btn.className = 'flex items-center gap-2.5 px-3 py-2 rounded-lg bg-primary/10 text-primary transition-colors text-left group/item';
-            } else {
-                btn.className = 'flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group/item';
+                const baseClasses = 'w-8 h-8 rounded-full bg-slate-900 border flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95';
+                const activeClasses = 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]';
+                const inactiveClasses = 'border-white/10';
+                
+                btn.className = `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
+
+                // Sync icon fill state
+                const icon = btn.querySelector('.material-symbols-outlined');
+                if (icon) {
+                    if (isActive) icon.classList.add('fill-icon');
+                    else icon.classList.remove('fill-icon');
+                }
             }
-
-            // Re-sync label color if needed
-            const label = btn.querySelector('span:not(.material-symbols-outlined)');
-            if (label) {
-                label.className = `text-[10px] uppercase font-bold ${isActive ? 'text-primary' : 'text-slate-300 group-hover/item:text-white'}`;
-            }
-        }
+        });
     });
 }
 

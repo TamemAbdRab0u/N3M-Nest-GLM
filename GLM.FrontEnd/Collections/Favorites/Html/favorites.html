@@ -152,6 +152,24 @@
                     favorited
             </div>
 
+            <!-- View Switcher -->
+            <div class="relative w-full max-w-5xl mx-auto flex items-center justify-center mb-8 px-4">
+                <div class="inline-flex bg-[#0a1618]/60 backdrop-blur-xl p-1 rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+                    <button id="view-grid-btn" onclick="setFavoriteView('grid')" 
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] xirod-font transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                        <span class="material-symbols-outlined text-sm">grid_view</span> GRID
+                    </button>
+                    <button id="view-list-btn" onclick="setFavoriteView('list')" 
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] xirod-font transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                        <span class="material-symbols-outlined text-sm">view_list</span> LIST
+                    </button>
+                    <button id="view-single-btn" onclick="setFavoriteView('single')" 
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] xirod-font transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                        <span class="material-symbols-outlined text-sm">view_day</span> SINGLE
+                    </button>
+                </div>
+            </div>
+
 
 
             <!-- Games Grid -->
