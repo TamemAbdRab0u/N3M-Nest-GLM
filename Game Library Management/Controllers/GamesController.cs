@@ -1,4 +1,6 @@
-﻿using Game_Library_Management_BL.DTO_s;
+using Game_Library_Management_BL.DTO_s;
+using Game_Library_Management_BL.DTO_s.GameCatalogDto;
+using Game_Library_Management_BL.DTO_s.GamesDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.Services.Services;
 using Game_Library_Management_BL.UnitOfWork;

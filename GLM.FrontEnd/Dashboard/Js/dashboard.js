@@ -752,7 +752,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
             }
 
             if (platform) {
-                // platform is a RAWG parent platform ID (1=pc, 2=playstation, etc.)
+                // platform is a Catalog parent platform ID (1=pc, 2=playstation, etc.)
                 // g.platforms are parent platform slugs
                 const platformMap = {
                     '1': 'pc', '2': 'playstation', '3': 'xbox', '4': 'ios',
@@ -804,7 +804,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
             }
 
         } else {
-            gamesData = result; // Already in RAWG format
+            gamesData = result; // Already in Catalog format
 
             // Annotate catalog games with user status
             try {

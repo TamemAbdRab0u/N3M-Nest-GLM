@@ -12,6 +12,7 @@ let rawUserGamesCache = null;
 let currentCacheEndpoint = null;
 let currentView = 'library';
 let currentLibraryView = localStorage.getItem('libraryView') || 'grid';
+let currentCollectionId = null;
 
 // Toast Notification State
 let activeToast = null;
@@ -142,6 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    currentCollectionId = urlParams.get('collectionId');
+
     // Display user info
     displayUserInfo();
 
@@ -240,11 +245,20 @@ function showSkeletonCards(container, count = 8) {
 async function loadGames(page = 1, query = '', genre = '', platform = '', ordering = '', release = '', status = '') {
     const container = document.getElementById('library-games');
     const totalGamesElement = document.getElementById('total-games');
+    const headerTitle = document.querySelector('.header-title');
 
     if (container) showSkeletonCards(container, 8);
 
     try {
-        let endpoint = status ? `/api/UserGames/GetByStatus/${status}` : `/api/UserGames/GetAllUserGames`;
+        let endpoint;
+        let isCollectionSearch = false;
+
+        if (currentCollectionId) {
+            endpoint = `/api/Collections/GetCollectionById/${currentCollectionId}`;
+            isCollectionSearch = true;
+        } else {
+            endpoint = status ? `/api/UserGames/GetByStatus/${status}` : `/api/UserGames/GetAllUserGames`;
+        }
 
         let gamesData;
 
@@ -263,15 +277,26 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
             }
 
             const result = await response.json();
+            
+            let gamesList = [];
+            if (isCollectionSearch) {
+                // Update header title to collection name
+                if (headerTitle) headerTitle.textContent = result.name || 'Collection';
+                gamesList = result.games || [];
+            } else {
+                gamesList = result;
+            }
 
             // Transform completely once and cache
-            rawUserGamesCache = result.map(ug => {
+            rawUserGamesCache = gamesList.map(ug => {
+                // For collection games, the structure might be different if it's the Game object directly
+                // Assuming it matches the UserGamesResponseDto or similar
                 const inLibrary = ug.gamestatus !== 'whishlist' && ug.gamestatus !== 2;
                 return {
-                    externalId: ug.externalId,
-                    id: ug.externalId,
-                    title: ug.gameTitle,
-                    imageUrl: ug.gameImageUrl,
+                    externalId: ug.externalId || ug.id,
+                    id: ug.externalId || ug.id,
+                    title: ug.gameTitle || ug.name,
+                    imageUrl: ug.gameImageUrl || ug.backgroundImage,
                     releaseDate: ug.releaseDate,
                     rating: ug.rating,
                     genres: ug.genres,

@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game_Library_Management_BL.DTO_s.RAWGDto
+namespace Game_Library_Management_BL.DTO_s.GameCatalogDto
 {
-    public class RAWGParentPlatformWrapper
+    public class CatalogParentPlatformWrapper
     {
-        public RAWGPlatformDto Platform { get; set; }
+        public CatalogPlatformDto Platform { get; set; }
     }
 
-    public class RAWGPlatformDto
+    public class CatalogPlatformDto
     {
         public int Id { get; set; }
         public string Name { get; set; }

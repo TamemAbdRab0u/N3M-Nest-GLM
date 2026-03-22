@@ -38,7 +38,8 @@ namespace Game_Library_Management
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
             builder.Services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("constr"));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("constr"), 
+                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
             });
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -50,10 +51,11 @@ namespace Game_Library_Management
             builder.Services.AddScoped<IStatsService, StatsService>();
             builder.Services.AddScoped<IProfileService, ProfileService>();
             builder.Services.AddHttpContextAccessor();
-            builder.Services.AddHttpClient<IRAWGService, RAWGService>();
+            builder.Services.AddHttpClient<IGameCatalogService, GameCatalogService>();
             builder.Services.AddHttpClient<ISteamService, SteamService>();
             builder.Services.AddScoped<IReviewServices,ReviewServices>();
             builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+            builder.Services.AddScoped<ICollectionServices, CollectionServices>();
 
             builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, NotificationUserIdProvider>();
             builder.Services.AddSingleton<IOnlineUserTracker, OnlineUserTracker>();

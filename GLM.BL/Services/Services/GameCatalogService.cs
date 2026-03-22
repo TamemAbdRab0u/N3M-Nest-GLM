@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.DTO_s.RAWGDto;
+using Game_Library_Management_BL.DTO_s.GameCatalogDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
@@ -17,14 +17,14 @@ using System.Text.Json;
 
 namespace Game_Library_Management_BL.Services.Services
 {
-    public class RAWGService : IRAWGService
+    public class GameCatalogService : IGameCatalogService
     {
         private readonly HttpClient _http;
         private readonly IConfiguration _config;
         private readonly IUnitOfWork unitofwork;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public RAWGService(HttpClient http, IConfiguration config, IUnitOfWork unitofwork, IHttpContextAccessor httpContextAccessor)
+        public GameCatalogService(HttpClient http, IConfiguration config, IUnitOfWork unitofwork, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _config = config;
@@ -37,9 +37,9 @@ namespace Game_Library_Management_BL.Services.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirstValue("uid");
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync(int page = 1, string? genre = null, string? platforms = null, string? ordering = null, string? dates = null)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> GetAllGamesAsync(int page = 1, string? genre = null, string? platforms = null, string? ordering = null, string? dates = null)
         {
-            var key = _config["RAWG:ApiKey"];
+            var key = _config["GameCatalog:ApiKey"];
             var url = $"https://api.rawg.io/api/games?key={key}&page={page}&page_size=12";
             if (!string.IsNullOrEmpty(genre))
             {
@@ -58,8 +58,8 @@ namespace Game_Library_Management_BL.Services.Services
                 url += $"&dates={dates}";
             }
 
-            var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
-            var games = response.Results.Select(g => new RAWGCatalogDto
+            var response = await _http.GetFromJsonAsync<CatalogResponseDto>(url);
+            var games = response.Results.Select(g => new CatalogGameSummaryDto
             {
                 ExternalId = g.Id,
                 Title = g.Name,
@@ -97,7 +97,7 @@ namespace Game_Library_Management_BL.Services.Services
 
         public async Task<IEnumerable<string>> GetAllGenresAsync()
         {
-            var key = _config["RAWG:ApiKey"];
+            var key = _config["GameCatalog:ApiKey"];
             var url = $"https://api.rawg.io/api/genres?key={key}";
             
             try 
@@ -119,7 +119,7 @@ namespace Game_Library_Management_BL.Services.Services
 
         public async Task<IEnumerable<string>> GetAllPlatformsAsync()
         {
-            var key = _config["RAWG:ApiKey"];
+            var key = _config["GameCatalog:ApiKey"];
             var url = $"https://api.rawg.io/api/platforms/lists/parents?key={key}";
             
             try 
@@ -139,15 +139,15 @@ namespace Game_Library_Management_BL.Services.Services
             }
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> SearchGamesAsync(string query)
         {
-            var key = _config["RAWG:ApiKey"];
+            var key = _config["GameCatalog:ApiKey"];
             // Request more than we need to allow for filtering and better ranking
             var url = $"https://api.rawg.io/api/games?key={key}&search={query}&page_size=40";
 
-            var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
+            var response = await _http.GetFromJsonAsync<CatalogResponseDto>(url);
 
-            if (response?.Results == null) return Enumerable.Empty<RAWGCatalogDto>();
+            if (response?.Results == null) return Enumerable.Empty<CatalogGameSummaryDto>();
 
             // Filter out results that are likely irrelevant "junk":
             // - No background image AND
@@ -171,7 +171,7 @@ namespace Game_Library_Management_BL.Services.Services
                 .OrderByDescending(g => g.Added)
                 .ThenByDescending(g => g.Rating)
                 .Take(15) // Return slightly more than 12 for better user experience
-                .Select(g => new RAWGCatalogDto
+                .Select(g => new CatalogGameSummaryDto
                 {
                     ExternalId = g.Id,
                     Title = g.Name,
@@ -207,15 +207,15 @@ namespace Game_Library_Management_BL.Services.Services
             return games;
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetGamesByExternalIdsAsync(List<int> externalIds)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> GetGamesByExternalIdsAsync(List<int> externalIds)
         {
             if (externalIds == null || externalIds.Count == 0)
-                return Enumerable.Empty<RAWGCatalogDto>();
+                return Enumerable.Empty<CatalogGameSummaryDto>();
 
-            var key = _config["RAWG:ApiKey"];
-            var allResults = new List<RAWGCatalogDto>();
+            var key = _config["GameCatalog:ApiKey"];
+            var allResults = new List<CatalogGameSummaryDto>();
 
-            // RAWG has a maximum page_size limit (usually 40), so we chunk requests for safety
+            // Provider has a maximum page_size limit (usually 40), so we chunk requests for safety
             const int CHUNK_SIZE = 40;
             for (int i = 0; i < externalIds.Count; i += CHUNK_SIZE)
             {
@@ -225,10 +225,10 @@ namespace Game_Library_Management_BL.Services.Services
 
                 try
                 {
-                    var response = await _http.GetFromJsonAsync<RAWGResponseDto>(url);
+                    var response = await _http.GetFromJsonAsync<CatalogResponseDto>(url);
                     if (response != null && response.Results != null)
                     {
-                        var games = response.Results.Select(g => new RAWGCatalogDto
+                        var games = response.Results.Select(g => new CatalogGameSummaryDto
                         {
                             ExternalId = g.Id,
                             Title = g.Name,
@@ -244,7 +244,7 @@ namespace Game_Library_Management_BL.Services.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error fetching chunk of RAWG IDs: {ex.Message}");
+                    Console.WriteLine($"Error fetching chunk of catalog IDs: {ex.Message}");
                     // Continue to next chunk instead of returning empty
                 }
             }
@@ -252,7 +252,7 @@ namespace Game_Library_Management_BL.Services.Services
             return allResults;
         }
 
-        public async Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games)
+        public async Task<bool> ImportGamesAsync(IEnumerable<CatalogGameSummaryDto> games)
         {
             foreach (var g in games)
             {
@@ -430,9 +430,9 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
-        public async Task<RAWGGameDetailsDto> GetGameDetailsAsync(int externalId)
+        public async Task<CatalogGameDetailsDto> GetGameDetailsAsync(int externalId)
         {
-            var key = _config["RAWG:ApiKey"];
+            var key = _config["GameCatalog:ApiKey"];
 
             // Fetch core game details
             var detailUrl = $"https://api.rawg.io/api/games/{externalId}?key={key}";
@@ -446,7 +446,7 @@ namespace Game_Library_Management_BL.Services.Services
             await Task.WhenAll(detailTask, screenshotsTask, moviesTask);
 
             var detail = detailTask.Result;
-            var dto = new RAWGGameDetailsDto
+            var dto = new CatalogGameDetailsDto
             {
                 ExternalId = detail.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : externalId,
                 Title = detail.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : "",
@@ -585,13 +585,13 @@ namespace Game_Library_Management_BL.Services.Services
             var game = await unitofwork.Games.Query().FirstOrDefaultAsync(g => g.ExternalId == externalId);
             if (game != null) return game;
 
-            // Fetch from RAWG
-            var key = _config["RAWG:ApiKey"];
+            // Fetch from catalog
+            var key = _config["GameCatalog:ApiKey"];
             var url = $"https://api.rawg.io/api/games/{externalId}?key={key}";
-            
+
             try 
             {
-                var response = await _http.GetFromJsonAsync<RAWGGameDto>(url);
+                var response = await _http.GetFromJsonAsync<CatalogGameDto>(url);
                 if (response == null) return null;
 
                 game = new Game
@@ -612,16 +612,16 @@ namespace Game_Library_Management_BL.Services.Services
             }
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetSimilarGamesAsync(int externalId)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> GetSimilarGamesAsync(int externalId)
         {
-            var key = _config["RAWG:ApiKey"];
+            var key = _config["GameCatalog:ApiKey"];
 
             try
             {
                 // ── Step 1: fetch the source game's own details ──────────────────
                 var detailHttp = await _http.GetAsync($"https://api.rawg.io/api/games/{externalId}?key={key}");
                 if (!detailHttp.IsSuccessStatusCode)
-                    return Enumerable.Empty<RAWGCatalogDto>();
+                    return Enumerable.Empty<CatalogGameSummaryDto>();
 
                 var detail = await detailHttp.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
 
@@ -653,41 +653,41 @@ namespace Game_Library_Management_BL.Services.Services
                         .ToList();
 
                 if (genreSlugs.Count == 0)
-                    return Enumerable.Empty<RAWGCatalogDto>();
+                    return Enumerable.Empty<CatalogGameSummaryDto>();
 
                 var genres = string.Join(",", genreSlugs);
                 var rng = new Random();
 
                 // ── Step 2: tiered search — most specific first ───────────────────
                 // Tier 1: same genres + same developer  (very specific, unique per game)
-                List<RAWGGameDto> rawResults = null;
+                List<CatalogGameDto> rawResults = null;
                 if (developerSlugs.Any())
                 {
                     var developers = string.Join(",", developerSlugs);
-                    rawResults = await FetchRawgPage(key, $"genres={genres}&developers={developers}", externalId, rng);
+                    rawResults = await FetchCatalogPage(key, $"genres={genres}&developers={developers}", externalId, rng);
                 }
 
                 // Tier 2: same genres + same platforms
                 if ((rawResults == null || rawResults.Count < 6) && platformSlugs.Any())
                 {
                     var platforms = string.Join(",", platformSlugs);
-                    var extra = await FetchRawgPage(key, $"genres={genres}&parent_platforms={platforms}", externalId, rng);
+                    var extra = await FetchCatalogPage(key, $"genres={genres}&parent_platforms={platforms}", externalId, rng);
                     rawResults = Merge(rawResults, extra);
                 }
 
                 // Tier 3: same genres only (broadest)
                 if (rawResults == null || rawResults.Count < 6)
                 {
-                    var extra = await FetchRawgPage(key, $"genres={genres}", externalId, rng);
+                    var extra = await FetchCatalogPage(key, $"genres={genres}", externalId, rng);
                     rawResults = Merge(rawResults, extra);
                 }
 
-                rawResults = rawResults?.Take(6).ToList() ?? new List<RAWGGameDto>();
+                rawResults = rawResults?.Take(6).ToList() ?? new List<CatalogGameDto>();
                 if (rawResults.Count == 0)
-                    return Enumerable.Empty<RAWGCatalogDto>();
+                    return Enumerable.Empty<CatalogGameSummaryDto>();
 
                 // ── Step 3: map to DTOs ───────────────────────────────────────────
-                var games = rawResults.Select(g => new RAWGCatalogDto
+                var games = rawResults.Select(g => new CatalogGameSummaryDto
                 {
                     ExternalId = g.Id,
                     Title = g.Name,
@@ -724,23 +724,23 @@ namespace Game_Library_Management_BL.Services.Services
             }
             catch
             {
-                return Enumerable.Empty<RAWGCatalogDto>();
+                return Enumerable.Empty<CatalogGameSummaryDto>();
             }
         }
 
-        // Fetches a random page of RAWG results for the given query params, excluding the source game
-        private async Task<List<RAWGGameDto>> FetchRawgPage(string key, string queryParams, int excludeId, Random rng)
+        // Fetches a random page of results for the given query params, excluding the source game
+        private async Task<List<CatalogGameDto>> FetchCatalogPage(string key, string queryParams, int excludeId, Random rng)
         {
             try
             {
                 // First call to know total count
                 var probeUrl = $"https://api.rawg.io/api/games?key={key}&{queryParams}&page_size=1";
                 var probeHttp = await _http.GetAsync(probeUrl);
-                if (!probeHttp.IsSuccessStatusCode) return new List<RAWGGameDto>();
+                if (!probeHttp.IsSuccessStatusCode) return new List<CatalogGameDto>();
 
                 var probe = await probeHttp.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
                 int count = probe.TryGetProperty("count", out var cProp) ? cProp.GetInt32() : 0;
-                if (count == 0) return new List<RAWGGameDto>();
+                if (count == 0) return new List<CatalogGameDto>();
 
                 // Pick a random page (page_size=20, avoid going past last page)
                 int pageSize = 20;
@@ -749,26 +749,26 @@ namespace Game_Library_Management_BL.Services.Services
 
                 var url = $"https://api.rawg.io/api/games?key={key}&{queryParams}&page_size={pageSize}&page={page}";
                 var http = await _http.GetAsync(url);
-                if (!http.IsSuccessStatusCode) return new List<RAWGGameDto>();
+                if (!http.IsSuccessStatusCode) return new List<CatalogGameDto>();
 
-                var response = await http.Content.ReadFromJsonAsync<RAWGResponseDto>();
+                var response = await http.Content.ReadFromJsonAsync<CatalogResponseDto>();
                 var results = response?.Results?
                     .Where(g => g.Id != excludeId && !string.IsNullOrEmpty(g.Background_Image))
-                    .ToList() ?? new List<RAWGGameDto>();
+                    .ToList() ?? new List<CatalogGameDto>();
 
                 // Shuffle so even same-page results appear in different order each call
                 return results.OrderBy(_ => rng.Next()).ToList();
             }
             catch
             {
-                return new List<RAWGGameDto>();
+                return new List<CatalogGameDto>();
             }
         }
 
         // Merges two lists, deduplicating by Id
-        private static List<RAWGGameDto> Merge(List<RAWGGameDto> existing, List<RAWGGameDto> incoming)
+        private static List<CatalogGameDto> Merge(List<CatalogGameDto> existing, List<CatalogGameDto> incoming)
         {
-            existing ??= new List<RAWGGameDto>();
+            existing ??= new List<CatalogGameDto>();
             var existingIds = new HashSet<int>(existing.Select(g => g.Id));
             existing.AddRange(incoming.Where(g => !existingIds.Contains(g.Id)));
             return existing;

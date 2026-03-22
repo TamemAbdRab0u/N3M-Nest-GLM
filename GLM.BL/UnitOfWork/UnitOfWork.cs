@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.Repository.IRepository;
+using Game_Library_Management_BL.Repository.IRepository;
 using Game_Library_Management_BL.Repository.Repository;
 using Game_Library_Management_DAL.Data;
 using Game_Library_Management_DAL.Models;
@@ -31,6 +31,8 @@ namespace Game_Library_Management_BL.UnitOfWork
         public IRepo<Review> Reviews { get; private set; }
         public IRepo<ReviewVote> ReviewVotes { get; private set; }
         public IRepo<Friendship> Friendships { get; private set; }
+        public IRepo<Collection> Collections { get; private set; }
+        public IRepo<CollectionGame> CollectionGames { get; private set; }
 
         public UnitOfWork(AppDbContext context)
         {
@@ -51,6 +53,8 @@ namespace Game_Library_Management_BL.UnitOfWork
             Reviews = new Repo<Review>(context);
             ReviewVotes = new Repo<ReviewVote>(context);
             Friendships = new Repo<Friendship>(context);
+            Collections = new Repo<Collection>(context);
+            CollectionGames = new Repo<CollectionGame>(context);
             this.context = context;
         }
 

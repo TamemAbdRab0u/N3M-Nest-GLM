@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_DAL.Models;
+using Game_Library_Management_DAL.Models;
 using Game_Library_Management_PL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -24,6 +24,8 @@ namespace Game_Library_Management_DAL.Data
         public DbSet<Profile> profiles { get; set; }
         public DbSet<GameScreenshot> GameScreenshots { get; set; }
         public DbSet<GameTrailer> GameTrailers { get; set; }
+        public DbSet<Collection> Collections { get; set; }
+        public DbSet<CollectionGame> CollectionGames { get; set; }
 
         // Many-to-Many relationship tables //
         public DbSet<UserGame> UserGames { get; set; }
@@ -82,6 +84,12 @@ namespace Game_Library_Management_DAL.Data
             modelBuilder.Entity<Friendship>().HasIndex(x => new { x.RequesterId, x.AddresseeId }).IsUnique();
             modelBuilder.Entity<Friendship>().HasOne(x => x.Requester).WithMany().HasForeignKey(x => x.RequesterId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Friendship>().HasOne(x => x.Addressee).WithMany().HasForeignKey(x => x.AddresseeId).OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CollectionGame>().HasKey(x => new { x.CollectionId, x.GameId });
+            modelBuilder.Entity<CollectionGame>().HasOne(x => x.Collection).WithMany(x => x.CollectionGames).HasForeignKey(x => x.CollectionId);
+            modelBuilder.Entity<CollectionGame>().HasOne(x => x.Game).WithMany().HasForeignKey(x => x.GameId);
+            
+            modelBuilder.Entity<Collection>().HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<IdentityRole>().HasData(
                new IdentityRole

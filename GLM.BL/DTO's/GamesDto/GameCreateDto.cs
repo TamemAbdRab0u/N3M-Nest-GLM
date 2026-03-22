@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game_Library_Management_BL.DTO_s
+namespace Game_Library_Management_BL.DTO_s.GamesDto
 {
     public class GameCreateDto
     {

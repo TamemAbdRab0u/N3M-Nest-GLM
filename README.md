@@ -7,7 +7,7 @@ Game Library Management is a full-stack game tracking platform where users can d
 - Backend API built with ASP.NET Core 8 (layered into `PL`, `BL`, `DAL` projects)
 - SQL Server persistence with Entity Framework Core and ASP.NET Identity
 - JWT authentication with refresh token flow
-- RAWG integration for game discovery/import
+- Catalog integration for game discovery/import
 - SignalR hubs for live chat, presence, and friend-request notifications
 - Frontend website (HTML/CSS/JS) with pages for auth, dashboard, game details, community, and profile
 
@@ -22,7 +22,7 @@ Game Library Management is a full-stack game tracking platform where users can d
 
 ### 2. Game Catalog & Discovery
 
-- Browse external game catalog via RAWG
+- Browse external game catalog
 - Search games by query
 - Filter by genre, platform, release date, and rating ordering
 - View full game details (description, media, platforms, metadata)
@@ -88,7 +88,7 @@ Game Library Management.sln
 ## Main API Areas
 
 - `AuthenticationController`: register/login/refresh/revoke/roles
-- `RAWGController`: external catalog, search, import, similar games, quick actions
+- `GameCatalogController`: external catalog, search, import, similar games, quick actions
 - `UserGamesController`: personal library CRUD and filtering
 - `ReviewsController`: review CRUD + voting
 - `ProfileController`: own/public profile + updates + user search
@@ -120,7 +120,7 @@ Edit `Game Library Management/appsettings.json`:
 
 - `ConnectionStrings:constr`: point to your SQL Server instance
 - `JWT`: set key/issuer/audience suitable for your environment
-- `RAWG:ApiKey`: use your own RAWG API key
+- `GameCatalog:ApiKey`: use your own Catalog API key (e.g., from RAWG)
 
 ### 2. Apply Database Migrations
 

@@ -1,4 +1,5 @@
-﻿using Game_Library_Management_BL.DTO_s;
+using Game_Library_Management_BL.DTO_s.PlatformsDto;
+using Game_Library_Management_BL.DTO_s.GamesDto;
 using Game_Library_Management_BL.DTO_s.TagsDto;
 using Game_Library_Management_BL.Helper;
 using Game_Library_Management_BL.Services.IServices;
@@ -39,15 +40,15 @@ namespace Game_Library_Management_BL.Services.Services
                 ImgUrl = x.ImgUrl,
                 ReleaseDate = x.ReleaseDate,
                 Publisher = x.Publisher,
+                ExternalId = x.ExternalId,
+                Metacritic = x.Metacritic,
+                Rating = x.Rating,
                 Tags = x.GameTags.Select(x => new TagDto
                 {
                     Name = x.Tag.Name
                 }).ToList(),
-
-                Platforms = x.GamePlatforms.Select(x => new PlatformDto
-                {
-                    Name = x.Platform.Name
-                }).ToList()
+                Genres = x.GameTags.Select(x => x.Tag.Name).ToList(),
+                Platforms = x.GamePlatforms?.Select(gp => gp.Platform.Name).ToList() ?? new List<string>()
             });
         }
 
@@ -69,15 +70,15 @@ namespace Game_Library_Management_BL.Services.Services
                 ImgUrl = game.ImgUrl,
                 ReleaseDate = game.ReleaseDate,
                 Publisher = game.Publisher,
+                ExternalId = game.ExternalId,
+                Metacritic = game.Metacritic,
+                Rating = game.Rating,
                 Tags = game.GameTags.Select(x => new TagDto
                 {
                     Name = x.Tag.Name
                 }).ToList(),
-
-                Platforms = game.GamePlatforms.Select(x => new PlatformDto
-                {
-                    Name = x.Platform.Name
-                }).ToList()
+                Genres = game.GameTags.Select(x => x.Tag.Name).ToList(),
+                Platforms = game.GamePlatforms?.Select(gp => gp.Platform.Name).ToList() ?? new List<string>()
             };
         }
 
@@ -99,10 +100,11 @@ namespace Game_Library_Management_BL.Services.Services
 
             return new GameResponseDto
             {
-                Id = Game.Id,
-                Title = Game.Title,
-                Description = Game.Description,
-                ImgUrl = Game.ImgUrl,
+                ExternalId = Game.ExternalId,
+                Metacritic = Game.Metacritic,
+                Rating = Game.Rating,
+                Platforms = new List<string>(),
+                Genres = new List<string>(),
                 ReleaseDate = Game.ReleaseDate,
                 Publisher = Game.Publisher
             };
@@ -129,10 +131,11 @@ namespace Game_Library_Management_BL.Services.Services
 
             return new GameResponseDto
             {
-                Id = ExistedGame.Id,
-                Title = ExistedGame.Title,
-                Description = ExistedGame.Description,
-                ImgUrl = ExistedGame.ImgUrl,
+                ExternalId = ExistedGame.ExternalId,
+                Metacritic = ExistedGame.Metacritic,
+                Rating = ExistedGame.Rating,
+                Platforms = ExistedGame.GamePlatforms?.Select(p => p.Platform.Name).ToList() ?? new List<string>(),
+                Genres = ExistedGame.GameTags?.Select(t => t.Tag.Name).ToList() ?? new List<string>(),
                 ReleaseDate = ExistedGame.ReleaseDate,
                 Publisher = ExistedGame.Publisher
             };
@@ -158,10 +161,11 @@ namespace Game_Library_Management_BL.Services.Services
 
             return new GameResponseDto
             {
-                Id = existingGame.Id,
-                Title = existingGame.Title,
-                Description = existingGame.Description,
-                ImgUrl = existingGame.ImgUrl,
+                ExternalId = existingGame.ExternalId,
+                Metacritic = existingGame.Metacritic,
+                Rating = existingGame.Rating,
+                Platforms = existingGame.GamePlatforms?.Select(p => p.Platform.Name).ToList() ?? new List<string>(),
+                Genres = existingGame.GameTags?.Select(t => t.Tag.Name).ToList() ?? new List<string>(),
                 ReleaseDate = existingGame.ReleaseDate,
                 Publisher = existingGame.Publisher
             };
@@ -340,14 +344,15 @@ namespace Game_Library_Management_BL.Services.Services
                 ImgUrl = x.ImgUrl,
                 ReleaseDate = x.ReleaseDate,
                 Publisher = x.Publisher,
+                ExternalId = x.ExternalId,
+                Metacritic = x.Metacritic,
+                Rating = x.Rating,
                 Tags = x.GameTags.Select(x => new TagDto
                 {
                     Name = x.Tag.Name
                 }).ToList(),
-                Platforms = x.GamePlatforms.Select(x => new PlatformDto
-                {
-                    Name = x.Platform.Name
-                }).ToList()
+                Genres = x.GameTags.Select(x => x.Tag.Name).ToList(),
+                Platforms = x.GamePlatforms?.Select(gp => gp.Platform.Name).ToList() ?? new List<string>()
             });
 
             return Results;

@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.Services.IServices;
+using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.Services.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +7,10 @@ namespace Game_Library_Management.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RAWGController : ControllerBase
+    public class GameCatalogController : ControllerBase
     {
-        private readonly IRAWGService _gameCatalogService;
-        public RAWGController(IRAWGService gameCatalogService)
+        private readonly IGameCatalogService _gameCatalogService;
+        public GameCatalogController(IGameCatalogService gameCatalogService)
         {
             _gameCatalogService = gameCatalogService;
         }
@@ -52,7 +52,7 @@ namespace Game_Library_Management.Controllers
         }
 
         [HttpPost("catalog/import")]
-        public async Task<IActionResult> ImportFromRawg(string query)
+        public async Task<IActionResult> ImportFromCatalog(string query)
         {
             var games = await _gameCatalogService.SearchGamesAsync(query);
             await _gameCatalogService.ImportGamesAsync(games);

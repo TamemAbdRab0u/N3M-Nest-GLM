@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.DTO_s;
+﻿using Game_Library_Management_BL.DTO_s.GamesDto;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;

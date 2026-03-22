@@ -1,22 +1,26 @@
-﻿using Game_Library_Management_BL.DTO_s.TagsDto;
+using Game_Library_Management_BL.DTO_s.TagsDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game_Library_Management_BL.DTO_s
+namespace Game_Library_Management_BL.DTO_s.GamesDto
 {
     public class GameResponseDto
     {
         public int Id { get; set; }
+        public int ExternalId { get; set; }
         public string Title { get; set; }
         public string? Description { get; set; }
         public string? ImgUrl { get; set; }
+        public int? Metacritic { get; set; }
+        public double? Rating { get; set; }
         public DateTime? ReleaseDate { get; set; }
         public string? Publisher { get; set; }
+        public List<string>? Genres { get; set; }
+        public List<string>? Platforms { get; set; }
         public List<TagDto>? Tags { get; set; }
-        public List<PlatformDto>? Platforms { get; set; }
     }
 
     public class TagDto

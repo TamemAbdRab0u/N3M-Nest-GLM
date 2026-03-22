@@ -1,5 +1,5 @@
 using Azure.Identity;
-using Game_Library_Management_BL.DTO_s.RAWGDto;
+using Game_Library_Management_BL.DTO_s.GameCatalogDto;
 using Game_Library_Management_BL.DTO_s.UserGamesDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
@@ -41,12 +41,12 @@ namespace Game_Library_Management_BL.Services.Services
                 return Enumerable.Empty<UserGamesResponseDto>();
 
             var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
-            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
+            var catalogGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
 
-            return UserGames.Select(x => MapToResponseDto(x, rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId)));
+            return UserGames.Select(x => MapToResponseDto(x, catalogGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId)));
         }
 
-        private static UserGamesResponseDto MapToResponseDto(UserGame x, RAWGCatalogDto? rg)
+        private static UserGamesResponseDto MapToResponseDto(UserGame x, CatalogGameSummaryDto? cg)
         {
             return new UserGamesResponseDto
             {
@@ -54,16 +54,16 @@ namespace Game_Library_Management_BL.Services.Services
                 ExternalId = x.Game.ExternalId,
                 IsFavorite = x.IsFavorite,
                 IsInWishlist = x.IsInWishlist,
-                GameTitle = rg?.Title ?? x.Game.Title,
+                GameTitle = cg?.Title ?? x.Game.Title,
                 GameDescription = x.Game.Description,
-                GameImageUrl = rg?.ImageUrl ?? x.Game.ImgUrl,
+                GameImageUrl = cg?.ImageUrl ?? x.Game.ImgUrl,
                 PosterImageUrl = x.Game.PosterImageUrl ?? (x.Game.ImgUrl != null && x.Game.ImgUrl.Contains("steamstatic") ? $"https://cdn.akamai.steamstatic.com/steam/apps/{x.Game.ExternalId}/library_600x900_2x.jpg" : null),
                 ReleaseDate = x.Game.ReleaseDate ?? DateTime.MinValue,
-                Genres = rg?.Genres ?? new List<string>(),
-                Platforms = rg?.Platforms ?? new List<string>(),
+                Genres = cg?.Genres ?? new List<string>(),
+                Platforms = cg?.Platforms ?? new List<string>(),
                 Gamestatus = x.Gamestatus,
                 Review = x.Review,
-                Rating = rg?.Rating ?? 0,
+                Rating = cg?.Rating ?? 0,
                 UserRating = x.Rating,
                 CompletedAt = x.CompletedAt,
                 AddedAt = x.AddedAt
@@ -98,9 +98,9 @@ namespace Game_Library_Management_BL.Services.Services
                 return Enumerable.Empty<UserGamesResponseDto>();
 
             var externalIds = UserGames.Select(ug => ug.Game.ExternalId).ToList();
-            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
+            var catalogGames = await _steamService.GetGamesByExternalIdsAsync(externalIds);
 
-            return UserGames.Select(x => MapToResponseDto(x, rawgGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId)));
+            return UserGames.Select(x => MapToResponseDto(x, catalogGames.FirstOrDefault(g => g.ExternalId == x.Game.ExternalId)));
         }
 
         public async Task<UserGamesResponseDto> UserGameByIdAsync(string UserId, int GameId)
@@ -121,10 +121,10 @@ namespace Game_Library_Management_BL.Services.Services
             if (UserGame == null)
                 return null;
 
-            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { UserGame.Game.ExternalId });
-            var rg = rawgGames.FirstOrDefault();
+            var catalogGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { UserGame.Game.ExternalId });
+            var cg = catalogGames.FirstOrDefault();
 
-            return MapToResponseDto(UserGame, rg);
+            return MapToResponseDto(UserGame, cg);
         }
 
         public async Task<UserGamesResponseDto> AddUserGameAsync(string UserId, int GameId, UserGamesCreateDto createDto)
@@ -164,13 +164,13 @@ namespace Game_Library_Management_BL.Services.Services
             await unitofwork.UserGames.Add(userGame);
             unitofwork.Save();
 
-            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { game.ExternalId });
-            var rg = rawgGames.FirstOrDefault();
+            var catalogGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { game.ExternalId });
+            var cg = catalogGames.FirstOrDefault();
 
             userGame.User = user;
             userGame.Game = game;
 
-            return MapToResponseDto(userGame, rg);
+            return MapToResponseDto(userGame, cg);
         }
 
         public async Task<UserGamesResponseDto> UpdateUserGameAsync(string UserId, int GameId, UserGamesCreateDto updateDto)
@@ -190,10 +190,10 @@ namespace Game_Library_Management_BL.Services.Services
             await unitofwork.UserGames.Update(ExistedUserGame);
             unitofwork.Save();
 
-            var rawgGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { ExistedUserGame.Game.ExternalId });
-            var rg = rawgGames.FirstOrDefault();
+            var catalogGames = await _steamService.GetGamesByExternalIdsAsync(new List<int> { ExistedUserGame.Game.ExternalId });
+            var cg = catalogGames.FirstOrDefault();
 
-            return MapToResponseDto(ExistedUserGame, rg);
+            return MapToResponseDto(ExistedUserGame, cg);
         }
 
         private void UpdateUserGameProperties(UserGame existingUserGame, UserGamesCreateDto updateDto)

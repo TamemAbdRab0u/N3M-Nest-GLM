@@ -1,4 +1,4 @@
-using Game_Library_Management_BL.DTO_s.RAWGDto;
+using Game_Library_Management_BL.DTO_s.GameCatalogDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
@@ -74,10 +74,10 @@ namespace Game_Library_Management_BL.Services.Services
             return new[] { "1:PC", "2:Mac", "3:Linux" };
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetAllGamesAsync(int page = 1, string? genre = null, string? platforms = null, string? ordering = null, string? dates = null)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> GetAllGamesAsync(int page = 1, string? genre = null, string? platforms = null, string? ordering = null, string? dates = null)
         {
             var cacheKey = $"steam:catalog:{CatalogFeedVersion}:{page}:{genre}:{platforms}:{ordering}:{dates}";
-            if (!_cache.TryGetValue(cacheKey, out List<RAWGCatalogDto>? cachedCatalog))
+            if (!_cache.TryGetValue(cacheKey, out List<CatalogGameSummaryDto>? cachedCatalog))
             {
                 var candidates = await GetCatalogFromDatabaseAsync();
                 if (candidates.Count < 300)
@@ -298,15 +298,15 @@ namespace Game_Library_Management_BL.Services.Services
 
 
 
-        public async Task<IEnumerable<RAWGCatalogDto>> SearchGamesAsync(string query)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> SearchGamesAsync(string query)
         {
-            if (string.IsNullOrWhiteSpace(query)) return Enumerable.Empty<RAWGCatalogDto>();
+            if (string.IsNullOrWhiteSpace(query)) return Enumerable.Empty<CatalogGameSummaryDto>();
 
             var cacheKey = $"steam:search:{query.Trim().ToLowerInvariant()}";
-            if (!_cache.TryGetValue(cacheKey, out List<RAWGCatalogDto>? cachedSearch))
+            if (!_cache.TryGetValue(cacheKey, out List<CatalogGameSummaryDto>? cachedSearch))
             {
                 var appIds = await SearchSteamAppIdsAsync(query, 10);
-                if (!appIds.Any()) return Enumerable.Empty<RAWGCatalogDto>();
+                if (!appIds.Any()) return Enumerable.Empty<CatalogGameSummaryDto>();
 
                 var games = await EnrichCatalogByIdsAsync(appIds.Take(10).ToList());
                 cachedSearch = games
@@ -325,10 +325,10 @@ namespace Game_Library_Management_BL.Services.Services
             return ranked;
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetGamesByExternalIdsAsync(List<int> externalIds)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> GetGamesByExternalIdsAsync(List<int> externalIds)
         {
             if (externalIds == null || externalIds.Count == 0)
-                return Enumerable.Empty<RAWGCatalogDto>();
+                return Enumerable.Empty<CatalogGameSummaryDto>();
 
             var ids = externalIds.Distinct().ToList();
 
@@ -355,7 +355,7 @@ namespace Game_Library_Management_BL.Services.Services
             return ordered;
         }
 
-        public async Task<RAWGGameDetailsDto> GetGameDetailsAsync(int externalId)
+        public async Task<CatalogGameDetailsDto> GetGameDetailsAsync(int externalId)
         {
             var userId = GetCurrentUserId();
             var existing = await LoadGameAggregateAsync(externalId);
@@ -400,7 +400,7 @@ namespace Game_Library_Management_BL.Services.Services
             return dto;
         }
 
-        public async Task<bool> ImportGamesAsync(IEnumerable<RAWGCatalogDto> games)
+        public async Task<bool> ImportGamesAsync(IEnumerable<CatalogGameSummaryDto> games)
         {
             foreach (var g in games)
             {
@@ -561,10 +561,10 @@ namespace Game_Library_Management_BL.Services.Services
             return true;
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetSimilarGamesAsync(int externalId)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> GetSimilarGamesAsync(int externalId)
         {
             var source = await GetSteamAppDetailsAsync(externalId);
-            if (source == null) return Enumerable.Empty<RAWGCatalogDto>();
+            if (source == null) return Enumerable.Empty<CatalogGameSummaryDto>();
 
             var seed = source.Value.genres.FirstOrDefault() ?? source.Value.name;
             var appIds = await SearchSteamAppIdsAsync(seed, 60);
@@ -580,9 +580,9 @@ namespace Game_Library_Management_BL.Services.Services
             return ranked;
         }
 
-        public async Task<IEnumerable<RAWGCatalogDto>> GetCompanyGamesAsync(string companyName, int page = 1)
+        public async Task<IEnumerable<CatalogGameSummaryDto>> GetCompanyGamesAsync(string companyName, int page = 1)
         {
-            if (string.IsNullOrWhiteSpace(companyName)) return Enumerable.Empty<RAWGCatalogDto>();
+            if (string.IsNullOrWhiteSpace(companyName)) return Enumerable.Empty<CatalogGameSummaryDto>();
 
             var normalized = companyName.Trim();
             const int pageSize = 6;
@@ -660,7 +660,7 @@ namespace Game_Library_Management_BL.Services.Services
             return game;
         }
 
-        private async Task<List<RAWGCatalogDto>> GetCatalogFromDatabaseAsync(int maxCount = 1500)
+        private async Task<List<CatalogGameSummaryDto>> GetCatalogFromDatabaseAsync(int maxCount = 1500)
         {
             var games = await _unitOfWork.Games.Query()
                 .Include(g => g.GameTags).ThenInclude(gt => gt.Tag)
@@ -861,7 +861,7 @@ namespace Game_Library_Management_BL.Services.Services
             _unitOfWork.Save();
         }
 
-        private async Task PopulateUserStatesAsync(List<RAWGCatalogDto> games)
+        private async Task PopulateUserStatesAsync(List<CatalogGameSummaryDto> games)
         {
             var userId = GetCurrentUserId();
             if (string.IsNullOrEmpty(userId) || games.Count == 0) return;
@@ -884,7 +884,7 @@ namespace Game_Library_Management_BL.Services.Services
             }
         }
 
-        private async Task PopulateDetailsUserStateAsync(RAWGGameDetailsDto dto, int gameId, string? userId)
+        private async Task PopulateDetailsUserStateAsync(CatalogGameDetailsDto dto, int gameId, string? userId)
         {
             if (string.IsNullOrWhiteSpace(userId)) return;
 
@@ -899,9 +899,9 @@ namespace Game_Library_Management_BL.Services.Services
             dto.Gamestatus = userGame.Gamestatus.ToString();
         }
 
-        private static RAWGCatalogDto MapGameToCatalogDto(Game game)
+        private static CatalogGameSummaryDto MapGameToCatalogDto(Game game)
         {
-            return new RAWGCatalogDto
+            return new CatalogGameSummaryDto
             {
                 ExternalId = game.ExternalId,
                 Title = game.Title,
@@ -914,13 +914,14 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
-        private static RAWGGameDetailsDto MapGameToDetailsDto(Game game)
+        private static CatalogGameDetailsDto MapGameToDetailsDto(Game game)
         {
             var primaryTrailer = game.Trailers.OrderBy(x => x.Id).FirstOrDefault();
 
-            return new RAWGGameDetailsDto
+            return new CatalogGameDetailsDto
             {
                 ExternalId = game.ExternalId,
+                Id = game.Id,
                 Title = game.Title,
                 Description = game.Description ?? string.Empty,
                 BackgroundImage = game.BackgroundImageUrl ?? game.ImgUrl ?? string.Empty,
@@ -949,20 +950,20 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
-        private async Task<List<RAWGCatalogDto>> FetchFeaturedCatalogAsync()
+        private async Task<List<CatalogGameSummaryDto>> FetchFeaturedCatalogAsync()
         {
             var popularApps = await FetchSteamSpyPopularAppsAsync(1000);
             var popularIds = popularApps.Select(x => x.appId).ToList();
 
             var url = "https://store.steampowered.com/api/featuredcategories?cc=us&l=english";
             using var response = await _http.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return new List<RAWGCatalogDto>();
+            if (!response.IsSuccessStatusCode) return new List<CatalogGameSummaryDto>();
 
             using var stream = await response.Content.ReadAsStreamAsync();
             using var doc = await JsonDocument.ParseAsync(stream);
             var root = doc.RootElement;
 
-            var bag = new Dictionary<int, RAWGCatalogDto>();
+            var bag = new Dictionary<int, CatalogGameSummaryDto>();
             var popularity = new Dictionary<int, double>();
 
             var sectionWeights = new Dictionary<string, double>
@@ -1009,7 +1010,7 @@ namespace Game_Library_Management_BL.Services.Services
                         continue;
                     }
 
-                    bag[id] = new RAWGCatalogDto
+                    bag[id] = new CatalogGameSummaryDto
                     {
                         ExternalId = id,
                         Title = title,
@@ -1046,7 +1047,7 @@ namespace Game_Library_Management_BL.Services.Services
                 .Where(g => !string.IsNullOrWhiteSpace(g.ReleaseDate) || (g.Metacritic ?? 0) >= 70 || g.Rating >= 4)
                 .ToList();
 
-            var merged = new Dictionary<int, RAWGCatalogDto>();
+            var merged = new Dictionary<int, CatalogGameSummaryDto>();
             foreach (var game in steamSpyPopular)
             {
                 merged[game.ExternalId] = game;
@@ -1057,7 +1058,7 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 if (merged.ContainsKey(app.appId)) continue;
 
-                merged[app.appId] = new RAWGCatalogDto
+                merged[app.appId] = new CatalogGameSummaryDto
                 {
                     ExternalId = app.appId,
                     Title = string.IsNullOrWhiteSpace(app.name) ? $"Steam App {app.appId}" : app.name,
@@ -1235,9 +1236,9 @@ namespace Game_Library_Management_BL.Services.Services
                 .ToList();
         }
 
-        private async Task<List<RAWGCatalogDto>> EnrichCatalogByIdsAsync(List<int> ids)
+        private async Task<List<CatalogGameSummaryDto>> EnrichCatalogByIdsAsync(List<int> ids)
         {
-            var list = new List<RAWGCatalogDto>();
+            var list = new List<CatalogGameSummaryDto>();
             var dedup = ids.Distinct().ToList();
 
             foreach (var appId in dedup)
@@ -1245,7 +1246,7 @@ namespace Game_Library_Management_BL.Services.Services
                 var details = await GetSteamAppDetailsAsync(appId);
                 if (details == null) continue;
 
-                list.Add(new RAWGCatalogDto
+                list.Add(new CatalogGameSummaryDto
                 {
                     ExternalId = details.Value.appId,
                     Title = details.Value.name,
@@ -1410,9 +1411,9 @@ namespace Game_Library_Management_BL.Services.Services
             return result;
         }
 
-        private static RAWGCatalogDto CloneCatalogDto(RAWGCatalogDto source)
+        private static CatalogGameSummaryDto CloneCatalogDto(CatalogGameSummaryDto source)
         {
-            return new RAWGCatalogDto
+            return new CatalogGameSummaryDto
             {
                 ExternalId = source.ExternalId,
                 Title = source.Title,
@@ -1435,7 +1436,7 @@ namespace Game_Library_Management_BL.Services.Services
             return DateTime.UtcNow - game.DetailsLastSyncedAt.Value > StaleThreshold;
         }
 
-        private static List<RAWGCatalogDto> ApplyOrdering(List<RAWGCatalogDto> games, string? ordering)
+        private static List<CatalogGameSummaryDto> ApplyOrdering(List<CatalogGameSummaryDto> games, string? ordering)
         {
             return ordering switch
             {
@@ -1447,7 +1448,7 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
-        private static bool MatchesPlatformFilter(RAWGCatalogDto game, string platformId)
+        private static bool MatchesPlatformFilter(CatalogGameSummaryDto game, string platformId)
         {
             return platformId switch
             {

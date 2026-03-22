@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace Game_Library_Management_BL.DTO_s.RAWGDto
+namespace Game_Library_Management_BL.DTO_s.GameCatalogDto
 {
-    public class RAWGGameDetailsDto
+    public class CatalogGameDetailsDto
     {
         public int ExternalId { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string BackgroundImage { get; set; }

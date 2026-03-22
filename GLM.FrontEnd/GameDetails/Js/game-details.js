@@ -1,6 +1,6 @@
 /* =========================================================
    Game Details – game-details.js
-   Fetches full game info from RAWG via the backend API
+   Fetches full game info from the Catalog via the backend API
    ========================================================= */
 
 let currentGame = null;          // Loaded game data 
@@ -182,6 +182,9 @@ async function loadGameDetails(id) {
         currentGame = await res.json();
         renderGame(currentGame);
         loadCompanyGames(currentGame);
+        
+        // Fetch collection IDs for this game
+        currentGame.collectionIds = await getGameCollectionIds(currentGame.id);
     } catch (err) {
         console.error('Game details load error:', err);
         showError();
@@ -1567,5 +1570,112 @@ async function deleteReview(reviewId) {
     } catch (err) {
         console.error('Delete review error:', err);
         showToast('Something went wrong', 'error');
+    }
+}
+
+/* ──────────────────────────────────────────────
+   Collections Logic
+   ────────────────────────────────────────────── */
+
+function openCollectionModal() {
+    const modal = document.getElementById('collection-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        loadCollections();
+    }
+}
+
+function closeCollectionModal() {
+    const modal = document.getElementById('collection-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function loadCollections() {
+    const container = document.getElementById('collections-list-container');
+    if (!container) return;
+
+    try {
+        const collections = await getCollections();
+        if (collections.length === 0) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8 text-slate-500">
+                    <span class="material-symbols-outlined text-4xl mb-2 opacity-20">inventory_2</span>
+                    <p class="text-[10px] uppercase font-bold tracking-widest">No collections yet</p>
+                </div>`;
+            return;
+        }
+
+        const gameColIds = currentGame.collectionIds || [];
+
+        container.innerHTML = collections.map(c => {
+            const isChecked = gameColIds.includes(c.id);
+            return `
+                <label class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined text-sm">folder</span>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-white group-hover:text-primary transition-colors">${escapeHtml(c.name)}</p>
+                            <p class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">${c.games?.length || 0} games</p>
+                        </div>
+                    </div>
+                    <input type="checkbox" class="w-4 h-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/20"
+                        ${isChecked ? 'checked' : ''} 
+                        onchange="toggleGameInCollection(${c.id}, this.checked)">
+                </label>
+            `;
+        }).join('');
+    } catch (err) {
+        container.innerHTML = '<p class="text-[10px] text-red-400 p-4">Failed to load collections</p>';
+    }
+}
+
+async function handleCreateCollection() {
+    const input = document.getElementById('new-collection-name');
+    const name = input?.value?.trim();
+    if (!name) return;
+
+    try {
+        const newCol = await createCollection(name);
+        if (newCol) {
+            input.value = '';
+            showToast(`Collection "${name}" created!`, 'success');
+            loadCollections();
+        } else {
+            showToast('Failed to create collection', 'error');
+        }
+    } catch (err) {
+        showToast('Something went wrong', 'error');
+    }
+}
+
+async function toggleGameInCollection(collectionId, isChecked) {
+    if (!currentGame) return;
+
+    try {
+        let success = false;
+        if (isChecked) {
+            success = await addGameToCollection(collectionId, currentGame.id);
+            if (success) {
+                if (!currentGame.collectionIds) currentGame.collectionIds = [];
+                currentGame.collectionIds.push(collectionId);
+                showToast('Added to collection', 'success');
+            }
+        } else {
+            success = await removeGameFromCollection(collectionId, currentGame.id);
+            if (success) {
+                currentGame.collectionIds = currentGame.collectionIds.filter(id => id !== collectionId);
+                showToast('Removed from collection', 'success');
+            }
+        }
+        
+        if (!success) {
+            showToast('Action failed', 'error');
+            loadCollections(); // Refresh to revert checkbox
+        }
+    } catch (err) {
+        showToast('Something went wrong', 'error');
+        loadCollections();
     }
 }

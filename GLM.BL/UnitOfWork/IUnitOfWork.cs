@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.Repository.IRepository;
+using Game_Library_Management_BL.Repository.IRepository;
 using Game_Library_Management_DAL.Models;
 using Game_Library_Management_PL.Models;
 using System;
@@ -28,6 +28,8 @@ namespace Game_Library_Management_BL.UnitOfWork
         public IRepo<Review> Reviews { get; }
         public IRepo<ReviewVote> ReviewVotes { get; }
         public IRepo<Friendship> Friendships { get; }
+        public IRepo<Collection> Collections { get; }
+        public IRepo<CollectionGame> CollectionGames { get; }
 
         public void Save();
     }

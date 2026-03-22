@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game_Library_Management_BL.DTO_s.RAWGDto
+namespace Game_Library_Management_BL.DTO_s.GameCatalogDto
 {
-    public class RAWGGenreDto
+    public class CatalogGenreDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
