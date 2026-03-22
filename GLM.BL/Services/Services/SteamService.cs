@@ -870,16 +870,17 @@ namespace Game_Library_Management_BL.Services.Services
             var userGames = await _unitOfWork.UserGames.Query()
                 .Include(ug => ug.Game)
                 .Where(ug => ug.UserId == userId && ids.Contains(ug.Game.ExternalId))
-                .Select(ug => new { ug.Game.ExternalId, ug.IsFavorite, ug.Gamestatus, ug.IsInWishlist })
+                .Select(ug => new { ug.Game.ExternalId, ug.IsFavorite, Status = ug.Gamestatus, ug.IsInWishlist })
                 .ToListAsync();
 
             foreach (var game in games)
             {
                 var userGame = userGames.FirstOrDefault(ug => ug.ExternalId == game.ExternalId);
                 if (userGame == null) continue;
-                game.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+                game.IsInLibrary = userGame.Status != Gamestatus.whishlist;
                 game.IsInWishlist = userGame.IsInWishlist;
                 game.IsFavorite = userGame.IsFavorite;
+                game.Gamestatus = userGame.Status.ToString();
             }
         }
 
@@ -895,6 +896,7 @@ namespace Game_Library_Management_BL.Services.Services
             dto.IsFavorite = userGame.IsFavorite;
             dto.IsInWishlist = userGame.IsInWishlist;
             dto.IsInLibrary = userGame.Gamestatus != Gamestatus.whishlist;
+            dto.Gamestatus = userGame.Gamestatus.ToString();
         }
 
         private static RAWGCatalogDto MapGameToCatalogDto(Game game)
@@ -1422,7 +1424,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Platforms = source.Platforms?.ToList() ?? new List<string>(),
                 IsFavorite = source.IsFavorite,
                 IsInLibrary = source.IsInLibrary,
-                IsInWishlist = source.IsInWishlist
+                IsInWishlist = source.IsInWishlist,
+                Gamestatus = source.Gamestatus
             };
         }
 
@@ -1530,8 +1533,9 @@ namespace Game_Library_Management_BL.Services.Services
         {
             if (string.IsNullOrWhiteSpace(value)) return string.Empty;
             var decoded = WebUtility.HtmlDecode(value);
-            var noTags = Regex.Replace(decoded, "<.*?>", string.Empty);
-            return Regex.Replace(noTags, "\\s+", " ").Trim();
+            var withNewlines = Regex.Replace(decoded, "<br\\s*/?>|<li>|<p>", "\n", RegexOptions.IgnoreCase);
+            var noTags = Regex.Replace(withNewlines, "<.*?>", string.Empty);
+            return noTags.Trim();
         }
     }
 }

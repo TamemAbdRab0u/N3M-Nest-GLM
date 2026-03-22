@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Game Details - N3M|Nest</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
+        rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = {
@@ -43,7 +47,7 @@
         .neon-xirod {
             font-family: 'Xirod', sans-serif;
             color: #fff;
-            text-shadow: 
+            text-shadow:
                 0 0 5px rgba(74, 125, 255, 0.8),
                 0 0 10px rgba(74, 125, 255, 0.5),
                 0 0 15px rgba(74, 125, 255, 0.3);
@@ -54,20 +58,39 @@
             display: inline-block;
             animation: flicker-bulb 6s linear infinite;
         }
+
         @keyframes flicker-bulb {
-            0%,  8%,  10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+
+            0%,
+            8%,
+            10%,
+            12%,
+            40%,
+            42%,
+            65%,
+            66%,
+            68%,
+            100% {
                 opacity: 1;
                 text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
             }
-            9%,  11%, 41%, 67% {
+
+            9%,
+            11%,
+            41%,
+            67% {
                 opacity: 0.08;
                 text-shadow: none;
             }
-            13%, 39% {
+
+            13%,
+            39% {
                 opacity: 0.5;
                 text-shadow: 0 0 4px #fff;
             }
-            64%, 69% {
+
+            64%,
+            69% {
                 opacity: 0.15;
                 text-shadow: none;
             }
@@ -88,12 +111,14 @@
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
     </style>
-    <link rel="stylesheet" href="../Css/game-details.css"/>
+    <link rel="stylesheet" href="../Css/game-details.css" />
 </head>
+
 <body class="bg-background-dark text-slate-200 font-body min-h-screen flex flex-col overflow-x-hidden">
 
     <!-- Top Bar Navigation -->
-    <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
+    <header
+        class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
         <!-- Left: Brand & Main Nav -->
         <div class="flex items-center gap-10">
             <div class="flex items-center gap-3">
@@ -102,18 +127,22 @@
                     N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
                 </span>
             </div>
-            
+
             <nav id="top-nav" class="hidden xl:flex items-center gap-1">
-                <a href="../../Dashboard/Html/dashboard.html?view=catalog" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Dashboard/Html/dashboard.html?view=catalog"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">dashboard</span> CATALOG
                 </a>
-                <a href="../../Dashboard/Html/dashboard.html?view=library" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Dashboard/Html/dashboard.html?view=library"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">stadia_controller</span> LIBRARY
                 </a>
-                <a href="../../Dashboard/Html/dashboard.html?view=favorites" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Dashboard/Html/dashboard.html?view=favorites"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">favorite</span> FAVORITES
                 </a>
-                <a href="../../Dashboard/Html/dashboard.html?view=wishlist" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Dashboard/Html/dashboard.html?view=wishlist"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">bookmark</span> WISHLIST
                 </a>
 
@@ -126,23 +155,25 @@
                 <span class="absolute left-3 flex items-center pointer-events-none text-slate-500">
                     <span class="material-symbols-outlined text-base">search</span>
                 </span>
-                <input type="text" placeholder="Search games..." 
-                       class="h-9 w-48 xl:w-64 rounded-xl bg-white/5 border border-white/10 text-xs text-white pl-10 pr-4 focus:outline-none focus:w-80 transition-all focus:border-primary/50 placeholder-slate-600 bg-black/20">
+                <input type="text" placeholder="Search games..."
+                    class="h-9 w-48 xl:w-64 rounded-xl bg-white/5 border border-white/10 text-xs text-white pl-10 pr-4 focus:outline-none focus:w-80 transition-all focus:border-primary/50 placeholder-slate-600 bg-black/20">
             </div>
 
             <div class="flex items-center gap-4">
                 <div class="hidden md:flex flex-col items-end">
-                     <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">USER</span>
-                     <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
+                    <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">USER</span>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <!-- Profile Link -->
                     <a href="../../Profile/Html/profile.html" class="group relative">
-                        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
-                        <div id="display-avatar-header" class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
-                            <span class="text-sm font-bold text-white uppercase">U</span>
-                        </div>
+                        <div
+                            class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                            <div id="display-avatar-header"
+                                class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                                <span class="text-sm font-bold text-white uppercase">U</span>
+                            </div>
                         </div>
                     </a>
 
@@ -150,20 +181,25 @@
                     <div class="relative" id="notif-wrapper">
                         <button id="notification-btn" onclick="toggleNotifDropdown()"
                             class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
-                            <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
-                            <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
+                            <span
+                                class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                            <span id="notif-badge"
+                                class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
                         </button>
-                        
+
                         <!-- Notif Dropdown -->
-                        <div id="notif-dropdown" class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
+                        <div id="notif-dropdown"
+                            class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
                             <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
+                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend
+                                    Requests</h3>
                                 <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
                             </div>
                             <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
                             <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
                                 <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                                <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No pending requests</p>
+                                <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No
+                                    pending requests</p>
                             </div>
                         </div>
                     </div>
@@ -174,21 +210,27 @@
 
     <!-- Main Content -->
     <main class="flex-1 relative min-h-screen bg-background-dark">
-        
+
         <!-- Hero Background -->
         <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-background-dark/80 to-background-dark z-10"></div>
-            <div id="hero-bg-accent" class="absolute top-0 right-0 w-[60%] h-[80%] bg-primary/10 blur-[150px] -z-10 rounded-full"></div>
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-transparent via-background-dark/80 to-background-dark z-10">
+            </div>
+            <div id="hero-bg-accent"
+                class="absolute top-0 right-0 w-[60%] h-[80%] bg-primary/10 blur-[150px] -z-10 rounded-full"></div>
             <img id="hero-bg-img" src="" alt="" class="w-full h-full object-cover opacity-30 scale-110 blur-md">
         </div>
 
         <!-- Sub Navigation / Back Button -->
-        <header class="h-20 flex items-center justify-between px-8 relative z-40 bg-gradient-to-b from-black/20 to-transparent">
-            <button onclick="history.back()" class="flex items-center gap-2 text-slate-400 hover:text-white transition-all group px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
-                <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        <header
+            class="h-20 flex items-center justify-between px-8 relative z-40 bg-gradient-to-b from-black/20 to-transparent">
+            <button onclick="history.back()"
+                class="flex items-center gap-2 text-slate-400 hover:text-white transition-all group px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
+                <span
+                    class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
                 <span class="text-[10px] xirod-font uppercase tracking-widest">Back</span>
             </button>
-            
+
             <div class="flex items-center gap-4">
                 <!-- Removed duplicate bell -->
             </div>
@@ -196,16 +238,18 @@
 
         <!-- Scrollable content -->
         <div class="relative z-10 px-8 py-4 max-w-[1600px] mx-auto">
-            
+
             <!-- Main Grid Layout -->
             <div class="grid grid-cols-12 gap-8">
-                
+
                 <!-- Left Column: Title & Main Media (Col 1-8) -->
                 <div class="col-span-12 lg:col-span-8 space-y-8">
-                  
+
                     <!-- Game Header Title -->
                     <div class="space-y-4">
-                        <h1 id="game-title" class="text-5xl lg:text-7xl font-black text-white italic tracking-tighter uppercase leading-none"></h1>
+                        <h1 id="game-title"
+                            class="text-5xl lg:text-7xl font-black text-white italic tracking-tighter uppercase leading-none">
+                        </h1>
                         <div class="flex items-center gap-6 text-sm font-bold text-slate-400">
                             <div class="flex items-center gap-1.5 border-l border-white/10 pl-6">
                                 <span class="material-symbols-outlined text-primary text-[18px]">calendar_month</span>
@@ -215,39 +259,55 @@
                     </div>
 
                     <!-- Video / Main Screenshot Container -->
-                    <div id="main-media-container" class="relative aspect-video rounded-3xl overflow-hidden border border-white/10 bg-black group shadow-2xl shadow-primary/5">
-                        <video id="main-trailer" class="w-full h-full object-cover hidden" loop muted playsinline poster=""></video>
-                        <img id="main-media-placeholder" src="" class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105">
-                        
+                    <div id="main-media-container"
+                        class="relative aspect-video rounded-3xl overflow-hidden border border-white/10 bg-black group shadow-2xl shadow-primary/5">
+                        <video id="main-trailer" class="w-full h-full object-cover hidden" loop muted playsinline
+                            poster=""></video>
+                        <img id="main-media-placeholder" src=""
+                            class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105">
+
                         <!-- Navigation Arrows -->
-                        <button id="nav-prev" onclick="prevMedia()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
+                        <button id="nav-prev" onclick="prevMedia()"
+                            class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
                             <span class="material-symbols-outlined">chevron_left</span>
                         </button>
-                        <button id="nav-next" onclick="nextMedia()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
+                        <button id="nav-next" onclick="nextMedia()"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
                             <span class="material-symbols-outlined">chevron_right</span>
                         </button>
 
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">
                             <!-- Video seek bar — only visible while trailer is active -->
                             <div id="video-controls" class="hidden w-full mb-4 pointer-events-auto">
                                 <div class="flex items-center gap-3">
-                                    <span id="video-current-time" class="text-xs text-white/70 font-mono w-9 text-right select-none">0:00</span>
-                                    <div id="video-seek-bar" class="group/seek flex-1 relative h-5 flex items-center cursor-pointer">
+                                    <span id="video-current-time"
+                                        class="text-xs text-white/70 font-mono w-9 text-right select-none">0:00</span>
+                                    <div id="video-seek-bar"
+                                        class="group/seek flex-1 relative h-5 flex items-center cursor-pointer">
                                         <div class="w-full h-1 bg-white/20 rounded-full overflow-visible">
-                                            <div id="video-seek-fill" class="h-full bg-primary rounded-full relative" style="width:0%">
-                                                <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity"></div>
+                                            <div id="video-seek-fill" class="h-full bg-primary rounded-full relative"
+                                                style="width:0%">
+                                                <div
+                                                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <span id="video-total-time" class="text-xs text-white/70 font-mono w-9 select-none">0:00</span>
+                                    <span id="video-total-time"
+                                        class="text-xs text-white/70 font-mono w-9 select-none">0:00</span>
                                 </div>
                             </div>
                             <div class="flex justify-between items-end w-full">
                                 <div class="space-y-1">
-                                    <p id="media-label" class="text-xs font-bold text-primary uppercase tracking-widest">Official Gameplay</p>
-                                    <h3 id="media-title" class="text-xl font-bold text-white">Experience the next generation logic</h3>
+                                    <p id="media-label"
+                                        class="text-xs font-bold text-primary uppercase tracking-widest">Official
+                                        Gameplay</p>
+                                    <h3 id="media-title" class="text-xl font-bold text-white">Experience the next
+                                        generation logic</h3>
                                 </div>
-                                <button id="play-btn" class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 hover:scale-110 transition-all pointer-events-auto">
+                                <button id="play-btn"
+                                    class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 hover:scale-110 transition-all pointer-events-auto">
                                     <span class="material-symbols-outlined text-4xl fill-icon">play_arrow</span>
                                 </button>
                             </div>
@@ -255,13 +315,15 @@
                     </div>
 
                     <!-- Screenshots Thumbnails Strip -->
-                    <div id="screenshots-strip" class="flex gap-4 overflow-x-auto pb-2 no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing">
+                    <div id="screenshots-strip"
+                        class="flex gap-4 overflow-x-auto pb-2 no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing">
                         <!-- Video square will go here first, then screenshots -->
                     </div>
 
                     <!-- About Section -->
                     <div class="space-y-4">
-                        <h2 class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
+                        <h2
+                            class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
                             <span class="w-8 h-1 bg-primary rounded-full"></span>
                             The Story
                         </h2>
@@ -272,35 +334,39 @@
 
                     <!-- System Requirements -->
                     <div class="space-y-6 pt-8">
-                    <h2 class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
-                        <span class="w-8 h-1 bg-primary rounded-full"></span>
-                        System Requirements
-                    </h2>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
-                            <h3 class="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[18px]">memory</span>
-                                Minimum Requirements
-                            </h3>
-                            <div id="req-min" class="text-xs text-slate-400 space-y-2 leading-relaxed">
-                                Not specified for this platform.
+                        <h2
+                            class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
+                            <span class="w-8 h-1 bg-primary rounded-full"></span>
+                            System Requirements
+                        </h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
+                                <h3
+                                    class="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">memory</span>
+                                    Minimum Requirements
+                                </h3>
+                                <div id="req-min" class="text-xs text-slate-400 space-y-2 leading-relaxed">
+                                    Not specified for this platform.
+                                </div>
+                            </div>
+                            <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
+                                <h3
+                                    class="text-sm font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                                    Recommended
+                                </h3>
+                                <div id="req-rec" class="text-xs text-slate-400 space-y-2 leading-relaxed">
+                                    Not specified for this platform.
+                                </div>
                             </div>
                         </div>
-                        <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
-                            <h3 class="text-sm font-black uppercase text-accent tracking-widest flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
-                                Recommended
-                            </h3>
-                            <div id="req-rec" class="text-xs text-slate-400 space-y-2 leading-relaxed">
-                                Not specified for this platform.
-                            </div>
-                        </div>
-                    </div>
                     </div>
 
                     <!-- Reviews Section -->
                     <div class="space-y-6 pt-8" id="reviews-section">
-                        <h2 class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
+                        <h2
+                            class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
                             <span class="w-8 h-1 bg-primary rounded-full"></span>
                             Community Reviews
                         </h2>
@@ -311,11 +377,16 @@
 
                             <!-- Star Rating Picker -->
                             <div class="rating-stars-picker" id="star-picker" onmouseleave="previewRating(0)">
-                                <input type="radio" name="rating" id="rs1" onchange="setRating(1)"><label for="rs1" onmouseenter="previewRating(1)"></label>
-                                <input type="radio" name="rating" id="rs2" onchange="setRating(2)"><label for="rs2" onmouseenter="previewRating(2)"></label>
-                                <input type="radio" name="rating" id="rs3" onchange="setRating(3)"><label for="rs3" onmouseenter="previewRating(3)"></label>
-                                <input type="radio" name="rating" id="rs4" onchange="setRating(4)"><label for="rs4" onmouseenter="previewRating(4)"></label>
-                                <input type="radio" name="rating" id="rs5" onchange="setRating(5)"><label for="rs5" onmouseenter="previewRating(5)"></label>
+                                <input type="radio" name="rating" id="rs1" onchange="setRating(1)"><label for="rs1"
+                                    onmouseenter="previewRating(1)"></label>
+                                <input type="radio" name="rating" id="rs2" onchange="setRating(2)"><label for="rs2"
+                                    onmouseenter="previewRating(2)"></label>
+                                <input type="radio" name="rating" id="rs3" onchange="setRating(3)"><label for="rs3"
+                                    onmouseenter="previewRating(3)"></label>
+                                <input type="radio" name="rating" id="rs4" onchange="setRating(4)"><label for="rs4"
+                                    onmouseenter="previewRating(4)"></label>
+                                <input type="radio" name="rating" id="rs5" onchange="setRating(5)"><label for="rs5"
+                                    onmouseenter="previewRating(5)"></label>
                             </div>
 
                             <!-- Comment -->
@@ -333,7 +404,8 @@
 
                         <!-- Reviews List -->
                         <div id="reviews-list" class="space-y-4">
-                            <p id="reviews-empty" class="text-sm text-slate-600 italic">No reviews yet — be the first!</p>
+                            <p id="reviews-empty" class="text-sm text-slate-600 italic">No reviews yet — be the first!
+                            </p>
                         </div>
                     </div>
 
@@ -341,12 +413,15 @@
 
                 <!-- Right Column: Sidebar (Col 9-12) -->
                 <div class="col-span-12 lg:col-span-4 space-y-6">
-                    
+
                     <!-- Main CTA Card -->
-                    <div class="p-8 rounded-[40px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
+                    <div
+                        class="p-8 rounded-[40px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
                         <!-- Background Glow -->
-                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-[60px] rounded-full group-hover:bg-primary/30 transition-all"></div>
-                        
+                        <div
+                            class="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-[60px] rounded-full group-hover:bg-primary/30 transition-all">
+                        </div>
+
                         <div class="relative space-y-6">
                             <!-- Game Logo/Poster -->
                             <div class="aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
@@ -355,18 +430,68 @@
 
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-3">
-                                    <button id="btn-library" onclick="toggleLibrary()" class="col-span-2 flex items-center justify-center gap-2 h-14 rounded-2xl glass-btn text-white font-black uppercase tracking-widest hover:bg-primary/40 transition-all shadow-lg shadow-primary/10">
+                                    <button id="btn-library" onclick="toggleLibrary()"
+                                        class="col-span-2 flex items-center justify-center gap-2 h-14 rounded-2xl glass-btn text-white font-black uppercase tracking-widest hover:bg-primary/40 transition-all shadow-lg shadow-primary/10">
                                         <span id="library-icon" class="material-symbols-outlined">add_to_photos</span>
                                         <span id="btn-library-label">Add to Library</span>
                                     </button>
-                                    <button id="btn-wishlist" onclick="toggleWishlist()" class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
+                                    <button id="btn-wishlist" onclick="toggleWishlist()"
+                                        class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
                                         <span class="material-symbols-outlined text-[20px]">bookmark</span>
                                         <span id="btn-wishlist-label" class="text-xs uppercase">Wishlist</span>
                                     </button>
-                                    <button id="btn-favorite" onclick="toggleFavorite()" class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
-                                        <span id="fav-icon" class="material-symbols-outlined text-[20px]">favorite</span>
+                                    <button id="btn-favorite" onclick="toggleFavorite()"
+                                        class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
+                                        <span id="fav-icon"
+                                            class="material-symbols-outlined text-[20px]">favorite</span>
                                         <span id="btn-favorite-label" class="text-xs uppercase">Like</span>
                                     </button>
+                                </div>
+
+                                <!-- Status Selection -->
+                                <div id="status-selection-container" class="hidden !mt-6">
+                                    <div class="flex flex-col gap-3">
+                                        <p class="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">
+                                            Library Status</p>
+                                        <div
+                                            class="flex items-center justify-between bg-black/40 rounded-2xl p-1.5 border border-white/5 backdrop-blur-md shadow-inner relative">
+                                            <!-- Sliding Highlight -->
+                                            <div id="status-selection-highlight"
+                                                class="absolute bg-white/10 ring-1 ring-white/10 rounded-xl transition-all duration-500 ease-out pointer-events-none shadow-lg hidden">
+                                            </div>
+
+                                            <button onclick="changeStatus(1)" id="status-btn-1"
+                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
+                                                title="Playing">
+                                                <span
+                                                    class="material-symbols-outlined text-[20px] text-primary group-hover/s:scale-110 transition-transform">play_circle</span>
+                                            </button>
+                                            <button onclick="changeStatus(3)" id="status-btn-3"
+                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
+                                                title="Completed">
+                                                <span
+                                                    class="material-symbols-outlined text-[20px] text-green-500 group-hover/s:scale-110 transition-transform">task_alt</span>
+                                            </button>
+                                            <button onclick="changeStatus(5)" id="status-btn-5"
+                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
+                                                title="On Hold">
+                                                <span
+                                                    class="material-symbols-outlined text-[20px] text-yellow-500 group-hover/s:scale-110 transition-transform">pause_circle</span>
+                                            </button>
+                                            <button onclick="changeStatus(4)" id="status-btn-4"
+                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
+                                                title="Dropped">
+                                                <span
+                                                    class="material-symbols-outlined text-[20px] text-red-400 group-hover/s:scale-110 transition-transform">do_not_disturb_on</span>
+                                            </button>
+                                            <button onclick="changeStatus(6)" id="status-btn-6"
+                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
+                                                title="To Play / Pending">
+                                                <span
+                                                    class="material-symbols-outlined text-[20px] text-slate-400 group-hover/s:scale-110 transition-transform">schedule</span>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -374,29 +499,39 @@
                             <div class="pt-6 border-t border-white/10 space-y-4">
                                 <!-- Price -->
                                 <div class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Price</span>
-                                    <span id="val-price" class="font-black text-sm text-emerald-400" style="text-shadow: 0 0 10px rgba(52,211,153,0.5)">--</span>
+                                    <span
+                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Price</span>
+                                    <span id="val-price" class="font-black text-sm text-emerald-400"
+                                        style="text-shadow: 0 0 10px rgba(52,211,153,0.5)">--</span>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Developer</span>
+                                    <span
+                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Developer</span>
                                     <span id="val-developer" class="text-slate-200 font-bold">--</span>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Publisher</span>
+                                    <span
+                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Publisher</span>
                                     <span id="val-publisher" class="text-slate-200 font-bold">--</span>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Metascore</span>
+                                    <span
+                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Metascore</span>
                                     <div class="flex items-center gap-2">
-                                        <span id="val-metascore" class="px-2 py-0.5 rounded bg-green-500 text-black font-black">--</span>
+                                        <span id="val-metascore"
+                                            class="px-2 py-0.5 rounded bg-green-500 text-black font-black">--</span>
                                     </div>
                                 </div>
-                                <div id="achievements-container" class="flex justify-between items-center text-sm pt-1 hidden">
-                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Achievements</span>
+                                <div id="achievements-container"
+                                    class="flex justify-between items-center text-sm pt-1 hidden">
+                                    <span
+                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Achievements</span>
                                     <span id="val-achievements" class="text-slate-200 font-bold">--</span>
                                 </div>
                                 <div class="flex justify-between items-center text-sm pt-2">
-                                    <span class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Available On</span>
+                                    <span
+                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Available
+                                        On</span>
                                     <div id="platforms-icons" class="flex gap-2 text-slate-400"></div>
                                 </div>
                             </div>
@@ -412,10 +547,13 @@
                     </div>
 
                     <!-- Links Card -->
-                    <div id="links-container" class="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col gap-3">
-                        <a id="btn-website" href="#" target="_blank" class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-primary transition-all group">
+                    <div id="links-container"
+                        class="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col gap-3">
+                        <a id="btn-website" href="#" target="_blank"
+                            class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-primary transition-all group">
                             WEBSITE
-                            <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">open_in_new</span>
+                            <span
+                                class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">open_in_new</span>
                         </a>
                     </div>
 
@@ -423,8 +561,10 @@
                     <div id="similar-games-card" class="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-4">
                         <div class="flex items-center justify-between gap-2">
                             <div>
-                                <p class="text-[9px] font-black uppercase text-slate-600 tracking-widest mb-0.5">More Games From</p>
-                                <h3 id="company-games-heading" class="text-xs font-black uppercase text-slate-400 tracking-widest">...</h3>
+                                <p class="text-[9px] font-black uppercase text-slate-600 tracking-widest mb-0.5">More
+                                    Games From</p>
+                                <h3 id="company-games-heading"
+                                    class="text-xs font-black uppercase text-slate-400 tracking-widest">...</h3>
                             </div>
 
                         </div>
@@ -441,9 +581,11 @@
 
                         <!-- More Button Container -->
                         <div id="more-company-games-container" class="mt-4 flex justify-center hidden">
-                            <button id="load-more-company-btn" class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-primary/50 transition-all group w-full justify-center">
+                            <button id="load-more-company-btn"
+                                class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-primary/50 transition-all group w-full justify-center">
                                 <span class="text-[10px] xirod-font tracking-widest font-black italic">MORE</span>
-                                <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+                                <span
+                                    class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
                             </button>
                         </div>
                     </div>
@@ -455,12 +597,13 @@
         <div id="edit-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
             <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="cancelEdit()"></div>
             <div class="relative z-10 w-full max-w-md mx-4 rounded-3xl bg-[#13151f] border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden"
-                 style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
+                style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
                 <!-- Accent bar -->
                 <div class="h-1 w-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500/60"></div>
 
                 <!-- X button absolutely positioned -->
-                <button onclick="cancelEdit()" class="absolute top-4 right-5 text-slate-600 hover:text-white transition-colors z-10">
+                <button onclick="cancelEdit()"
+                    class="absolute top-4 right-5 text-slate-600 hover:text-white transition-colors z-10">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
 
@@ -470,11 +613,16 @@
                     <div>
                         <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3">Your Rating</p>
                         <div class="rating-stars-picker" id="edit-modal-stars" onmouseleave="previewEditModalRating(0)">
-                            <input type="radio" name="edit-rating" id="ers1" onchange="setEditModalRating(1)"><label for="ers1" onmouseenter="previewEditModalRating(1)"></label>
-                            <input type="radio" name="edit-rating" id="ers2" onchange="setEditModalRating(2)"><label for="ers2" onmouseenter="previewEditModalRating(2)"></label>
-                            <input type="radio" name="edit-rating" id="ers3" onchange="setEditModalRating(3)"><label for="ers3" onmouseenter="previewEditModalRating(3)"></label>
-                            <input type="radio" name="edit-rating" id="ers4" onchange="setEditModalRating(4)"><label for="ers4" onmouseenter="previewEditModalRating(4)"></label>
-                            <input type="radio" name="edit-rating" id="ers5" onchange="setEditModalRating(5)"><label for="ers5" onmouseenter="previewEditModalRating(5)"></label>
+                            <input type="radio" name="edit-rating" id="ers1" onchange="setEditModalRating(1)"><label
+                                for="ers1" onmouseenter="previewEditModalRating(1)"></label>
+                            <input type="radio" name="edit-rating" id="ers2" onchange="setEditModalRating(2)"><label
+                                for="ers2" onmouseenter="previewEditModalRating(2)"></label>
+                            <input type="radio" name="edit-rating" id="ers3" onchange="setEditModalRating(3)"><label
+                                for="ers3" onmouseenter="previewEditModalRating(3)"></label>
+                            <input type="radio" name="edit-rating" id="ers4" onchange="setEditModalRating(4)"><label
+                                for="ers4" onmouseenter="previewEditModalRating(4)"></label>
+                            <input type="radio" name="edit-rating" id="ers5" onchange="setEditModalRating(5)"><label
+                                for="ers5" onmouseenter="previewEditModalRating(5)"></label>
                         </div>
                     </div>
 
@@ -508,19 +656,21 @@
             <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="confirmModalReject()"></div>
             <!-- Dialog -->
             <div class="relative z-10 w-full max-w-md mx-4 rounded-3xl bg-[#13151f] border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden"
-                 style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
+                style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
                 <!-- Red accent bar -->
                 <div class="h-1 w-full bg-gradient-to-r from-red-600 via-red-400 to-rose-500"></div>
 
                 <!-- Icon + text -->
                 <div class="px-8 pt-8 pb-6 flex flex-col items-center text-center gap-5">
-                    <div class="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                    <div
+                        class="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                         <span class="material-symbols-outlined text-red-400 text-[34px]">delete_forever</span>
                     </div>
                     <div>
                         <p class="text-lg font-black text-white mb-2 tracking-tight">Delete Review?</p>
                         <p class="text-sm text-slate-400 leading-relaxed max-w-xs">
-                            Your review will be permanently removed. This action <span class="text-red-400 font-semibold">cannot be undone</span>.
+                            Your review will be permanently removed. This action <span
+                                class="text-red-400 font-semibold">cannot be undone</span>.
                         </p>
                     </div>
                 </div>
@@ -543,13 +693,27 @@
         </div>
         <style>
             @keyframes modalPop {
-                from { opacity: 0; transform: scale(.92) translateY(12px); }
-                to   { opacity: 1; transform: scale(1)  translateY(0); }
+                from {
+                    opacity: 0;
+                    transform: scale(.92) translateY(12px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
             }
+
             @keyframes shimmerSweep {
-                0%   { left: -80%; }
-                100% { left: 130%; }
+                0% {
+                    left: -80%;
+                }
+
+                100% {
+                    left: 130%;
+                }
             }
+
             .btn-shimmer::before {
                 content: '';
                 position: absolute;
@@ -557,20 +721,22 @@
                 left: -80%;
                 width: 55%;
                 height: 100%;
-                background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%);
+                background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
                 transform: skewX(-20deg);
                 pointer-events: none;
                 opacity: 0;
                 transition: opacity 0.15s;
             }
+
             .btn-shimmer:hover::before {
                 opacity: 1;
                 animation: shimmerSweep 0.55s ease forwards;
             }
+
             .neon-focus:focus {
                 outline: none;
-                border-color: rgba(251,191,36,0.6);
-                box-shadow: 0 0 10px rgba(251,191,36,0.12), inset 0 0 8px rgba(251,191,36,0.03);
+                border-color: rgba(251, 191, 36, 0.6);
+                box-shadow: 0 0 10px rgba(251, 191, 36, 0.12), inset 0 0 8px rgba(251, 191, 36, 0.03);
             }
 
             /* === 3D Star Rating Picker === */
@@ -580,7 +746,10 @@
                 padding: 4px 2px;
                 position: relative;
             }
-            .rating-stars-picker input { display: none; }
+
+            .rating-stars-picker input {
+                display: none;
+            }
 
             .rating-stars-picker label {
                 width: 32px;
@@ -599,11 +768,11 @@
                 content: "\2605";
                 font-size: 27px;
                 line-height: 1;
-                color: rgba(255,255,255,0.12);
+                color: rgba(255, 255, 255, 0.12);
                 text-align: center;
                 transform: translateY(3px);
                 transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease, text-shadow 0.3s ease;
-                text-shadow: 0px 1px 1px rgba(0,0,0,0.5);
+                text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.5);
                 filter: none;
             }
 
@@ -616,9 +785,9 @@
                     0px 2px 0px #b45309,
                     0px 3px 0px #92400e,
                     0px 4px 0px #78350f,
-                    0px 5px 1px rgba(69,26,3,0.55),
-                    0px 6px 3px rgba(0,0,0,0.45);
-                filter: drop-shadow(0px 0px 5px rgba(251,191,36,0.55)) drop-shadow(0px 3px 10px rgba(251,191,36,0.35));
+                    0px 5px 1px rgba(69, 26, 3, 0.55),
+                    0px 6px 3px rgba(0, 0, 0, 0.45);
+                filter: drop-shadow(0px 0px 5px rgba(251, 191, 36, 0.55)) drop-shadow(0px 3px 10px rgba(251, 191, 36, 0.35));
             }
 
             /* Hover preview */
@@ -630,17 +799,31 @@
                     0px 2px 0px #d97706,
                     0px 3px 0px #b45309,
                     0px 4px 0px #92400e,
-                    0px 5px 1px rgba(69,26,3,0.45),
-                    0px 6px 3px rgba(0,0,0,0.35);
-                filter: drop-shadow(0px 0px 9px rgba(254,240,138,0.75)) drop-shadow(0px 3px 14px rgba(251,191,36,0.55));
+                    0px 5px 1px rgba(69, 26, 3, 0.45),
+                    0px 6px 3px rgba(0, 0, 0, 0.35);
+                filter: drop-shadow(0px 0px 9px rgba(254, 240, 138, 0.75)) drop-shadow(0px 3px 14px rgba(251, 191, 36, 0.55));
             }
 
             /* Staggered transition delays for wave effect */
-            .rating-stars-picker label:nth-child(2):before  { transition-delay: 0.04s; }
-            .rating-stars-picker label:nth-child(4):before  { transition-delay: 0.08s; }
-            .rating-stars-picker label:nth-child(6):before  { transition-delay: 0.12s; }
-            .rating-stars-picker label:nth-child(8):before  { transition-delay: 0.16s; }
-            .rating-stars-picker label:nth-child(10):before { transition-delay: 0.20s; }
+            .rating-stars-picker label:nth-child(2):before {
+                transition-delay: 0.04s;
+            }
+
+            .rating-stars-picker label:nth-child(4):before {
+                transition-delay: 0.08s;
+            }
+
+            .rating-stars-picker label:nth-child(6):before {
+                transition-delay: 0.12s;
+            }
+
+            .rating-stars-picker label:nth-child(8):before {
+                transition-delay: 0.16s;
+            }
+
+            .rating-stars-picker label:nth-child(10):before {
+                transition-delay: 0.20s;
+            }
         </style>
 
         <!-- Toast Container -->
@@ -651,70 +834,80 @@
     <script src="../Js/game-details.js"></script>
     <script src="../../Shared/Js/auth-header.js"></script>
 </body>
+
 </html>
-                            <div id="publishers-list" class="flex flex-wrap gap-2"></div>
-                        </div>
+<div id="publishers-list" class="flex flex-wrap gap-2"></div>
+</div>
 
-                        <!-- Genres -->
-                        <div id="detail-genres" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[16px] text-primary">category</span>Genres
-                            </h3>
-                            <div id="genres-detail-list" class="flex flex-wrap gap-2"></div>
-                        </div>
+<!-- Genres -->
+<div id="detail-genres" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
+    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px] text-primary">category</span>Genres
+    </h3>
+    <div id="genres-detail-list" class="flex flex-wrap gap-2"></div>
+</div>
 
-                        <!-- Platforms -->
-                        <div id="detail-platforms" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[16px] text-primary">devices</span>Platforms
-                            </h3>
-                            <div id="platforms-detail-list" class="flex flex-wrap gap-2"></div>
-                        </div>
+<!-- Platforms -->
+<div id="detail-platforms" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
+    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px] text-primary">devices</span>Platforms
+    </h3>
+    <div id="platforms-detail-list" class="flex flex-wrap gap-2"></div>
+</div>
 
-                        <!-- Tags -->
-                        <div id="detail-tags" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30 sm:col-span-2">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[16px] text-primary">sell</span>Tags
-                            </h3>
-                            <div id="tags-list" class="flex flex-wrap gap-2"></div>
-                        </div>
-                    </div>
-                </div>
+<!-- Tags -->
+<div id="detail-tags"
+    class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30 sm:col-span-2">
+    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px] text-primary">sell</span>Tags
+    </h3>
+    <div id="tags-list" class="flex flex-wrap gap-2"></div>
+</div>
+</div>
+</div>
 
-            </div>
+</div>
 
-        </div>
+</div>
 
-        <!-- Error State -->
-        <div id="error-state" class="hidden relative z-10 flex flex-col items-center justify-center flex-1 min-h-[60vh] text-slate-500">
-            <span class="material-symbols-outlined text-7xl mb-4 text-red-500/60">error</span>
-            <p class="text-lg font-medium text-red-400">Failed to load game details</p>
-            <p class="text-sm mt-1 opacity-70">The game could not be found or the server is unavailable.</p>
-            <button onclick="history.back()" class="mt-6 px-6 py-2 bg-primary/10 border border-primary/30 text-primary rounded-full hover:bg-primary hover:text-white transition-all">
-                Go Back
-            </button>
-        </div>
+<!-- Error State -->
+<div id="error-state"
+    class="hidden relative z-10 flex flex-col items-center justify-center flex-1 min-h-[60vh] text-slate-500">
+    <span class="material-symbols-outlined text-7xl mb-4 text-red-500/60">error</span>
+    <p class="text-lg font-medium text-red-400">Failed to load game details</p>
+    <p class="text-sm mt-1 opacity-70">The game could not be found or the server is unavailable.</p>
+    <button onclick="history.back()"
+        class="mt-6 px-6 py-2 bg-primary/10 border border-primary/30 text-primary rounded-full hover:bg-primary hover:text-white transition-all">
+        Go Back
+    </button>
+</div>
 
-    </main>
+</main>
 
-    <!-- Lightbox -->
-    <div id="lightbox" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center" onclick="closeLightbox()">
-        <button class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 rounded-full p-2 transition-colors z-10">
-            <span class="material-symbols-outlined text-2xl">close</span>
-        </button>
-        <button id="lb-prev" onclick="event.stopPropagation(); lbNavigate(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </button>
-        <button id="lb-next" onclick="event.stopPropagation(); lbNavigate(1)" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
-            <span class="material-symbols-outlined">arrow_forward</span>
-        </button>
-        <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl" onclick="event.stopPropagation()"/>
-        <p id="lightbox-counter" class="absolute bottom-4 text-white/50 text-sm"></p>
-    </div>
+<!-- Lightbox -->
+<div id="lightbox" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center"
+    onclick="closeLightbox()">
+    <button
+        class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 rounded-full p-2 transition-colors z-10">
+        <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <button id="lb-prev" onclick="event.stopPropagation(); lbNavigate(-1)"
+        class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
+        <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <button id="lb-next" onclick="event.stopPropagation(); lbNavigate(1)"
+        class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
+        <span class="material-symbols-outlined">arrow_forward</span>
+    </button>
+    <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+        onclick="event.stopPropagation()" />
+    <p id="lightbox-counter" class="absolute bottom-4 text-white/50 text-sm"></p>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-    <script src="../../Auth/Js/auth.js"></script>
-    <script src="../../Shared/Js/notifications.js"></script>
-    <script src="../Js/game-details.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script src="../../Auth/Js/auth.js"></script>
+<script src="../../Shared/Js/notifications.js"></script>
+<script src="../Js/game-details.js"></script>
 </body>
+
 </html>

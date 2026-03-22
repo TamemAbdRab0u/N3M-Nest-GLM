@@ -54,6 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', loadMoreCompanyGames);
     }
+
+    // Recalculate status highlight on resize
+    window.addEventListener('resize', () => {
+        if (currentGame) updateStatusSelection(currentGame);
+    });
 });
 
 function initDragScroll() {
@@ -188,9 +193,9 @@ async function loadGameDetails(id) {
 ────────────────────────────────────────────── */
 async function loadCompanyGames(game) {
     const container = document.getElementById('similar-games-list');
-    const heading   = document.getElementById('company-games-heading');
+    const heading = document.getElementById('company-games-heading');
     const moreContainer = document.getElementById('more-company-games-container');
-    
+
     if (!container) return;
 
     // Pick developer first, fall back to publisher
@@ -198,10 +203,10 @@ async function loadCompanyGames(game) {
     currentCompany = company;
     currentCompanyPage = 1;
 
-    if (!company) { 
-        hideSimilarGames(); 
+    if (!company) {
+        hideSimilarGames();
         if (moreContainer) moreContainer.classList.add('hidden');
-        return; 
+        return;
     }
 
     // Update heading
@@ -227,7 +232,7 @@ async function loadCompanyGames(game) {
 
         // Initially clear and show
         container.innerHTML = renderCompanyGameCards(filtered);
-        
+
         // If we got 6, there might be more
         if (data.length === 6) {
             if (moreContainer) moreContainer.classList.remove('hidden');
@@ -244,29 +249,29 @@ async function loadCompanyGames(game) {
 
 async function loadMoreCompanyGames() {
     if (!currentCompany) return;
-    
+
     const container = document.getElementById('similar-games-list');
     const moreContainer = document.getElementById('more-company-games-container');
     const loadMoreBtn = document.getElementById('load-more-company-btn');
-    
+
     if (!container) return;
-    
+
     currentCompanyPage++;
-    
+
     // Show loading state on button
     if (loadMoreBtn) {
         loadMoreBtn.disabled = true;
         loadMoreBtn.innerHTML = '<span class="text-[10px] xirod-font tracking-widest font-black italic">LOADING...</span>';
     }
-    
+
     try {
         const res = await apiRequest(`/api/Steam/catalog/company?companyName=${encodeURIComponent(currentCompany)}&page=${currentCompanyPage}`);
         if (!res.ok) throw new Error('Failed to fetch more games');
-        
+
         const data = (await res.json()) || [];
         // Filter out current game if it accidentally appears
         const filtered = data.filter(g => g.externalId !== currentGame?.externalId);
-        
+
         if (filtered.length > 0) {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = renderCompanyGameCards(filtered);
@@ -274,14 +279,14 @@ async function loadMoreCompanyGames() {
                 container.appendChild(tempDiv.firstChild);
             }
         }
-        
+
         // If we got less than 6 (page size), we've reached the end
         if (data.length < 6) {
             if (moreContainer) moreContainer.classList.add('hidden');
         } else {
             if (moreContainer) moreContainer.classList.remove('hidden');
         }
-        
+
     } catch (err) {
         console.error('Load more error:', err);
         showToast('Could not load more games', 'error');
@@ -299,8 +304,8 @@ async function loadMoreCompanyGames() {
 function renderCompanyGameCards(games) {
     return games.map(g => {
         const rating = g.rating > 0 ? `<span class="text-yellow-400">★</span> ${g.rating.toFixed(1)}` : '';
-        const genre  = g.genres?.[0] ?? '';
-        const meta   = [genre, rating].filter(Boolean).join(' · ');
+        const genre = g.genres?.[0] ?? '';
+        const meta = [genre, rating].filter(Boolean).join(' · ');
         return `
         <a href="game-details.html?id=${g.externalId}"
            class="flex gap-3 items-center group/sim hover:bg-white/5 rounded-xl p-1.5 -mx-1.5 transition-colors no-underline">
@@ -381,7 +386,7 @@ function renderGame(g) {
     setText('val-developer', g.developers?.[0] || 'Unknown');
     setText('val-publisher', g.publishers?.[0] || 'Unknown');
     setText('val-metascore', g.metacritic || 'N/A');
-    
+
     // ── Achievements ──────────────────────────
     const achContainer = document.getElementById('achievements-container');
     const achVal = document.getElementById('val-achievements');
@@ -620,11 +625,60 @@ function renderRequirements(g) {
     const recEl = document.getElementById('req-rec');
 
     if (g.minimumRequirements) {
-        minEl.innerHTML = g.minimumRequirements.replace(/\n/g, '<br>');
+        minEl.innerHTML = formatRequirements(g.minimumRequirements);
     }
     if (g.recommendedRequirements) {
-        recEl.innerHTML = g.recommendedRequirements.replace(/\n/g, '<br>');
+        recEl.innerHTML = formatRequirements(g.recommendedRequirements);
     }
+}
+
+function formatRequirements(text) {
+    if (!text) return 'Not specified for this platform.';
+
+    // 1. Clean up common run-on words (systemOS -> System OS)
+    let cleaned = text.replace(/([a-z])([A-Z])/g, '$1 $2');
+
+    // 2. Define labels to break onto new lines
+    const labels = [
+        'Minimum:', 'Recommended:', 'OS:', 'Processor:', 'Memory:',
+        'Graphics:', 'DirectX:', 'Storage:', 'Sound Card:',
+        'Additional Notes:', 'Network:', 'Display:'
+    ];
+
+    let formatted = cleaned;
+
+    // 3. Inject <br> and <strong> tags for labels
+    labels.forEach(label => {
+        const regex = new RegExp(`(^|\\s|\\(|\\)|;|,)${label}`, 'gi');
+        formatted = formatted.replace(regex, (match, p1) => {
+            // If it's the very start or if it follows a break, don't add extra space
+            return `<div class="mt-2"><strong class="text-slate-300">${label}</strong> `;
+        });
+    });
+
+    // 4. Close any opened divs (simple heuristic)
+    formatted = formatted.split('<div class="mt-2">').join('</div><div class="mt-1">');
+    // Actually, just using simple line breaks is cleaner for this layout.
+
+    // Let's stick to clean bullet-like formatting
+    let finalHtml = '';
+    const parts = cleaned.split(/(?=Minimum:|Recommended:|OS:|Processor:|Memory:|Graphics:|DirectX:|Storage:|Sound Card:|Additional Notes:|Network:|Display:)/i);
+
+    parts.forEach(part => {
+        if (!part.trim()) return;
+        const matchedLabel = labels.find(l => part.toLowerCase().startsWith(l.toLowerCase()));
+        if (matchedLabel) {
+            const content = part.substring(matchedLabel.length).trim();
+            finalHtml += `<div class="flex flex-col mb-2">
+                <span class="text-[10px] font-black uppercase tracking-widest text-primary/70">${matchedLabel.replace(':', '')}</span>
+                <span class="text-slate-300 font-medium">${content.replace(/^:/, '').trim()}</span>
+            </div>`;
+        } else {
+            finalHtml += `<div class="mb-2 text-slate-400 font-medium">${part.trim()}</div>`;
+        }
+    });
+
+    return finalHtml || text;
 }
 
 /* ──────────────────────────────────────────────
@@ -760,6 +814,100 @@ function updateActionButtons(g) {
     updateFavoriteBtn(g.isFavorite);
     updateWishlistBtn(g.isInWishlist);
     applyMutualExclusionRules(g);
+    updateStatusSelection(g);
+}
+
+function updateStatusSelection(g) {
+    const container = document.getElementById('status-selection-container');
+    const highlight = document.getElementById('status-selection-highlight');
+    if (!container) return;
+
+    if (g.isInLibrary) {
+        container.classList.remove('hidden');
+
+        const rawStatus = g.gamestatus ? String(g.gamestatus).toLowerCase() : '';
+        const statusMap = {
+            '1': 1, 'playing': 1,
+            '3': 3, 'completed': 3,
+            '4': 4, 'dropped': 4,
+            '5': 5, 'onhold': 5, 'on hold': 5,
+            '6': 6, 'pending': 6, 'to play': 6
+        };
+        const activeId = statusMap[rawStatus];
+
+        [1, 3, 4, 5, 6].forEach(id => {
+            const btn = document.getElementById(`status-btn-${id}`);
+            if (btn) {
+                // Ensure the button itself doesn't have a background (since highlight moves behind it)
+                btn.classList.remove('bg-white/10', 'ring-1', 'ring-white/10');
+
+                const icon = btn.querySelector('.material-symbols-outlined');
+                if (id === activeId) {
+                    // Update highlight position
+                    if (highlight) {
+                        highlight.classList.remove('hidden');
+                        highlight.style.width = `${btn.offsetWidth}px`;
+                        highlight.style.height = `${btn.offsetHeight}px`;
+                        highlight.style.left = `${btn.offsetLeft}px`;
+                        highlight.style.top = `${btn.offsetTop}px`;
+                    }
+                    if (icon) {
+                        icon.classList.add('fill-icon');
+                        icon.style.opacity = '1';
+                        icon.style.transform = 'scale(1.1)';
+                    }
+                } else {
+                    if (icon) {
+                        icon.classList.remove('fill-icon');
+                        icon.style.opacity = '0.4';
+                        icon.style.transform = 'scale(1)';
+                    }
+                }
+            }
+        });
+
+        if (!activeId && highlight) {
+            highlight.classList.add('hidden');
+        }
+    } else {
+        container.classList.add('hidden');
+    }
+}
+
+async function changeStatus(statusId) {
+    if (!currentGame) return;
+
+    const originalStatus = currentGame.gamestatus;
+
+    // Optimistic UI
+    currentGame.gamestatus = statusId;
+    updateStatusSelection(currentGame);
+
+    try {
+        const res = await apiRequest(`/api/UserGames/UpdateUserGame`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gameId: parseInt(currentGame.externalId),
+                gamestatus: statusId
+            })
+        });
+
+        if (res.ok) {
+            const statusLabels = { 1: 'Playing', 3: 'Completed', 4: 'Dropped', 5: 'On Hold', 6: 'Pending' };
+            showToast(`Status updated to "${statusLabels[statusId]}"!`, `status-${statusId}`);
+        } else {
+            // Revert
+            currentGame.gamestatus = originalStatus;
+            updateStatusSelection(currentGame);
+            showToast('Failed to update status', 'error');
+        }
+    } catch (err) {
+        console.error('Status update error:', err);
+        currentGame.gamestatus = originalStatus;
+        updateStatusSelection(currentGame);
+        showToast('Something went wrong', 'error');
+    }
 }
 
 function updateLibraryBtn(inLibrary) {
@@ -834,6 +982,12 @@ async function toggleLibrary() {
         if (!res.ok) { showToast('Could not update library', 'error'); return; }
         const data = await res.json();
         currentGame.isInLibrary = data.added;
+        if (data.added && !currentGame.gamestatus) {
+            currentGame.gamestatus = 6; // Default to Pending/To Play
+        } else if (!data.added) {
+            currentGame.gamestatus = null;
+        }
+        updateStatusSelection(currentGame);
         updateLibraryBtn(data.added);
         applyMutualExclusionRules(currentGame);
         animateBtnIcon('btn-library');
@@ -979,7 +1133,16 @@ function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    const icons = { success: 'check_circle', error: 'error', info: 'info' };
+    const icons = {
+        success: 'check_circle',
+        error: 'error',
+        info: 'info',
+        'status-1': 'play_circle',
+        'status-3': 'task_alt',
+        'status-5': 'pause_circle',
+        'status-4': 'do_not_disturb_on',
+        'status-6': 'schedule'
+    };
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
@@ -1208,8 +1371,8 @@ async function voteReview(reviewId, isLike) {
         if (likeBtn) {
             const active = updated.userVote === true;
             likeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active
-                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
-                    : 'bg-white/5 border border-white/10 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30'
+                ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
+                : 'bg-white/5 border border-white/10 text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30'
                 }`;
             const icon = likeBtn.querySelector('.material-symbols-outlined');
             if (icon) icon.className = `material-symbols-outlined text-[14px] ${active ? 'fill-icon' : ''}`;
@@ -1218,8 +1381,8 @@ async function voteReview(reviewId, isLike) {
         if (dislikeBtn) {
             const active = updated.userVote === false;
             dislikeBtn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active
-                    ? 'bg-red-500/20 border border-red-500/40 text-red-400'
-                    : 'bg-white/5 border border-white/10 text-slate-500 hover:text-red-400 hover:border-red-500/30'
+                ? 'bg-red-500/20 border border-red-500/40 text-red-400'
+                : 'bg-white/5 border border-white/10 text-slate-500 hover:text-red-400 hover:border-red-500/30'
                 }`;
             const icon = dislikeBtn.querySelector('.material-symbols-outlined');
             if (icon) icon.className = `material-symbols-outlined text-[14px] ${active ? 'fill-icon' : ''}`;

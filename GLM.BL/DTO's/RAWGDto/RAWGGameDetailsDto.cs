@@ -36,5 +36,6 @@ namespace Game_Library_Management_BL.DTO_s.RAWGDto
         public bool IsFavorite { get; set; }
         public bool IsInLibrary { get; set; }
         public bool IsInWishlist { get; set; }
+        public string? Gamestatus { get; set; }
     }
 }
