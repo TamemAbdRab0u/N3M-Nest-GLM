@@ -54,12 +54,23 @@ async function loadCollections() {
     const headerRow = document.getElementById('header-main-row');
     if (!grid) return;
 
-    if (pageTitle) pageTitle.textContent = 'Collections';
-    if (headerRow) headerRow.classList.remove('hidden');
+    const headerDivider = document.getElementById('header-divider');
+    const headerMainRow = document.getElementById('header-main-row');
+    const createBtnContainer = document.querySelector('.flex.justify-center.mb-6');
+    
+    if (headerDivider) headerDivider.classList.remove('hidden');
+    if (headerMainRow) headerMainRow.className = 'text-center mb-6';
+    if (createBtnContainer) createBtnContainer.className = 'flex justify-center mb-6';
+    if (pageTitle) {
+        pageTitle.textContent = 'Collections';
+        pageTitle.className = 'text-4xl md:text-5xl font-black text-white mb-2 tracking-tight neon-text-white uppercase italic leading-none';
+    }
 
-    // Reset subtitle to original Mode 1 text
     const totalElem = document.getElementById('total-collections');
-    if (totalElem) totalElem.innerHTML = `Managing <span id="total-val" class="text-slate-300">0</span> Digital Containers`;
+    if (totalElem) {
+        totalElem.className = 'text-slate-500 font-bold text-xs tracking-[0.2em]';
+        totalElem.innerHTML = `Managing <span id="total-val" class="text-slate-300">0</span> Digital Containers`;
+    }
 
     hideBreadcrumb();
 
@@ -242,14 +253,25 @@ window.openCollection = async function (collectionId, collectionName) {
 
     if (createBtn) createBtn.classList.add('hidden');
     showBreadcrumb(collectionName);
-    if (pageTitle) pageTitle.textContent = collectionName;
+    
+    // Customize Header for Inner View
+    const headerDivider = document.getElementById('header-divider');
+    const headerMainRow = document.getElementById('header-main-row');
+    
+    if (headerDivider) headerDivider.classList.add('hidden');
+    if (headerMainRow) headerMainRow.className = 'text-center mb-8 transform-gpu transition-all scale-100';
+    if (pageTitle) {
+        pageTitle.textContent = collectionName;
+        pageTitle.className = 'text-5xl md:text-6xl font-black text-white italic tracking-tighter glow-text drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] xirod-font mb-4';
+    }
 
-    // Use the already-fetched collection data from cache — no second API call needed
-    // GET /api/Collections already returns all collections with their games embedded
     const cached = _collectionsCache[collectionId];
     const games = cached?.games || [];
 
-    if (totalElem) totalElem.textContent = `${games.length} Game${games.length !== 1 ? 's' : ''}`;
+    if (totalElem) {
+        totalElem.className = 'text-[9px] font-bold text-cyan-500/50 tracking-[0.5em] uppercase mt-2 opacity-80';
+        totalElem.textContent = `${games.length} Game${games.length !== 1 ? 's' : ''}`;
+    }
 
     if (games.length === 0) {
         grid.className = 'w-full max-w-6xl mx-auto';
@@ -264,7 +286,8 @@ window.openCollection = async function (collectionId, collectionName) {
         return;
     }
 
-    grid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl mx-auto pb-20';
+    // Single column list layout - "vertical above each other"
+    grid.className = 'flex flex-col gap-4 max-w-5xl mx-auto pb-20';
     grid.innerHTML = games.map(g => renderGameCard(g)).join('');
 
     // Attach click handlers after render
@@ -276,7 +299,6 @@ window.openCollection = async function (collectionId, collectionName) {
 
 function renderGameCard(g) {
     const fallback = '../../../Assets/Images/logo.png';
-    // GameResponseDto fields: externalId, title, imgUrl, releaseDate, genres, platforms
     const rawImg = g.imgUrl || g.gameImageUrl || g.backgroundImage || '';
     const isInvalid = !rawImg || rawImg === 'null' || rawImg === 'undefined';
     const safeImg = isInvalid ? fallback : rawImg;
@@ -301,39 +323,43 @@ function renderGameCard(g) {
 
     const statusObj = getStatusObj(g.gamestatus);
     const statusBadge = statusObj
-        ? `<div class="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 z-10">
+        ? `<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 w-fit">
                <span class="material-symbols-outlined text-[13px] ${statusObj.color} fill-icon">${statusObj.icon}</span>
-               <span class="text-[9px] font-bold uppercase tracking-wider ${statusObj.color}">${statusObj.label}</span>
+               <span class="text-[9px] font-thin uppercase tracking-wider ${statusObj.color}">${statusObj.label}</span>
            </div>`
         : '';
 
     return `
-        <div class="group relative overflow-hidden rounded-xl bg-[#0a1618]/80 border border-white/5 cursor-pointer
-                    hover:border-primary/40 hover:shadow-[0_8px_30px_rgba(74,125,255,0.15)] hover:-translate-y-1 transition-all duration-300"
-             data-game-id="${gameId}">
-
-            <div class="relative aspect-[3/4] overflow-hidden bg-[#0f1a1d]">
+        <div class="vertical-result-card group" data-game-id="${gameId}">
+            <div class="thumb-container">
                 <img src="${hqImg}"
                      data-fallback-src="${safeImg}"
                      alt="${title}"
                      loading="lazy"
-                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                      onerror="if(this.src!==this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;return;}this.src='${fallback}';">
-                ${statusBadge}
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-                    <span class="text-[9px] font-bold text-white uppercase tracking-widest xirod-font">View Details</span>
+            </div>
+
+            <div class="content-container">
+                <div class="flex items-center gap-3">
+                    <h4 class="text-lg font-thin text-white truncate group-hover:text-primary transition-colors tracking-tight" title="${title}">${title}</h4>
+                    ${releaseYear ? `<span class="bg-white/5 px-2 py-0.5 rounded text-[10px] font-thin text-slate-500 tracking-wider">${releaseYear}</span>` : ''}
+                </div>
+                
+                <div class="flex items-center gap-4 mt-1">
+                    <span class="text-[9px] text-slate-500 uppercase font-thin tracking-widest">${escapeHtml(genreLabel)}</span>
+                    ${statusBadge}
                 </div>
             </div>
 
-            <div class="p-2.5">
-                <h4 class="text-[11px] font-bold text-white truncate group-hover:text-primary transition-colors" title="${title}">${title}</h4>
-                <div class="flex items-center justify-between mt-0.5">
-                    <p class="text-[9px] text-slate-500 uppercase tracking-wider truncate">${escapeHtml(genreLabel)}</p>
-                    ${releaseYear ? `<span class="text-[9px] font-bold text-slate-600 shrink-0">${releaseYear}</span>` : ''}
-                </div>
+            <div class="flex items-center gap-3 pr-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <span class="text-[10px] font-thin text-primary italic uppercase tracking-wider">Details</span>
+                 <span class="material-symbols-outlined text-primary">arrow_forward_ios</span>
             </div>
         </div>`;
 }
+
+
 
 function navigateToGame(gameId) {
     if (!gameId) return;
