@@ -24,6 +24,14 @@ async function deleteCollection(id) {
     return res.ok;
 }
 
+async function updateCollection(id, name) {
+    const res = await apiRequest(`/api/Collections/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name })
+    });
+    return res.ok;
+}
+
 async function addGameToCollection(collectionId, gameId) {
     const res = await apiRequest(`/api/Collections/${collectionId}/games/${gameId}`, {
         method: 'POST'

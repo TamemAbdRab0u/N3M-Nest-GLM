@@ -39,6 +39,7 @@ namespace Game_Library_Management_BL.Services.Services
                     Id = c.Id,
                     Name = c.Name,
                     CreatedAt = c.CreatedAt,
+                    UpdatedAt = (c.UpdatedAt == DateTime.MinValue) ? c.CreatedAt : c.UpdatedAt,
                     Games = new List<GameResponseDto>()
                 };
 
@@ -76,7 +77,8 @@ namespace Game_Library_Management_BL.Services.Services
             {
                 Name = dto.Name,
                 UserId = userId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await unitofwork.Collections.Add(collection);
@@ -87,6 +89,7 @@ namespace Game_Library_Management_BL.Services.Services
                 Id = collection.Id,
                 Name = collection.Name,
                 CreatedAt = collection.CreatedAt,
+                UpdatedAt = collection.UpdatedAt,
                 Games = new List<GameResponseDto>()
             };
         }
@@ -100,6 +103,21 @@ namespace Game_Library_Management_BL.Services.Services
 
             await unitofwork.Collections.DeleteAsync(collection);
             unitofwork.Save();
+            return true;
+        }
+
+        public async Task<bool> UpdateCollectionAsync(int id, string userId, CollectionCreateDto dto)
+        {
+            var collection = await unitofwork.Collections.Query()
+                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
+
+            if (collection == null) return false;
+
+            collection.Name = dto.Name;
+            collection.UpdatedAt = DateTime.UtcNow;
+            unitofwork.Collections.Update(collection);
+            unitofwork.Save();
+
             return true;
         }
 
@@ -122,6 +140,8 @@ namespace Game_Library_Management_BL.Services.Services
             };
 
             await unitofwork.CollectionGames.Add(collectionGame);
+            collection.UpdatedAt = DateTime.UtcNow;
+            unitofwork.Collections.Update(collection);
             unitofwork.Save();
             return true;
         }
@@ -139,6 +159,8 @@ namespace Game_Library_Management_BL.Services.Services
             if (collectionGame == null) return false;
 
             await unitofwork.CollectionGames.DeleteAsync(collectionGame);
+            collection.UpdatedAt = DateTime.UtcNow;
+            unitofwork.Collections.Update(collection);
             unitofwork.Save();
             return true;
         }

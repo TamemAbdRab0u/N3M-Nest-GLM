@@ -53,6 +53,18 @@ namespace Game_Library_Management.Controllers
             return Ok();
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCollection(int id, [FromBody] CollectionCreateDto dto)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var updated = await _collectionServices.UpdateCollectionAsync(id, userId, dto);
+            if (!updated) return NotFound();
+
+            return Ok();
+        }
+
         [HttpPost("{collectionId}/games/{gameId}")]
         public async Task<IActionResult> AddGameToCollection(int collectionId, int gameId)
         {

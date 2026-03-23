@@ -5,14 +5,13 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Collections - N3M|Nest</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block"
         rel="stylesheet" />
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Use FontAwesome for compatibility with existing JS icons if needed, though we prefer Material Symbols -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
@@ -21,17 +20,20 @@
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#4a7dff",
+                        "primary": "#00d2ff",
                         "background-light": "#f5f8f8",
-                        "background-dark": "#0f2023",
-                        "surface-dark": "#121212",
+                        "background-dark": "#0f131a",
+                        "surface-dark": "#1d2026",
                         "surface-light": "#ffffff",
                         "input-bg": "#1e292b",
                         "input-border": "#2e616b",
+                        "kinetic-blue": "#82cfff",
+                        "neon-green": "#aad616",
                     },
                     fontFamily: {
                         "display": ["Inter", "sans-serif"],
                         "body": ["Inter", "sans-serif"],
+                        "heading": ["Space Grotesk", "sans-serif"],
                     },
                 },
             },
@@ -39,18 +41,210 @@
     </script>
     <link rel="stylesheet" href="../../Library/Css/library.css">
     <style>
-        .collection-card {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        @font-face {
+            font-family: 'Xirod';
+            src: url('../../../Assets/Fonts/Xirod.otf') format('opentype');
         }
-        .collection-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(74, 125, 255, 0.4);
-            box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
-        }
+
         .xirod-font {
-            font-family: 'Inter', sans-serif; /* Fallback if Xirod not loaded */
-            font-weight: 900;
+            font-family: 'Xirod', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .neon-xirod {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(74, 125, 255, .8), 0 0 10px rgba(74, 125, 255, .5), 0 0 15px rgba(74, 125, 255, .3);
+            letter-spacing: 2px;
+        }
+
+        .flicker-pipe {
+            display: inline-block;
+            animation: flicker-bulb 6s linear infinite;
+        }
+
+        @keyframes flicker-bulb {
+
+            0%,
+            8%,
+            10%,
+            12%,
+            40%,
+            42%,
+            65%,
+            66%,
+            68%,
+            100% {
+                opacity: 1;
+                text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
+            }
+
+            9%,
+            11%,
+            41%,
+            67% {
+                opacity: .08;
+                text-shadow: none;
+            }
+
+            13%,
+            39% {
+                opacity: .5;
+                text-shadow: 0 0 4px #fff;
+            }
+
+            64%,
+            69% {
+                opacity: .15;
+                text-shadow: none;
+            }
+        }
+
+        .animate-pop {
+            animation: pop .45s cubic-bezier(.175, .885, .32, 1.275);
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.4)
+            }
+
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        .neon-text-white {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 0 0 4px #fff, 0 0 11px #fff, 0 0 19px #fff, 0 0 40px #00d2ff, 0 0 80px #00d2ff;
+            font-weight: 200;
+            letter-spacing: .1em;
+        }
+
+        .neon-username {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #4a7dff, 0 0 40px #4a7dff;
+            font-weight: 800;
+        }
+
+        html:not(.fonts-loaded) header {
+            opacity: 0;
+        }
+
+        html.fonts-loaded header {
+            opacity: 1;
+            transition: opacity .2s ease;
+        }
+
+        .collection-card {
+            transition: all .4s cubic-bezier(.25, .8, .25, 1);
+            background: #0d1a1d;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .collection-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            background: #0f1e21;
+        }
+
+        .collection-card:active {
+            transform: translateY(-1px);
+        }
+
+        .archive-plus-btn {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .collection-card:hover .archive-plus-btn {
+            background: rgba(0, 210, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Dash border for cards on hover */
+        .hover-dashed {
+            border: 1px dashed transparent;
+        }
+
+        .hover-dashed:hover {
+            border-color: #00d2ff;
+        }
+
+        /* No image placeholder style */
+        .no-image-placeholder {
+            background: #152427;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Breadcrumb back button */
+        #breadcrumb {
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* Fill icon helper */
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* Custom Modal Effects */
+        .label-with-dot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .label-with-dot::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #00d2ff;
+            box-shadow: 0 0 8px #00d2ff;
+        }
+
+        /* Shimmer effect that moves side-to-side without changing base color */
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden !important;
+        }
+
+        .btn-shimmer::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -160%;
+            width: 150%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            transform: rotate(20deg);
+            transition: 0.65s ease;
+            pointer-events: none;
+        }
+
+        .btn-shimmer:hover::after {
+            left: 160%;
         }
     </style>
 </head>
@@ -60,7 +254,8 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full relative overflow-hidden">
-        <!-- Premium Dynamic Background -->
+
+        <!-- Background -->
         <div class="bg-mesh-container">
             <div class="bg-blob blob-1"></div>
             <div class="bg-blob blob-2"></div>
@@ -69,10 +264,10 @@
             <div class="bg-vignette"></div>
         </div>
 
-        <!-- Top Bar Navigation -->
+        <!-- Top Bar -->
         <header
             class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
-            <!-- Left: Brand & Main Nav -->
+            <!-- Left: Brand & Nav -->
             <div class="flex items-center gap-10">
                 <div class="flex items-center gap-3">
                     <img src="../../../Assets/Images/logo.png" alt="Logo" class="h-7 w-7 object-contain">
@@ -107,88 +302,133 @@
 
             <!-- Right: Account & Notifications -->
             <div class="flex items-center gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="hidden md:flex flex-col items-end">
-                        <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">Gamer</span>
-                        <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
-                    </div>
+                <div class="hidden md:flex flex-col items-end">
+                    <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">Gamer</span>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
+                </div>
 
-                    <div class="flex items-center gap-2">
-                        <a href="../../../Profile/Html/profile.html" class="group relative">
+                <div class="flex items-center gap-2">
+                    <a href="../../../Profile/Html/profile.html" class="group relative">
+                        <div
+                            class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
                             <div
-                                class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
-                                <div
-                                    class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
-                                    <span id="display-avatar-header"
-                                        class="text-sm font-bold text-white uppercase">U</span>
-                                </div>
+                                class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                                <span id="display-avatar-header" class="text-sm font-bold text-white uppercase">U</span>
                             </div>
-                        </a>
+                        </div>
+                    </a>
 
-                        <button onclick="logout()"
-                            class="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group"
-                            title="Logout">
+                    <!-- Notification Bell -->
+                    <div class="relative" id="notif-wrapper">
+                        <button id="notification-btn" onclick="toggleNotifDropdown()"
+                            class="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
                             <span
-                                class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
+                                class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                            <span id="notif-badge"
+                                class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
                         </button>
+
+                        <div id="notif-dropdown"
+                            class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
+                            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend
+                                    Requests</h3>
+                                <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
+                            </div>
+                            <div id="notif-list" class="overflow-y-auto max-h-[360px] custom-scrollbar"></div>
+                        </div>
                     </div>
+
+                    <button onclick="logout()"
+                        class="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group"
+                        title="Logout">
+                        <span
+                            class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
+                    </button>
                 </div>
             </div>
         </header>
 
         <!-- Scrollable Content -->
-        <div id="collections-view" style="background-color: #0a487330;"
+        <div id="collections-view" style="background-color:#0a487330;"
             class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative">
 
-            <!-- Header Section -->
-            <div class="mb-10 w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="text-left">
-                    <h3 class="header-title text-4xl font-black text-white mb-2 tracking-tight neon-text-white uppercase italic">
-                        My Collections</h3>
-                    <p id="total-collections" class="text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">0 Collections</p>
+            <!-- Page Header Row -->
+            <div class="mb-12 w-full max-w-6xl mx-auto px-4">
+
+                <!-- Breadcrumb (shown when inside a collection) -->
+                <div id="breadcrumb" class="hidden flex items-center gap-3 mb-8">
+                    <button onclick="backToCollections()"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 text-[10px] xirod-font transition-all group">
+                        <span
+                            class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                        Collections
+                    </button>
+                    <span class="text-slate-700 text-lg">/</span>
+                    <span id="breadcrumb-collection-name"
+                        class="text-[12px] xirod-font text-primary tracking-widest bg-primary/10 px-4 py-1.5 rounded-lg border border-primary/20"></span>
                 </div>
-                
-                <button onclick="showCreateModal()" 
-                    class="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-[10px] xirod-font hover:bg-primary/20 transition-all group">
-                    <span class="material-symbols-outlined text-sm group-hover:rotate-90 transition-transform">add</span> 
-                    CREATE NEW COLLECTION
-                </button>
+
+                <!-- Title Section (Centered to match Library) -->
+                <div id="header-main-row" class="text-center mb-8">
+                    <h3 id="page-title"
+                        class="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight neon-text-white uppercase italic leading-none">
+                        Collections
+                    </h3>
+                    <p id="total-collections" class="text-slate-500 font-bold text-xs tracking-[0.2em]">
+                        Managing <span id="total-val" class="text-slate-300">0</span> Digital Containers
+                    </p>
+                </div>
+
+                <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent my-10"></div>
+
+                <!-- Action Row (Under the line) -->
+                <div class="flex justify-center mb-10">
+                    <button id="create-collection-btn" onclick="showCreateModal()"
+                        class="flex items-center gap-3 px-8 py-3 rounded-full bg-[#00d2ff]/10 border border-dashed border-[#00d2ff]/40 text-[#00d2ff] text-[10px] xirod-font hover:bg-[#00d2ff]/20 hover:scale-105 transition-all group">
+                        <span
+                            class="material-symbols-outlined text-base group-hover:rotate-180 transition-transform duration-500">add</span>
+                        CREATE NEW
+                    </button>
+                </div>
             </div>
 
-            <!-- Collections Grid -->
-            <div id="collections-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                <!-- Collections will be injected here -->
+            <!-- Dynamic Grid (collections list OR games inside a collection) -->
+            <div id="collections-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
-                    <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4">
+                    </div>
                     <p>Loading your collections...</p>
                 </div>
             </div>
 
             <!-- Footer -->
-            <footer class="mt-12 py-6 border-t border-[#1e293b] text-center">
+            <footer class="mt-12 py-6 border-t border-[#1e293b] text-center max-w-5xl mx-auto">
                 <p class="text-xs text-slate-600">© 2026 N3M Library.</p>
             </footer>
         </div>
     </main>
 
-    <!-- Create Collection Modal -->
-    <div id="create-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="hideCreateModal()"></div>
-        <div class="relative w-full max-w-md bg-[#0a1618] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-pop">
+    <!-- Unified Action Modal (Create/Edit) -->
+    <div id="edit-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="hideEditModal()"></div>
+        <div
+            class="relative w-full max-w-md bg-[#0a1618] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
             <div class="p-6 border-b border-white/5 flex items-center justify-between">
-                <h3 class="text-xs xirod-font text-white uppercase tracking-widest">New Collection</h3>
-                <button onclick="hideCreateModal()" class="text-slate-500 hover:text-white transition-colors">
+                <h3 id="edit-title" class="text-xs xirod-font text-white uppercase tracking-widest">Action</h3>
+                <button onclick="hideEditModal()" class="text-slate-500 hover:text-white transition-colors">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             <div class="p-6">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Collection Name</label>
-                <input type="text" id="new-col-name" placeholder="e.g. My Favorites 2024" 
-                    class="w-full h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all mb-6">
-                
-                <button onclick="confirmCreateCollection()" 
-                    class="w-full h-12 rounded-xl bg-primary text-black text-[10px] font-black uppercase tracking-widest hover:bg-kinetic-blue transition-all">
-                    Create Collection
+                <label
+                    class="label-with-dot block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Collection
+                    Name</label>
+                <input type="text" id="col-name-input" placeholder="e.g. My Favourites 2024"
+                    class="w-full h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-sm text-white outline-none ring-0 focus:outline-none focus:ring-0 focus:border-primary transition-colors mb-6">
+                <button id="edit-confirm-btn" onclick="handleConfirmAction()"
+                    class="btn-shimmer w-full h-12 rounded-xl bg-primary text-black text-[9px] xirod-font uppercase tracking-widest transition-all">
+                    Confirm
                 </button>
             </div>
         </div>
@@ -197,15 +437,19 @@
     <!-- Confirm Delete Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="hideConfirmModal()"></div>
-        <div class="relative w-full max-w-sm bg-[#0a1618] border border-white/10 rounded-2xl p-8 text-center animate-pop">
-            <div class="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-6">
+        <div class="relative w-full max-w-sm bg-[#0a1618] border border-white/10 rounded-2xl p-8 text-center">
+            <div
+                class="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-6">
                 <span class="material-symbols-outlined text-3xl">delete_forever</span>
             </div>
             <h3 class="text-sm font-bold text-white mb-2">Delete Collection?</h3>
-            <p class="text-xs text-slate-400 mb-8 leading-relaxed">Are you sure you want to delete this collection? This action cannot be undone, but your games will remain in your library.</p>
+            <p class="text-xs text-slate-400 mb-8 leading-relaxed">Are you sure you want to delete this collection? This
+                action cannot be undone, but your games will remain in your library.</p>
             <div class="flex gap-4">
-                <button onclick="hideConfirmModal()" class="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>
-                <button id="confirm-delete-btn" class="flex-1 h-12 rounded-xl bg-red-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-all">Delete</button>
+                <button onclick="hideConfirmModal()"
+                    class="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 text-slate-400 text-[9px] xirod-font uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>
+                <button id="confirm-delete-btn"
+                    class="btn-shimmer flex-1 h-12 rounded-xl bg-red-500 text-white text-[9px] xirod-font uppercase tracking-widest transition-all">Delete</button>
             </div>
         </div>
     </div>
