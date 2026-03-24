@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.DTO_s.ReviewDto;
+using Game_Library_Management_BL.DTO_s.ReviewDto;
 using Game_Library_Management_BL.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -122,6 +122,21 @@ namespace Game_Library_Management.Controllers
 
             var result = await reviewServices.VoteReviewAsync(dto.ReviewId, userId, dto.IsLike);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Get reviews written by a specific user.
+        /// </summary>
+        [HttpGet("GetUserReviews")]
+        public async Task<IActionResult> GetUserReviews(string username, int? count = null)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return BadRequest("Username is required.");
+            }
+
+            var reviews = await reviewServices.GetUserReviewsAsync(username, count);
+            return Ok(reviews);
         }
     }
 }

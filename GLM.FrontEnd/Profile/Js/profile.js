@@ -309,6 +309,7 @@ async function loadPublicGames(username) {
         loadRecentActivity();
         loadRecentFavorites();
         loadRecentWishlist();
+        loadRecentReviews(username);
         switchCarouselView('owned');
     } catch (error) {
         console.error('Error loading public games:', error);
@@ -563,6 +564,7 @@ async function loadInitialData() {
         loadRecentActivity();
         loadRecentFavorites();
         loadRecentWishlist();
+        loadRecentReviews(getUserInfo()?.userName);
 
         // Initial view is owned games
         switchCarouselView('owned');
@@ -1435,6 +1437,90 @@ function loadRecentWishlist() {
         viewHref: '../../Dashboard/Html/dashboard.html?view=wishlist',
         accentText: 'text-blue-400',
         statusOverride: { label: 'Wishlisted', color: 'text-blue-400', icon: 'bookmark' },
+    });
+}
+
+async function loadRecentReviews(username) {
+    if (!username) return;
+    try {
+        const response = await apiRequest(`/api/Reviews/GetUserReviews?username=${encodeURIComponent(username)}&count=3`);
+        if (!response.ok) throw new Error('Failed to load reviews');
+        const reviews = await response.json();
+        renderRecentReviews(reviews);
+    } catch (error) {
+        console.error('Error loading recent reviews:', error);
+        const list = document.getElementById('recent-reviews-list');
+        if (list) {
+            list.innerHTML = `
+                <div class="col-span-full py-6 text-center text-slate-600">
+                    <span class="material-symbols-outlined text-3xl mb-1 block opacity-30">rate_review</span>
+                    <p class="text-[10px] xirod-font uppercase tracking-wider">No reviews found</p>
+                </div>`;
+        }
+    }
+}
+
+function renderRecentReviews(reviews) {
+    const list = document.getElementById('recent-reviews-list');
+    if (!list) return;
+
+    if (!reviews || reviews.length === 0) {
+        list.innerHTML = `
+            <div class="col-span-full py-8 text-center text-slate-700 bg-white/5 rounded-2xl border border-dashed border-white/5">
+                <span class="material-symbols-outlined text-4xl mb-2 block opacity-30">rate_review</span>
+                <p class="text-[11px] xirod-font uppercase tracking-widest text-slate-500">Protocol Void: No recent reviews identified</p>
+            </div>`;
+        return;
+    }
+
+    list.innerHTML = '';
+    reviews.forEach((review, i) => {
+        const posterImg = getHqGameImage(review.gamePosterUrl || '../../Assets/Images/Bg1.jpg', true);
+        const time = _relativeTime(review.createdAt);
+        
+        let starsHtml = '';
+        for (let s = 1; s <= 5; s++) {
+            const isFilled = s <= review.rating;
+            starsHtml += `<span class="material-symbols-outlined text-[10px] ${isFilled ? 'text-primary' : 'text-white/10'}">${isFilled ? 'star' : 'star'}</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `glass-panel rounded-2xl p-5 border border-primary/10 flex flex-col gap-4 hover:border-primary/40 transition-all cursor-pointer group hover:bg-white/5 relative overflow-hidden`;
+        card.style.animation = `fade-in-up 0.5s ease-out forwards ${i * 0.1}s`;
+        card.onclick = () => window.location.href = `../../GameDetails/Html/game-details.html?id=${review.externalId}`;
+        
+        card.innerHTML = `
+            <div class="absolute -top-4 -right-4 size-24 bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+            <div class="flex gap-4 items-start">
+                <div class="relative size-16 rounded-xl bg-slate-800 overflow-hidden flex-shrink-0 shadow-lg border border-white/5">
+                    <img src="${posterImg}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a1618]/80 via-transparent to-transparent"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-xs font-black text-white truncate uppercase group-hover:text-primary transition-colors tracking-tight">${review.gameTitle || 'Unknown Game'}</h4>
+                    <div class="flex items-center gap-0.5 mt-1.5 bg-black/40 w-fit px-1.5 py-0.5 rounded-md">
+                        ${starsHtml}
+                    </div>
+                </div>
+            </div>
+            <div class="relative mt-1">
+                <p class="text-[11px] text-slate-400 leading-relaxed italic line-clamp-3 relative z-10">
+                    <span class="text-primary/40 text-lg leading-none align-top mr-1 font-serif">"</span>${review.comment || 'No comment provided.'}<span class="text-primary/40 text-lg leading-none align-middle ml-1 font-serif">"</span>
+                </p>
+            </div>
+            <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] text-slate-500 font-medium opacity-60">${time}</span>
+                    <div class="flex items-center gap-3 ml-2 border-l border-white/5 pl-3">
+                        <div class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px] text-slate-600 group-hover:text-primary/60 transition-colors">thumb_up</span>
+                            <span class="text-[10px] font-bold text-slate-600">${review.likes || 0}</span>
+                        </div>
+                    </div>
+                </div>
+                <span class="material-symbols-outlined text-[18px] text-slate-700 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+            </div>`;
+        list.appendChild(card);
     });
 }
 

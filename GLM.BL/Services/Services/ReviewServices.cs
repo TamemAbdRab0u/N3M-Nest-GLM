@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.DTO_s.ReviewDto;
+using Game_Library_Management_BL.DTO_s.ReviewDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
@@ -199,6 +199,56 @@ namespace Game_Library_Management_BL.Services.Services
                 Dislikes = updatedReview.Votes.Count(v => !v.IsLike),
                 UserVote = userVoteAfter?.IsLike
             };
+        }
+
+        public async Task<IEnumerable<ReviewResponseDto>> GetUserReviewsAsync(string username, int? count = null)
+        {
+            var user = await unitofwork.Users.Query()
+                .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+
+            if (user == null) return new List<ReviewResponseDto>();
+
+            // 1. Fetch the reviews first with necessary Includes to avoid anonymous type projection errors
+            var reviews = await unitofwork.Reviews.Query()
+                .Where(r => r.UserId == user.Id)
+                .Include(r => r.Votes)
+                .Include(r => r.User)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(count ?? 3)
+                .ToListAsync();
+
+            if (!reviews.Any()) return new List<ReviewResponseDto>();
+
+            // 2. Fetch game metadata for these reviews (using distinct IDs)
+            var externalIds = reviews.Select(r => r.ExternalId).Distinct().ToList();
+            var games = await unitofwork.Games.Query()
+                .Where(g => externalIds.Contains(g.ExternalId))
+                .Select(g => new { g.ExternalId, g.Title, g.PosterImageUrl })
+                .ToListAsync();
+
+            // Group by ExternalId to handle potential duplicates in the database and avoid dictionary crashes
+            var gameDict = games.GroupBy(g => g.ExternalId)
+                                .ToDictionary(g => g.Key, g => g.First());
+
+            // 3. Map to DTOs
+            return reviews.Select(r =>
+            {
+                gameDict.TryGetValue(r.ExternalId, out var g);
+                return new ReviewResponseDto
+                {
+                    ReviewId = r.ReviewId,
+                    ExternalId = r.ExternalId,
+                    UserName = r.User?.Username ?? username,
+                    ImageUrl = r.User?.ImageUrl,
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    CreatedAt = r.CreatedAt,
+                    Likes = r.Votes?.Count(v => v.IsLike) ?? 0,
+                    Dislikes = r.Votes?.Count(v => !v.IsLike) ?? 0,
+                    GameTitle = g?.Title ?? "Unknown Game",
+                    GamePosterUrl = g?.PosterImageUrl
+                };
+            }).ToList();
         }
     }
 }
