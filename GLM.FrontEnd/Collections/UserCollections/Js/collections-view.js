@@ -6,6 +6,7 @@
 
 /* ── Collection cache (avoids inline string-escaping bugs) ───── */
 let _collectionsCache = {};
+let _currentCollectionId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
@@ -49,6 +50,7 @@ async function displayUserInfo() {
 
 /* ── Collection List View ────────────────────────────────────── */
 async function loadCollections() {
+    _currentCollectionId = null;
     const grid = document.getElementById('collections-grid');
     const pageTitle = document.getElementById('page-title');
     const headerRow = document.getElementById('header-main-row');
@@ -246,6 +248,7 @@ function formatTimeAgo(dateString) {
 
 /* ── Collection Detail View ──────────────────────────────────── */
 window.openCollection = async function (collectionId, collectionName) {
+    _currentCollectionId = collectionId;
     const grid = document.getElementById('collections-grid');
     const totalElem = document.getElementById('total-collections');
     const pageTitle = document.getElementById('page-title');
@@ -307,7 +310,8 @@ function renderGameCard(g) {
         : safeImg;
 
     const title = escapeHtml(g.title || g.gameTitle || g.name || 'Unknown Game');
-    const gameId = g.externalId || g.id || '';
+    const navId = g.externalId || g.id || '';
+    const internalId = g.id || '';
 
     const rawRelease = g.releaseDate || g.released || '';
     let releaseYear = '';
@@ -330,8 +334,8 @@ function renderGameCard(g) {
         : '';
 
     return `
-        <div class="vertical-result-card group" data-game-id="${gameId}">
-            <div class="thumb-container">
+        <div class="vertical-result-card group relative" data-game-id="${navId}">
+            <div class="thumb-container" onclick="window.navigateToGame('${navId}')">
                 <img src="${hqImg}"
                      data-fallback-src="${safeImg}"
                      alt="${title}"
@@ -340,7 +344,7 @@ function renderGameCard(g) {
                      onerror="if(this.src!==this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;return;}this.src='${fallback}';">
             </div>
 
-            <div class="content-container">
+            <div class="content-container" onclick="window.navigateToGame('${navId}')">
                 <div class="flex items-center gap-3">
                     <h4 class="text-lg font-thin text-white truncate group-hover:text-primary transition-colors tracking-tight" title="${title}">${title}</h4>
                     ${releaseYear ? `<span class="bg-white/5 px-2 py-0.5 rounded text-[10px] font-thin text-slate-500 tracking-wider">${releaseYear}</span>` : ''}
@@ -352,19 +356,67 @@ function renderGameCard(g) {
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 pr-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <span class="text-[10px] font-thin text-primary italic uppercase tracking-wider">Details</span>
-                 <span class="material-symbols-outlined text-primary">arrow_forward_ios</span>
+            <div class="flex items-center gap-6 pr-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                 <button onclick="window.removeGameUI(event, '${internalId}')" 
+                         class="relative z-50 p-2 rounded-lg bg-red-500/5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center group/del"
+                         title="Remove from collection">
+                     <span class="material-symbols-outlined text-[18px] group-hover/del:scale-110 transition-transform">delete</span>
+                 </button>
+                 <div class="flex items-center gap-2 cursor-pointer" onclick="window.navigateToGame('${navId}')">
+                    <span class="text-[10px] font-thin text-primary italic uppercase tracking-wider">Details</span>
+                    <span class="material-symbols-outlined text-primary text-sm">arrow_forward_ios</span>
+                 </div>
             </div>
         </div>`;
 }
 
 
 
-function navigateToGame(gameId) {
+window.navigateToGame = function (gameId) {
     if (!gameId) return;
     window.location.href = `../../../GameDetails/Html/game-details.html?id=${gameId}`;
-}
+};
+
+window.removeGameUI = async function (event, gameId) {
+    if (event) event.stopPropagation();
+    if (!_currentCollectionId || !gameId) return;
+
+    // Simple visual feedback before it's gone
+    const card = event.target.closest('.vertical-result-card');
+    if (card) {
+        card.style.opacity = '0.5';
+        card.style.pointerEvents = 'none';
+    }
+
+    try {
+        const success = await removeGameFromCollection(_currentCollectionId, gameId);
+        if (success) {
+            if (typeof showToast === 'function') showToast('Game removed from archive', 'success');
+            
+            // Re-fetch current collection to update UI & cache
+            const collections = await getCollections();
+            _collectionsCache = {};
+            collections.forEach(c => { _collectionsCache[c.id] = c; });
+
+            const bcLabel = document.getElementById('breadcrumb-collection-name');
+            const currentName = bcLabel ? bcLabel.textContent : 'Collection';
+            
+            openCollection(_currentCollectionId, currentName);
+        } else {
+            if (card) {
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+            }
+            if (typeof showToast === 'function') showToast('Failed to remove game', 'error');
+        }
+    } catch (err) {
+        console.error('Remove game error:', err);
+        if (card) {
+            card.style.opacity = '1';
+            card.style.pointerEvents = 'auto';
+        }
+    }
+};
 
 function getStatusObj(status) {
     if (!status) return null;
