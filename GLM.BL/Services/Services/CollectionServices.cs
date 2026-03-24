@@ -23,6 +23,16 @@ namespace Game_Library_Management_BL.Services.Services
             _steamService = steamService;
         }
 
+        public async Task<IEnumerable<CollectionResponseDto>> GetCollectionsByUsernameAsync(string username)
+        {
+            var user = await unitofwork.Users.Query()
+                .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+
+            if (user == null) return new List<CollectionResponseDto>();
+
+            return await GetUserCollectionsAsync(user.Id);
+        }
+
         public async Task<IEnumerable<CollectionResponseDto>> GetUserCollectionsAsync(string userId)
         {
             var collections = await unitofwork.Collections.Query()

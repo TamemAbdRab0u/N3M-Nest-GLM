@@ -21,6 +21,15 @@ namespace Game_Library_Management.Controllers
             _collectionServices = collectionServices;
         }
 
+        [HttpGet("user/{username}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCollectionsByUsername(string username)
+        {
+            if (string.IsNullOrEmpty(username)) return BadRequest("Username is required.");
+            var collections = await _collectionServices.GetCollectionsByUsernameAsync(username);
+            return Ok(collections);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetUserCollections()
         {

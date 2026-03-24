@@ -202,6 +202,10 @@
     border: 1px solid rgba(13, 242, 242, 0.1);
 }
 
+.glow-border {
+    transition: all 1s;
+}
+
 .glow-border:hover {
     border-color: rgba(13, 242, 242, 0.5);
     box-shadow: 0 0 15px rgba(13, 242, 242, 0.2);
@@ -697,9 +701,150 @@
 }
 
 /* Hide header until fonts are loaded — prevents icon/text FOUC on navigation */
-html:not(.fonts-loaded) header { opacity: 0; }
-html.fonts-loaded header { opacity: 1; transition: opacity 0.2s ease; }
+html:not(.fonts-loaded) header {
+    opacity: 0;
+}
+
+html.fonts-loaded header {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
 
 .fill-icon {
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Expansion UI for Collection Cards */
+.collection-expansion-card {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collection-expansion-card {
+    transition: all 1s;
+    background: rgba(13, 22, 24, 0.4);
+}
+
+/* Hover Effect - Matching 'Recent Activity' / .glow-border:hover style */
+.collection-expansion-card:hover {
+    border-color: rgba(13, 242, 242, 0.5);
+    box-shadow: 0 0 15px rgba(13, 242, 242, 0.2);
+}
+
+/* Active (Expanded) Effect - Matching SOULS (Right) style */
+.collection-expansion-card.expanded {
+    background: rgba(13, 22, 24, 0.6);
+    border-color: rgba(13, 242, 242, 0.55);
+    box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(13, 242, 242, 0.15),
+        inset 0 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+.profile-review-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(13, 22, 24, 0.4);
+}
+
+.profile-review-card:hover {
+    border-color: rgba(13, 242, 242, 0.5);
+    box-shadow: 0 0 15px rgba(13, 242, 242, 0.2);
+}
+
+.expansion-content {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    /* Disable interaction when hidden so it doesn't block the footer */
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.4s ease-out;
+    overflow: hidden;
+}
+
+.collection-expansion-card.expanded .expansion-content {
+    max-height: 200px;
+    opacity: 1;
+    pointer-events: auto;
+    /* Re-enable interaction when visible */
+    overflow-y: hidden;
+}
+
+.collection-expansion-card.expanded .expand-icon,
+.collection-expansion-card:hover .expand-icon {
+    color: var(--primary-color, #0df2f2);
+}
+
+.collection-expansion-card.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.games-scroll-row {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 15px 5px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Essential for mobile "slide" feel */
+    width: 100%;
+    user-select: none;
+    /* Prevent blue highlighting while dragging */
+    -webkit-user-select: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.games-scroll-row::-webkit-scrollbar {
+    height: 4px;
+}
+
+.games-scroll-row::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.games-scroll-row::-webkit-scrollbar-thumb {
+    background: rgba(13, 242, 242, 0.15);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.games-scroll-row:hover::-webkit-scrollbar-thumb {
+    background: rgba(13, 242, 242, 0.4);
+}
+
+.expanded-game-thumb {
+    width: 65px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #0f172a;
+    flex-shrink: 0;
+}
+
+.expanded-game-thumb:hover {
+    transform: translateY(-8px) scale(1.1);
+    border-color: var(--primary-color, #0df2f2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(13, 242, 242, 0.25);
+    z-index: 50;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }

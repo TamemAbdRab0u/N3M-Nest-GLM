@@ -310,6 +310,7 @@ async function loadPublicGames(username) {
         loadRecentFavorites();
         loadRecentWishlist();
         loadRecentReviews(username);
+        loadRecentCollections(username);
         switchCarouselView('owned');
     } catch (error) {
         console.error('Error loading public games:', error);
@@ -565,6 +566,7 @@ async function loadInitialData() {
         loadRecentFavorites();
         loadRecentWishlist();
         loadRecentReviews(getUserInfo()?.userName);
+        loadRecentCollections(getUserInfo()?.userName);
 
         // Initial view is owned games
         switchCarouselView('owned');
@@ -585,23 +587,23 @@ function switchCarouselView(category) {
 
     // Update Heading
     const labels = isVisitorMode ? {
-        'favorite':  `In ${_visitedUser}'s Favorites`,
-        'owned':     `In ${_visitedUser}'s Library`,
-        'wishlist':  `In ${_visitedUser}'s Wishlist`,
+        'favorite': `In ${_visitedUser}'s Favorites`,
+        'owned': `In ${_visitedUser}'s Library`,
+        'wishlist': `In ${_visitedUser}'s Wishlist`,
         'completed': `${_visitedUser}'s Completed Games`,
-        'playing':   `${_visitedUser} Is Currently Playing`,
-        'dropped':   `Games ${_visitedUser} Dropped`,
-        'onhold':    `${_visitedUser}'s Games On Hold`,
-        'pending':   `${_visitedUser}'s Pending Games`
+        'playing': `${_visitedUser} Is Currently Playing`,
+        'dropped': `Games ${_visitedUser} Dropped`,
+        'onhold': `${_visitedUser}'s Games On Hold`,
+        'pending': `${_visitedUser}'s Pending Games`
     } : {
         'favorite': 'a Quick Look To Your Favorite Games',
-        'owned':    'All Owned Games In Your Collection',
+        'owned': 'All Owned Games In Your Collection',
         'wishlist': 'Games On Your Current Wishlist',
-        'completed':'Your Fully Completed Adventures',
-        'playing':  'What You Are Currently Playing',
-        'dropped':  'Games You Have Dropped',
-        'onhold':   'Games Currently On Hold',
-        'pending':  'Games Pending In Your Library'
+        'completed': 'Your Fully Completed Adventures',
+        'playing': 'What You Are Currently Playing',
+        'dropped': 'Games You Have Dropped',
+        'onhold': 'Games Currently On Hold',
+        'pending': 'Games Pending In Your Library'
     };
 
     if (titleEl) {
@@ -1305,11 +1307,11 @@ function getHqGameImage(url, isVertical = false) {
         const appIdMatch = cleanUrl.match(/\/apps\/(\d+)\//);
         if (appIdMatch) {
             const appId = appIdMatch[1];
-            
+
             // Reconstruct URL with target image type
             const appsIndex = cleanUrl.indexOf('/apps/');
             const domainPath = cleanUrl.substring(0, appsIndex);
-            
+
             // Check if we already have the right type in the URL
             if (cleanUrl.toLowerCase().includes(isVertical ? 'library_600x900' : 'capsule_616x353')) {
                 return cleanUrl;
@@ -1376,7 +1378,7 @@ function renderRecentGames(listId, games, cfg) {
         const posterImg = getHqGameImage(game.posterImageUrl || game.gameImageUrl || '../../Assets/Images/Bg1.jpg', true);
         const capsuleImg = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
         const originalImg = game.gameImageUrl || '../../Assets/Images/Bg1.jpg';
-        
+
         const sKey = String(game.gamestatus).toLowerCase();
         const st = cfg.statusOverride || _statusLabels[sKey] || { label: 'Library', color: 'text-slate-400', icon: 'inventory_2' };
         const time = _relativeTime(game.addedAt);
@@ -1477,7 +1479,7 @@ function renderRecentReviews(reviews) {
     reviews.forEach((review, i) => {
         const posterImg = getHqGameImage(review.gamePosterUrl || '../../Assets/Images/Bg1.jpg', true);
         const time = _relativeTime(review.createdAt);
-        
+
         let starsHtml = '';
         for (let s = 1; s <= 5; s++) {
             const isFilled = s <= review.rating;
@@ -1485,10 +1487,10 @@ function renderRecentReviews(reviews) {
         }
 
         const card = document.createElement('div');
-        card.className = `glass-panel rounded-2xl p-5 border border-primary/10 flex flex-col gap-4 hover:border-primary/40 transition-all cursor-pointer group hover:bg-white/5 relative overflow-hidden`;
+        card.className = `glass-panel profile-review-card rounded-2xl p-5 border border-primary/10 flex flex-col gap-4 transition-all duration-300 cursor-pointer group relative overflow-hidden`;
         card.style.animation = `fade-in-up 0.5s ease-out forwards ${i * 0.1}s`;
         card.onclick = () => window.location.href = `../../GameDetails/Html/game-details.html?id=${review.externalId}`;
-        
+
         card.innerHTML = `
             <div class="absolute -top-4 -right-4 size-24 bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
             <div class="flex gap-4 items-start">
@@ -1750,4 +1752,203 @@ async function loadFriendsPreview(username) {
     } catch (e) {
         console.error('Error loading friends preview:', e);
     }
+}
+
+// Recent Collections Widget
+async function loadRecentCollections(username) {
+    const list = document.getElementById('recent-collections-list');
+    const seeAllLink = document.getElementById('see-all-collections');
+    if (!list) return;
+
+    if (seeAllLink) {
+        seeAllLink.href = `../../Collections/Html/collections.html?user=${encodeURIComponent(username)}`;
+    }
+
+    try {
+        const response = await apiRequest(`/api/Collections/user/${encodeURIComponent(username)}`);
+        if (!response.ok) throw new Error("Failed to load collections");
+
+        const collections = await response.json();
+        renderRecentCollections(collections);
+    } catch (error) {
+        console.error("Error loading recent collections:", error);
+        list.innerHTML = `
+            <div class="col-span-full py-12 flex flex-col items-center justify-center text-slate-500 opacity-50">
+                <span class="material-symbols-outlined text-4xl mb-3">folder_open</span>
+                <p class="text-[10px] xirod-font uppercase tracking-wider">No collections found</p>
+            </div>`;
+    }
+}
+
+function renderRecentCollections(collections) {
+    const list = document.getElementById('recent-collections-list');
+    if (!list) return;
+
+    if (!collections || collections.length === 0) {
+        list.innerHTML = `
+            <div class="col-span-full py-12 flex flex-col items-center justify-center text-slate-500 bg-white/5 rounded-2xl border border-dashed border-white/5">
+                <span class="material-symbols-outlined text-4xl mb-3 opacity-30">folder_open</span>
+                <p class="text-[11px] xirod-font uppercase tracking-widest text-slate-500">Protocol Empty: No collections identified</p>
+            </div>`;
+        return;
+    }
+
+    const recent = collections.slice(0, 3);
+    list.innerHTML = '';
+
+    recent.forEach((coll, i) => {
+        const games = coll.games || [];
+        const posters = [
+            games[0]?.imgUrl || '../../Assets/Images/Bg2.jpg',
+            games[1]?.imgUrl || games[0]?.imgUrl || '../../Assets/Images/Bg2.jpg',
+            games[2]?.imgUrl || games[0]?.imgUrl || '../../Assets/Images/Bg2.jpg'
+        ];
+        const time = _relativeTime(coll.createdAt);
+        const username = isVisitorMode ? _visitedUser : getUserInfo()?.userName;
+        const detailUrl = `../../Collections/Html/collections.html?user=${encodeURIComponent(username)}&id=${coll.id}`;
+
+        const card = document.createElement('div');
+        // Added expansion classes
+        card.className = `glass-panel collection-expansion-card rounded-3xl py-7 px-0 border border-primary/10 flex flex-col transition-all cursor-default group relative overflow-hidden`;
+        card.style.animation = `fade-in-up 0.5s ease-out forwards ${i * 0.15}s`;
+
+        card.innerHTML = `
+            <div class="absolute -top-10 -right-10 size-40 bg-primary/5 blur-3xl group-hover:bg-primary/20 transition-colors pointer-events-none"></div>
+            
+            <!-- Header Area (Better spacing for full titles) -->
+            <div class="flex gap-10 items-center pl-10 pr-7 cursor-pointer">
+                <div class="relative size-24 flex-shrink-0 flex items-center justify-center group/icon overflow-visible">
+                    ${games.length > 0 ? `
+                        <img src="${getHqGameImage(posters[2], true)}" 
+                             class="absolute left-0 z-10 h-[90%] w-[68%] object-cover rounded-md shadow-lg -rotate-12 -translate-x-6 opacity-40 brightness-50 blur-[0.5px] transition-all duration-300"
+                             data-fallback-capsule="${getHqGameImage(posters[2], false)}"
+                             data-fallback-original="${posters[2]}"
+                             onerror="handleCarouselImageError(this)">
+                        <img src="${getHqGameImage(posters[1], true)}" 
+                             class="absolute right-0 z-10 h-[90%] w-[68%] object-cover rounded-md shadow-lg rotate-12 translate-x-6 opacity-40 brightness-50 blur-[0.5px] transition-all duration-300"
+                             data-fallback-capsule="${getHqGameImage(posters[1], false)}"
+                             data-fallback-original="${posters[1]}"
+                             onerror="handleCarouselImageError(this)">
+                        <img src="${getHqGameImage(posters[0], true)}" 
+                             class="relative z-20 h-full w-[68%] object-cover rounded-lg shadow-2xl border border-white/10 transition-transform duration-500 group-hover:scale-105"
+                             data-fallback-capsule="${getHqGameImage(posters[0], false)}"
+                             data-fallback-original="${posters[0]}"
+                             onerror="handleCarouselImageError(this)">
+                    ` : `
+                        <div class="size-16 rounded-xl border border-white/5 bg-white/5 flex items-center justify-center opacity-40">
+                             <span class="material-symbols-outlined text-3xl text-slate-500">layers_clear</span>
+                        </div>
+                    `}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-black text-white uppercase group-hover:text-primary transition-colors tracking-widest xirod-font">${coll.name}</h4>
+                    <div class="flex items-center gap-1.5 mt-2.5 bg-primary/10 w-fit px-3 py-1 rounded-md">
+                        <span class="material-symbols-outlined text-[14px] text-primary">layers</span>
+                        <span class="text-[10px] font-bold text-primary xirod-font uppercase tracking-tighter">${games.length} Games</span>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="middle-interaction-shield w-full">
+                <!-- Expansion Area (Slide-only strip) -->
+                <div class="expansion-content">
+                    <div class="px-8 mt-2 pt-6 border-t border-white/5">
+                        <div class="games-scroll-row pb-6 cursor-grab active:cursor-grabbing" id="games-strip-${coll.id}">
+                            ${games.length === 0 ? `
+                                <div class="flex flex-col items-center justify-center w-full py-6 text-center">
+                                     <img src="../../Assets/Images/Empty.png" class="size-24 mb-4 opacity-70 group-hover:opacity-100 transition-opacity" alt="Empty">
+                                     <p class="text-[10px] xirod-font text-slate-600 uppercase tracking-widest">Vault Empty: No games found</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spacer to push footer lower when collapsed -->
+                <div class="h-8"></div>
+            </div>
+
+            <!-- Footer Area (Now contains the expand trigger) -->
+            <div class="flex items-center justify-between mt-auto pt-6 border-t border-white/5 px-8 cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-slate-500 font-bold opacity-60 uppercase tracking-widest xirod-font">SEE ALL</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                     <span class="material-symbols-outlined expand-icon text-slate-600 transition-transform duration-300">expand_more</span>
+                </div>
+            </div>
+        `;
+
+        // Interactive Toggle Logic
+        card.addEventListener('click', (e) => {
+            // EXCLUSION ZONE: Clicking anywhere in the expansion area (games strip, background, etc.)
+            // will NOT trigger the card to collapse. This makes the shelf stable for scrolling.
+            if (e.target.closest('.middle-interaction-shield')) return;
+
+            const isExpanding = !card.classList.contains('expanded');
+
+            // Toggle this card
+            card.classList.toggle('expanded');
+
+            // Populate slidable strip
+            if (isExpanding) {
+                const strip = document.getElementById(`games-strip-${coll.id}`);
+                if (strip && strip.childElementCount === 0) {
+                    // Show all games in a slidable row (no hard limit to allow "slide to see all")
+                    games.forEach(game => {
+                        const thumb = document.createElement('img');
+                        thumb.className = 'expanded-game-thumb';
+
+                        // Use multiple fallbacks for the expansion strip as well
+                        const verticalImg = getHqGameImage(game.imgUrl || game.posterImageUrl || '../../Assets/Images/Bg1.jpg', true);
+                        const capsuleImg = getHqGameImage(game.imgUrl || game.posterImageUrl || '../../Assets/Images/Bg1.jpg', false);
+                        const originalImg = game.imgUrl || game.posterImageUrl || '../../Assets/Images/Bg1.jpg';
+
+                        thumb.src = verticalImg;
+                        thumb.setAttribute('data-fallback-capsule', capsuleImg);
+                        thumb.setAttribute('data-fallback-original', originalImg);
+                        thumb.onerror = function () { handleCarouselImageError(this); };
+
+                        thumb.title = game.title;
+                        thumb.alt = game.title;
+                        thumb.draggable = false;
+
+                        strip.appendChild(thumb);
+                    });
+
+                    // Add Mouse-Drag to Scroll functionality (Making it "Slidable")
+                    let isDown = false;
+                    let startX;
+                    let scrollLeft;
+
+                    strip.addEventListener('mousedown', (e) => {
+                        isDown = true;
+                        strip.classList.add('active');
+                        startX = e.pageX - strip.offsetLeft;
+                        scrollLeft = strip.scrollLeft;
+                    });
+                    strip.addEventListener('mouseleave', () => {
+                        isDown = false;
+                        strip.classList.remove('active');
+                    });
+                    strip.addEventListener('mouseup', () => {
+                        isDown = false;
+                        strip.classList.remove('active');
+                    });
+                    strip.addEventListener('mousemove', (e) => {
+                        if (!isDown) return;
+                        e.preventDefault();
+                        const x = e.pageX - strip.offsetLeft;
+                        const walk = (x - startX) * 1.2; // Slightly slower sliding for better control
+                        strip.scrollLeft = scrollLeft - walk;
+                    });
+                }
+            }
+        });
+
+        list.appendChild(card);
+    });
 }
