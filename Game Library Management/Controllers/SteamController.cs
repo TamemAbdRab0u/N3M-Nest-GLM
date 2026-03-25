@@ -77,7 +77,7 @@ namespace Game_Library_Management.Controllers
         [HttpPost("catalog/sync-trailers")]
         public async Task<IActionResult> SyncTrailers([FromQuery] bool overwrite = false)
         {
-            var result = await _steamService.SyncAchievementsAndTrailersAsync(overwrite);
+            var result = await _steamService.SyncAchievementsAndTrailersAsync(overwriteExisting: overwrite);
             return Ok(new
             {
                 result.Total,

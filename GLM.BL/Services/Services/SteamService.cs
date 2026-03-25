@@ -1339,15 +1339,15 @@ namespace Game_Library_Management_BL.Services.Services
                 {
                     if (first.TryGetProperty("mp4", out var mp4) && mp4.ValueKind == JsonValueKind.Object)
                     {
-                        if (mp4.TryGetProperty("480", out var p480)) trailerUrl = p480.GetString() ?? string.Empty;
-                        if (string.IsNullOrWhiteSpace(trailerUrl) && mp4.TryGetProperty("max", out var pMax)) trailerUrl = pMax.GetString() ?? string.Empty;
+                        if (mp4.TryGetProperty("max", out var pMax)) trailerUrl = pMax.GetString() ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(trailerUrl) && mp4.TryGetProperty("480", out var p480)) trailerUrl = p480.GetString() ?? string.Empty;
                     }
 
                     // Fallback to WebM if MP4 is missing
                     if (string.IsNullOrWhiteSpace(trailerUrl) && first.TryGetProperty("webm", out var webm) && webm.ValueKind == JsonValueKind.Object)
                     {
-                        if (webm.TryGetProperty("480", out var w480)) trailerUrl = w480.GetString() ?? string.Empty;
-                        if (string.IsNullOrWhiteSpace(trailerUrl) && webm.TryGetProperty("max", out var wMax)) trailerUrl = wMax.GetString() ?? string.Empty;
+                        if (webm.TryGetProperty("max", out var wMax)) trailerUrl = wMax.GetString() ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(trailerUrl) && webm.TryGetProperty("480", out var w480)) trailerUrl = w480.GetString() ?? string.Empty;
                     }
 
                     // Fallback to HLS (Streaming Format - very common now)
@@ -1361,7 +1361,13 @@ namespace Game_Library_Management_BL.Services.Services
                     {
                         trailerUrl = dash.GetString() ?? string.Empty;
                     }
-                    if (first.TryGetProperty("thumbnail", out var thumb)) trailerPreview = thumb.GetString() ?? string.Empty;
+                    if (first.TryGetProperty("thumbnail", out var thumb)) 
+                    {
+                        var thumbUrl = thumb.GetString() ?? string.Empty;
+                        // First preference: background_raw (already in backgroundImage variable)
+                        // Second preference: standard thumbnail
+                        trailerPreview = !string.IsNullOrWhiteSpace(backgroundImage) ? backgroundImage : thumbUrl;
+                    }
                 }
             }
 

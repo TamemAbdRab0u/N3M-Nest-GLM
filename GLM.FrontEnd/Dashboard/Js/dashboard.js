@@ -1414,19 +1414,19 @@ function renderAjaxSearchResults(games, query) {
 
     games.forEach(game => {
         const item = document.createElement('div');
-        item.className = 'group flex items-center gap-3 px-4 py-3 hover:bg-white/5 cursor-pointer transition-all border-b border-white/[0.03] last:border-0';
-
+        item.className = 'result-item-group flex items-center gap-3 px-4 py-3 hover:bg-white/5 cursor-pointer transition-all border-b border-white/[0.03] last:border-0';
+        
         const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
         const title = game.title || game.name || 'Unknown Game';
 
         item.innerHTML = `
-            <div class="w-12 h-14 overflow-hidden shrink-0 border border-white/10 shadow-lg" style="border-radius: 10px;">
+            <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10 shadow-lg">
                 <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover">
             </div>
-            <div class="flex-1 min-w-0">
-                <h4 class="text-sm font-semibold text-white truncate group-hover:text-primary transition-colors">${title}</h4>
+            <div class="flex-1 min-w-0 pr-2">
+                <h4 class="text-[13px] font-semibold text-white truncate result-item-group-hover:text-primary transition-colors">${title}</h4>
             </div>
-            <div class="opacity-0 group-hover:opacity-100 transition-all mr-2">
+            <div class="opacity-0 result-item-group-hover:opacity-100 transition-all ml-auto">
                 <span class="material-symbols-outlined text-primary text-lg">arrow_forward</span>
             </div>
         `;

@@ -515,12 +515,10 @@ function setMainVideo(g = null) {
     const placeholder = document.getElementById('main-media-placeholder');
     const trailer = document.getElementById('main-trailer');
     const playBtn = document.getElementById('play-btn');
-    const label = document.getElementById('media-label');
-    const title = document.getElementById('media-title');
 
     // Trigger animation
     trailer.classList.remove('fade-in-media');
-    void trailer.offsetWidth; // Reflow
+    void trailer.offsetWidth; 
     trailer.classList.add('fade-in-media');
 
     // Update UI highlights
@@ -534,10 +532,13 @@ function setMainVideo(g = null) {
     if (trailer.src !== game.trailerUrl) {
         trailer.src = game.trailerUrl;
         trailer.poster = game.trailerPreview || game.backgroundImage;
+    } else {
+        // Force refresh poster image if needed
+        const currentPoster = game.trailerPreview || game.backgroundImage;
+        if (currentPoster) {
+            trailer.poster = currentPoster + (currentPoster.includes('?') ? '&' : '?') + 't=' + Date.now();
+        }
     }
-
-    if (label) label.textContent = "Official Trailer";
-    if (title) title.textContent = "Cinematic Experience";
 
     // Seek bar starts hidden — click video to toggle
     const videoControls = document.getElementById('video-controls');
@@ -615,9 +616,6 @@ function setMainMedia(url, index) {
     // Hide seek bar
     const videoControls = document.getElementById('video-controls');
     if (videoControls) videoControls.classList.add('hidden');
-
-    if (label) label.textContent = `Screenshot ${index + 1}`;
-    if (title) title.textContent = `Gallery Preview`;
 
     // Resume auto-slide after selecting manually
     startAutoSlide();
