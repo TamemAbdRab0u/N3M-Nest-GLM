@@ -1645,7 +1645,7 @@ async function loadCollections() {
                             <span class="material-symbols-outlined text-[20px]">folder</span>
                         </div>
                         <div>
-                            <p class="text-xs font-heading font-medium ${isChecked ? 'text-white' : 'text-slate-300'} group-hover:text-accent transition-colors">${escapeHtml(c.name)}</p>
+                            <p class="text-sm font-heading font-bold ${isChecked ? 'text-white' : 'text-slate-300'} group-hover:text-accent transition-colors">${escapeHtml(c.name)}</p>
                             <p class="text-[10px] font-heading font-medium text-slate-500 uppercase tracking-widest mt-0.5 opacity-60">${c.games?.length || 0} games</p>
                         </div>
                     </div>

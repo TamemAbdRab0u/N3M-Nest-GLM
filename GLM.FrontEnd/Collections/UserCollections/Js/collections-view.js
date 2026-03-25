@@ -59,7 +59,7 @@ async function loadCollections() {
     const headerDivider = document.getElementById('header-divider');
     const headerMainRow = document.getElementById('header-main-row');
     const createBtnContainer = document.querySelector('.flex.justify-center.mb-6');
-    
+
     if (headerDivider) headerDivider.classList.remove('hidden');
     if (headerMainRow) headerMainRow.className = 'text-center mb-6';
     if (createBtnContainer) createBtnContainer.className = 'flex justify-center mb-6';
@@ -256,11 +256,11 @@ window.openCollection = async function (collectionId, collectionName) {
 
     if (createBtn) createBtn.classList.add('hidden');
     showBreadcrumb(collectionName);
-    
+
     // Customize Header for Inner View
     const headerDivider = document.getElementById('header-divider');
     const headerMainRow = document.getElementById('header-main-row');
-    
+
     if (headerDivider) headerDivider.classList.add('hidden');
     if (headerMainRow) headerMainRow.className = 'text-center mb-8 transform-gpu transition-all scale-100';
     if (pageTitle) {
@@ -392,7 +392,7 @@ window.removeGameUI = async function (event, gameId) {
         const success = await removeGameFromCollection(_currentCollectionId, gameId);
         if (success) {
             if (typeof showToast === 'function') showToast('Game removed from archive', 'success');
-            
+
             // Re-fetch current collection to update UI & cache
             const collections = await getCollections();
             _collectionsCache = {};
@@ -400,7 +400,7 @@ window.removeGameUI = async function (event, gameId) {
 
             const bcLabel = document.getElementById('breadcrumb-collection-name');
             const currentName = bcLabel ? bcLabel.textContent : 'Collection';
-            
+
             openCollection(_currentCollectionId, currentName);
         } else {
             if (card) {

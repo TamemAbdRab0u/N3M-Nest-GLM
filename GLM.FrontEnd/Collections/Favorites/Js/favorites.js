@@ -253,7 +253,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
         }
 
         allGames = gamesData;
-        
+
         renderGames(allGames);
         if (totalGamesElement) totalGamesElement.textContent = `${gamesData.length} Favorites`;
     } catch (error) {

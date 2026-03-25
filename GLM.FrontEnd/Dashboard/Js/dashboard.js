@@ -313,8 +313,8 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
 
     const isRightAligned = alignment === 'justify-end';
 
-    const selectorPositionClass = isRightAligned 
-        ? 'right-0 translate-x-4' 
+    const selectorPositionClass = isRightAligned
+        ? 'right-0 translate-x-4'
         : 'left-0 -translate-x-4';
 
     return `
@@ -1420,7 +1420,7 @@ function renderAjaxSearchResults(games, query) {
         const title = game.title || game.name || 'Unknown Game';
 
         item.innerHTML = `
-            <div class="w-12 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 shadow-lg">
+            <div class="w-12 h-14 overflow-hidden shrink-0 border border-white/10 shadow-lg" style="border-radius: 10px;">
                 <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover">
             </div>
             <div class="flex-1 min-w-0">
@@ -1797,11 +1797,11 @@ function updateStatusIndicators(gameId, game, isUpdating = false) {
                 // Clear any potential clashing white-opacity classes from BOTH btn and icon
                 btn.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'text-white/60');
                 icon?.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'text-white/60');
-                
+
                 btn.classList.add(...activeClass.split(' '));
                 btn.classList.remove(...inactiveClass.split(' '));
                 icon?.classList.add('fill-icon');
-                
+
                 // Favorite and Wishlist get the pop animation
                 if (type === 'favorite' || type === 'wishlist') {
                     icon?.classList.add('animate-pop');
@@ -1870,7 +1870,7 @@ function updateLibraryUI(gameId, isInLibrary) {
                 // Clear any potential clashing white-opacity classes from BOTH btn and icon
                 btn.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'hover:text-primary');
                 iconSpan?.classList.remove('text-white/70', 'text-white/40', 'text-white/50');
-                
+
                 btn.classList.add('text-green-500');
                 iconSpan.textContent = 'inventory_2';
                 iconSpan.classList.add('fill-icon');
@@ -2054,7 +2054,7 @@ function updateStatusSelectorUI(gameId, statusId) {
                 const baseClasses = 'w-8 h-8 rounded-full bg-slate-900 border flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95';
                 const activeClasses = 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]';
                 const inactiveClasses = 'border-white/10';
-                
+
                 btn.className = `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
 
                 // Sync icon fill state
