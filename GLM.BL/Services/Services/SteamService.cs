@@ -1,4 +1,5 @@
 using Game_Library_Management_BL.DTO_s.GameCatalogDto;
+using Game_Library_Management_BL.DTO_s.StoreHomeDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
@@ -947,6 +948,167 @@ namespace Game_Library_Management_BL.Services.Services
                 MinimumRequirements = game.MinimumRequirements,
                 RecommendedRequirements = game.RecommendedRequirements,
                 Price = game.Price
+            };
+        }
+
+        public async Task<StoreHomeDto> GetStoreHomeAsync()
+        {
+            var cacheKey = "steam:store:home:genres:v1";
+            if (_cache.TryGetValue(cacheKey, out StoreHomeDto? cachedHome))
+            {
+                await PopulateUserStatesForSectionsAsync(cachedHome!.Sections);
+                return cachedHome;
+            }
+
+            var sections = new List<StoreSectionDto>();
+            
+            // Genres to display
+            var genres = new[] { "Action", "RPG", "Strategy", "Indie", "Adventure", "Simulation" };
+            
+            try
+            {
+                // 1. Fetch 10 Legendary Masterpieces for the Hero section (Atmospheric & Only for show)
+                var masterpieceIds = new[] { 
+                    1245620, // Elden Ring
+                    292030,  // Witcher 3
+                    1091500, // Cyberpunk 2077
+                    1174180, // RDR 2
+                    1086940, // Baldur's Gate 3
+                    1145360, // Hades
+                    1593500, // God of War
+                    1332010, // Stray
+                    814380,  // Sekiro
+                    367520   // Hollow Knight
+                };
+
+                var featuredSection = new StoreSectionDto { Id = "featured", Title = "Masterpieces" };
+                
+                // Fetching names from Steam Catalog or just using them as placeholders since JS will override with sentences
+                foreach (var externalId in masterpieceIds)
+                {
+                    featuredSection.Games.Add(new CatalogGameSummaryDto
+                    {
+                        ExternalId = externalId,
+                        // High quality library hero image
+                        ImageUrl = $"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{externalId}/library_hero.jpg",
+                        Platforms = new List<string> { "PC" }
+                    });
+                }
+                sections.Add(featuredSection);
+
+                // 2. Fetch Genre sections in parallel
+                var tasks = genres.Select(g => FetchGamesByGenreAsync(g, 15)).ToList();
+                var results = await Task.WhenAll(tasks);
+
+                for (int i = 0; i < genres.Length; i++)
+                {
+                    var genreGames = results[i];
+                    if (genreGames.Any())
+                    {
+                        sections.Add(new StoreSectionDto
+                        {
+                            Id = $"genre_{genres[i].ToLower()}",
+                            Title = genres[i] == "Action" ? "Adrenaline Action" : 
+                                    genres[i] == "RPG" ? "Epic Role Playing" : 
+                                    genres[i] == "Strategy" ? "Tactical Strategy" : 
+                                    $"{genres[i]} Games",
+                            Games = genreGames
+                        });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Fallback handled by returning whatever we gathered
+            }
+
+            var storeHome = new StoreHomeDto { Sections = sections, LastUpdated = DateTime.UtcNow };
+            // Cache for 1 hour for freshness as requested ("every couple of hours")
+            _cache.Set(cacheKey, storeHome, TimeSpan.FromHours(1));
+
+            await PopulateUserStatesForSectionsAsync(storeHome.Sections);
+            return storeHome;
+        }
+
+        private async Task<List<CatalogGameSummaryDto>> FetchGamesByGenreAsync(string genre, int count)
+        {
+            // Using Steam's official store search for genres (keyword search is effective for top results)
+            var url = $"https://store.steampowered.com/api/storesearch/?term={Uri.EscapeDataString(genre)}&l=english&cc=us&start=0&count={count}";
+            try
+            {
+                using var response = await _http.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return new List<CatalogGameSummaryDto>();
+
+                using var stream = await response.Content.ReadAsStreamAsync();
+                using var doc = await JsonDocument.ParseAsync(stream);
+                var root = doc.RootElement;
+
+                if (!root.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
+                    return new List<CatalogGameSummaryDto>();
+
+                var list = new List<CatalogGameSummaryDto>();
+                foreach (var item in items.EnumerateArray())
+                {
+                    if (!item.TryGetProperty("id", out var idNode) || idNode.ValueKind != JsonValueKind.Number) continue;
+                    
+                    var appid = idNode.GetInt32();
+                    var title = item.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+                    
+                    // Construct official header image URL
+                    var image = $"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg";
+                    
+                    var metascore = item.TryGetProperty("metascore", out var m) && m.ValueKind == JsonValueKind.Number ? m.GetInt32() : (int?)null;
+
+                    list.Add(new CatalogGameSummaryDto
+                    {
+                        ExternalId = appid,
+                        Title = title,
+                        ImageUrl = image,
+                        Metacritic = metascore,
+                        Rating = metascore.HasValue ? Math.Round(metascore.Value / 20.0, 1) : 0,
+                        Platforms = new List<string> { "PC" }
+                    });
+                }
+                return list;
+            }
+            catch
+            {
+                return new List<CatalogGameSummaryDto>();
+            }
+        }
+
+        private async Task PopulateUserStatesForSectionsAsync(List<StoreSectionDto> sections)
+        {
+            var allGames = sections.SelectMany(s => s.Games).ToList();
+            await PopulateUserStatesAsync(allGames);
+        }
+
+        private CatalogGameSummaryDto? ParseFeaturedItem(JsonElement item)
+        {
+            if (!item.TryGetProperty("id", out var idNode) || idNode.ValueKind != JsonValueKind.Number) return null;
+            
+            var id = idNode.GetInt32();
+            var title = item.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+            var image = item.TryGetProperty("large_capsule_image", out var i) ? i.GetString() ?? "" : "";
+            var metascore = item.TryGetProperty("metascore", out var m) && m.ValueKind == JsonValueKind.Number ? m.GetInt32() : (int?)null;
+            var releaseDate = item.TryGetProperty("release_date", out var rd) ? rd.GetString() ?? "" : "";
+
+            var platforms = new List<string>();
+            if (item.TryGetProperty("windows_available", out var w) && w.ValueKind == JsonValueKind.True) platforms.Add("PC");
+            if (item.TryGetProperty("mac_available", out var mac) && mac.ValueKind == JsonValueKind.True) platforms.Add("Mac");
+            if (item.TryGetProperty("linux_available", out var lin) && lin.ValueKind == JsonValueKind.True) platforms.Add("Linux");
+            if (!platforms.Any()) platforms.Add("PC");
+
+            return new CatalogGameSummaryDto
+            {
+                ExternalId = id,
+                Title = title,
+                ImageUrl = image,
+                Metacritic = metascore,
+                Rating = metascore.HasValue ? Math.Round(metascore.Value / 20.0, 1) : 0,
+                ReleaseDate = releaseDate,
+                Genres = new List<string>(),
+                Platforms = platforms
             };
         }
 

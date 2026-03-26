@@ -1,6 +1,7 @@
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.DTO_s.GamesDto;
 using Game_Library_Management_BL.DTO_s.GameCatalogDto;
+using Game_Library_Management_BL.DTO_s.StoreHomeDto;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Game_Library_Management.Controllers
@@ -22,6 +23,13 @@ namespace Game_Library_Management.Controllers
             var details = await _steamService.GetGameDetailsAsync(id);
             if (details == null) return NotFound();
             return Ok(details);
+        }
+
+        [HttpGet("store/home")]
+        public async Task<IActionResult> GetStoreHome()
+        {
+            var result = await _steamService.GetStoreHomeAsync();
+            return Ok(result);
         }
 
         [HttpGet("catalog/GetAll")]

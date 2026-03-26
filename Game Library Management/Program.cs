@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
+using System.Security.Claims;
 
 namespace Game_Library_Management
 {
@@ -97,8 +98,7 @@ namespace Game_Library_Management
                     IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
                     ClockSkew = TimeSpan.Zero
                 };
-
-                
+ 
                 o.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
                 {
                     OnMessageReceived = context =>
@@ -136,11 +136,18 @@ namespace Game_Library_Management
                 RequestPath = "/Uploads"
             });
 
+            // Serve the frontend files
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+                    Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../GLM.FrontEnd"))),
+                RequestPath = "/GLM.FrontEnd"
+            });
+
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
             app.MapHub<ChatHub>("/chat");

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Discover - N3M|Nest</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block"
+        rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4a7dff",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f131a",
+                        "surface-dark": "#1d2026",
+                        "surface-light": "#ffffff",
+                        "input-bg": "#1e292b",
+                        "input-border": "#2e616b",
+                        "kinetic-blue": "#82cfff",
+                        "neon-green": "#aad616",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "heading": ["Space Grotesk", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'Xirod';
+            src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+        }
+
+        .xirod-font {
+            font-family: 'Xirod', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .neon-xirod {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow:
+                0 0 5px rgba(74, 125, 255, 0.8),
+                0 0 10px rgba(74, 125, 255, 0.5),
+                0 0 15px rgba(74, 125, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .flicker-pipe {
+            display: inline-block;
+            animation: flicker-bulb 6s linear infinite;
+        }
+
+        @keyframes flicker-bulb {
+            0%, 8%, 10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+                opacity: 1;
+                text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
+            }
+            9%, 11%, 41%, 67% {
+                opacity: 0.08;
+                text-shadow: none;
+            }
+            13%, 39% {
+                opacity: 0.5;
+                text-shadow: 0 0 4px #fff;
+            }
+            64%, 69% {
+                opacity: 0.15;
+                text-shadow: none;
+            }
+        }
+
+        /* High-End Neon Brand Text */
+        .neon-text-white {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 0 0 4px #fff, 0 0 11px #fff, 0 0 19px #fff, 0 0 40px #00d2ff, 0 0 80px #00d2ff;
+            font-weight: 200;
+            letter-spacing: 0.1em;
+        }
+
+        .neon-username {
+            font-family: 'Xirod', sans-serif;
+            color: #fff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #4a7dff, 0 0 40px #4a7dff;
+            font-weight: 800;
+        }
+
+        /* Premium Dynamic Background */
+        .bg-mesh-container {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-color: #080f0f;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-blob {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            mix-blend-mode: screen;
+            animation: blob-float 25s infinite alternate ease-in-out;
+        }
+
+        .blob-1 { background: radial-gradient(circle, #4a7dff 0%, transparent 70%); top: -200px; left: -200px; }
+        .blob-2 { background: radial-gradient(circle, #7c3aed 0%, transparent 70%); bottom: -300px; right: -100px; }
+        .blob-3 { background: radial-gradient(circle, #0df2f2 0%, transparent 70%); top: 40%; left: 30%; width: 600px; height: 600px; }
+
+        @keyframes blob-float {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, 150px) scale(1.1); }
+            66% { transform: translate(-50px, 200px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .glass-panel {
+            background: rgba(15, 32, 38, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../Css/discover.css">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex flex-col overflow-hidden">
+    <!-- Premium Dynamic Background -->
+    <div class="bg-mesh-container">
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+        <div class="bg-blob blob-3"></div>
+    </div>
+
+    <!-- Top Bar Navigation -->
+    <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
+        <div class="flex items-center gap-10">
+            <div class="flex items-center gap-3">
+                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-7 w-7 object-contain">
+                <span class="neon-xirod font-bold text-base tracking-widest hidden sm:block">
+                    N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
+                </span>
+            </div>
+
+            <nav id="top-nav" class="hidden xl:flex items-center gap-1">
+                <a href="discover.html" id="nav-discover"
+                    class="nav-item active flex items-center gap-2 px-4 py-2 rounded-xl text-primary bg-primary/10 text-[10px] xirod-font hover:bg-primary/20 transition-all">
+                    <span class="material-symbols-outlined text-sm">explore</span> DISCOVER
+                </a>
+                <a href="../../Dashboard/Html/dashboard.html" id="nav-catalog"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">dashboard</span> CATALOG
+                </a>
+                <a href="../../Collections/Library/Html/library.html" id="nav-library"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">stadia_controller</span> LIBRARY
+                </a>
+                <a href="../../Collections/Favorites/Html/favorites.html" id="nav-favorites"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">favorite</span> FAVORITES
+                </a>
+                <a href="../../Collections/Wishlist/Html/wishlist.html" id="nav-wishlist"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">bookmark</span> WISHLIST
+                </a>
+                <a href="../../Collections/UserCollections/Html/collections.html" id="nav-collections"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                    <span class="material-symbols-outlined text-sm">folder_special</span> COLLECTIONS
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex flex-col items-end">
+                <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">Gamer</span>
+                <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <a href="../../Profile/Html/profile.html" class="group relative">
+                    <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                        <div class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                            <span id="display-avatar-header" class="text-sm font-bold text-white uppercase">U</span>
+                        </div>
+                    </div>
+                </a>
+                <button onclick="logout()" class="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group">
+                    <span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+        
+        <!-- Scrollable Content -->
+        <div id="discover-view" class="content-area flex-1 overflow-y-auto p-6 md:p-8 z-10 relative scroll-smooth">
+            
+            <!-- Hero Section (Featured Carousel) -->
+            <section id="hero-carousel" class="hero-container shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5">
+                <div id="carousel-inner">
+                    <!-- Slides injected by JS -->
+                    <div class="hero-slide active skeleton"></div>
+                </div>
+                
+            </section>
+
+            <!-- Discovery Sections -->
+            <div id="discovery-content" class="pb-24 max-w-[1600px] mx-auto">
+                <!-- Sections like "Popular", "New Releases", "Top Sellers" will be injected here -->
+                
+                <!-- Initial Skeleton Sections -->
+                <div class="discovery-section">
+                    <div class="section-header">
+                        <div class="h-8 w-48 skeleton rounded-lg"></div>
+                        <div class="h-6 w-24 skeleton rounded-lg"></div>
+                    </div>
+                    <div class="scroll-lane">
+                        <div class="game-card skeleton" style="height: 240px;"></div>
+                        <div class="game-card skeleton" style="height: 240px;"></div>
+                        <div class="game-card skeleton" style="height: 240px;"></div>
+                        <div class="game-card skeleton" style="height: 240px;"></div>
+                        <div class="game-card skeleton" style="height: 240px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="py-12 border-t border-white/5 text-center text-slate-600">
+                <p class="text-xs uppercase tracking-[0.3em] font-bold">© 2026 N3M|NEST ENGINE</p>
+            </footer>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../../Auth/Js/auth.js"></script>
+    <script src="../Js/discover.js"></script>
+</body>
+
+</html>
