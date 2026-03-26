@@ -684,95 +684,13 @@ function switchCarouselView(category) {
 
 function updateSnapshotCards(filteredGames) {
     const totalGamesEl = document.getElementById('snapshot-total-games');
-    const totalHoursEl = document.getElementById('snapshot-total-hours');
 
     if (totalGamesEl) {
         totalGamesEl.textContent = (filteredGames?.length || 0).toLocaleString();
     }
-
-    if (!totalHoursEl) return;
-
-    const currentToken = ++snapshotRequestToken;
-    totalHoursEl.textContent = '...';
-
-    computeTotalHours(filteredGames || [])
-        .then(totalHours => {
-            if (currentToken !== snapshotRequestToken) return;
-            totalHoursEl.textContent = Math.round(totalHours).toLocaleString();
-        })
-        .catch(() => {
-            if (currentToken !== snapshotRequestToken) return;
-            totalHoursEl.textContent = '0';
-        });
 }
 
-async function computeTotalHours(games) {
-    if (!games || games.length === 0) return 0;
 
-    let total = 0;
-    const missingIds = [];
-
-    for (const g of games) {
-        const immediate = extractHoursFromGame(g);
-        if (immediate !== null) {
-            total += immediate;
-            continue;
-        }
-
-        const id = g.externalId ?? g.id;
-        if (!id) continue;
-
-        if (playtimeCache.has(id)) {
-            total += playtimeCache.get(id) || 0;
-        } else {
-            missingIds.push(id);
-        }
-    }
-
-    if (missingIds.length === 0) return total;
-
-    const fetches = missingIds.map(async id => {
-        try {
-            const res = await apiRequest(`/api/Steam/catalog/${id}`);
-            if (!res.ok) {
-                playtimeCache.set(id, 0);
-                return 0;
-            }
-            const details = await res.json();
-            const hours = extractHoursFromGame(details) ?? 0;
-            playtimeCache.set(id, hours);
-            return hours;
-        } catch {
-            playtimeCache.set(id, 0);
-            return 0;
-        }
-    });
-
-    const fetched = await Promise.all(fetches);
-    return total + fetched.reduce((sum, h) => sum + (h || 0), 0);
-}
-
-function extractHoursFromGame(game) {
-    if (!game) return null;
-
-    const candidates = [
-        game.playtime,
-        game.hoursPlayed,
-        game.avgHours,
-        game.averageHours,
-        game.estimatedHours
-    ];
-
-    for (const value of candidates) {
-        if (value === null || value === undefined || value === '') continue;
-        const num = Number(value);
-        if (!Number.isNaN(num) && Number.isFinite(num)) {
-            return Math.max(0, num);
-        }
-    }
-
-    return null;
-}
 
 function updateLibraryStats(allGames) {
     if (!allGames) return;
@@ -1816,7 +1734,7 @@ function renderRecentCollections(collections) {
             <div class="absolute -top-10 -right-10 size-40 bg-primary/5 blur-3xl group-hover:bg-primary/20 transition-colors pointer-events-none"></div>
             
             <!-- Header Area (Better spacing for full titles) -->
-            <div class="flex gap-10 items-center pl-10 pr-7 cursor-pointer">
+            <div class="flex gap-10 items-center pl-8 pr-7 cursor-pointer">
                 <div class="relative size-24 flex-shrink-0 flex items-center justify-center group/icon overflow-visible">
                     ${games.length > 0 ? `
                         <img src="${getHqGameImage(posters[2], true)}" 
@@ -1835,12 +1753,12 @@ function renderRecentCollections(collections) {
                              data-fallback-original="${posters[0]}"
                              onerror="handleCarouselImageError(this)">
                     ` : `
-                        <div class="size-16 rounded-xl border border-white/5 bg-white/5 flex items-center justify-center opacity-40">
+                        <div class="size-20 rounded-lg border border-white/5 bg-white/5 flex items-center justify-center opacity-30">
                              <span class="material-symbols-outlined text-3xl text-slate-500">layers_clear</span>
                         </div>
                     `}
                 </div>
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0 pl-2 relative z-30">
                     <h4 class="text-sm font-black text-white uppercase group-hover:text-primary transition-colors tracking-widest xirod-font">${coll.name}</h4>
                     <div class="flex items-center gap-1.5 mt-2.5 bg-primary/10 w-fit px-3 py-1 rounded-md">
                         <span class="material-symbols-outlined text-[14px] text-primary">layers</span>
@@ -1857,9 +1775,9 @@ function renderRecentCollections(collections) {
                     <div class="px-8 mt-2 pt-6 border-t border-white/5">
                         <div class="games-scroll-row pb-6 cursor-grab active:cursor-grabbing" id="games-strip-${coll.id}">
                             ${games.length === 0 ? `
-                                <div class="flex flex-col items-center justify-center w-full py-6 text-center">
-                                     <img src="../../Assets/Images/Empty.png" class="size-24 mb-4 opacity-70 group-hover:opacity-100 transition-opacity" alt="Empty">
-                                     <p class="text-[10px] xirod-font text-slate-600 uppercase tracking-widest">Vault Empty: No games found</p>
+                                <div class="flex flex-col items-center justify-center w-full min-h-[138px] py-4 text-center">
+                                     <img src="../../Assets/Images/Empty.png" class="size-20 mb-3 opacity-70 group-hover:opacity-100 transition-opacity" alt="Empty">
+                                     <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest">Vault Empty: No games found</p>
                                 </div>
                             ` : ''}
                         </div>

@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Profile - N3M|Nest</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block"
+        rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = {
@@ -46,7 +50,7 @@
         .neon-xirod {
             font-family: 'Xirod', sans-serif;
             color: #fff;
-            text-shadow: 
+            text-shadow:
                 0 0 5px rgba(74, 125, 255, 0.8),
                 0 0 10px rgba(74, 125, 255, 0.5),
                 0 0 15px rgba(74, 125, 255, 0.3);
@@ -57,20 +61,39 @@
             display: inline-block;
             animation: flicker-bulb 6s linear infinite;
         }
+
         @keyframes flicker-bulb {
-            0%,  8%,  10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
+
+            0%,
+            8%,
+            10%,
+            12%,
+            40%,
+            42%,
+            65%,
+            66%,
+            68%,
+            100% {
                 opacity: 1;
                 text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
             }
-            9%,  11%, 41%, 67% {
+
+            9%,
+            11%,
+            41%,
+            67% {
                 opacity: 0.08;
                 text-shadow: none;
             }
-            13%, 39% {
+
+            13%,
+            39% {
                 opacity: 0.5;
                 text-shadow: 0 0 4px #fff;
             }
-            64%, 69% {
+
+            64%,
+            69% {
                 opacity: 0.15;
                 text-shadow: none;
             }
@@ -94,19 +117,22 @@
     <link rel="stylesheet" href="../Css/profile.css">
     <!-- Redirect to visit-profile.html when a ?user= param is present -->
     <script>
-        (function () {
-            var params = new URLSearchParams(window.location.search);
-            var user = params.get('user');
-            if (user) {
-                window.location.replace(window.location.href.replace('profile.html', 'visit-profile.html'));
-            }
-        })();
+            (function () {
+                var params = new URLSearchParams(window.location.search);
+                var user = params.get('user');
+                if (user) {
+                    window.location.replace(window.location.href.replace('profile.html', 'visit-profile.html'));
+                }
+            })();
     </script>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex flex-col overflow-hidden">
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex flex-col overflow-hidden">
 
     <!-- Top Bar Navigation -->
-    <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
+    <header
+        class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
         <!-- Left: Brand & Main Nav -->
         <div class="flex items-center gap-10">
             <div class="flex items-center gap-3">
@@ -115,21 +141,26 @@
                     N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
                 </span>
             </div>
-            
+
             <nav id="top-nav" class="hidden xl:flex items-center gap-1">
-                <a href="../../Dashboard/Html/dashboard.html?view=catalog" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Dashboard/Html/dashboard.html?view=catalog"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">dashboard</span> CATALOG
                 </a>
-                <a href="../../Collections/Library/Html/library.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/Library/Html/library.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">stadia_controller</span> LIBRARY
                 </a>
-                <a href="../../Collections/Favorites/Html/favorites.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/Favorites/Html/favorites.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">favorite</span> FAVORITES
                 </a>
-                <a href="../../Collections/Wishlist/Html/wishlist.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/Wishlist/Html/wishlist.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">bookmark</span> WISHLIST
                 </a>
-                <a href="../../Collections/UserCollections/Html/collections.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/UserCollections/Html/collections.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">folder_special</span> COLLECTIONS
                 </a>
 
@@ -142,45 +173,55 @@
 
             <div class="flex items-center gap-4">
                 <div class="hidden md:flex flex-col items-end">
-                     <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">USER</span>
-                     <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
+                    <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">USER</span>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
                 </div>
 
-                    <div class="flex items-center gap-2">
-                        <a href="profile.html" class="group relative active-nav">
-                            <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
-                                <div id="display-avatar-header" class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
-                                     <span class="text-sm font-bold text-white uppercase">U</span>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Notification Bell -->
-                        <div class="relative" id="notif-wrapper">
-                            <button id="notification-btn" onclick="toggleNotifDropdown()"
-                                class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
-                                <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
-                                <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
-                            </button>
-                            
-                            <!-- Notif Dropdown -->
-                            <div id="notif-dropdown" class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
-                                <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                                    <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
-                                    <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
-                                </div>
-                                <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
-                                <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
-                                    <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                                    <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No pending requests</p>
-                                </div>
+                <div class="flex items-center gap-2">
+                    <a href="profile.html" class="group relative active-nav">
+                        <div
+                            class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                            <div id="display-avatar-header"
+                                class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                                <span class="text-sm font-bold text-white uppercase">U</span>
                             </div>
                         </div>
+                    </a>
 
-                        <button onclick="logout();" class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group" title="Logout">
-                            <span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
+                    <!-- Notification Bell -->
+                    <div class="relative" id="notif-wrapper">
+                        <button id="notification-btn" onclick="toggleNotifDropdown()"
+                            class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
+                            <span
+                                class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                            <span id="notif-badge"
+                                class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
                         </button>
+
+                        <!-- Notif Dropdown -->
+                        <div id="notif-dropdown"
+                            class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
+                            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend
+                                    Requests</h3>
+                                <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
+                            </div>
+                            <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
+                            <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
+                                <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
+                                <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No
+                                    pending requests</p>
+                            </div>
+                        </div>
                     </div>
+
+                    <button onclick="logout();"
+                        class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group"
+                        title="Logout">
+                        <span
+                            class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -189,8 +230,8 @@
     <main class="flex-1 flex flex-col h-full min-h-0 relative overflow-hidden">
         <!-- Background Image with Overlay -->
         <div class="absolute inset-0 z-0 pointer-events-none">
-             <div class="absolute inset-0 bg-[#0f2023]/90 z-10"></div>
-             <img src="../../Assets/Images/Bg1.jpg" class="w-full h-full object-cover opacity-30">
+            <div class="absolute inset-0 bg-[#0f2023]/90 z-10"></div>
+            <img src="../../Assets/Images/Bg1.jpg" class="w-full h-full object-cover opacity-30">
         </div>
 
         <!-- Profile View -->
@@ -198,102 +239,168 @@
             <!-- Hidden File Input for Avatar -->
             <input type="file" id="avatar-input" class="hidden" accept="image/*">
             <input type="file" id="banner-input" class="hidden" accept="image/*">
-            
+
             <!-- Upper Part (Profile Header) -->
             <div class="profile-header-stage w-full px-4 sm:px-6 lg:px-10 pt-10 pb-12 relative z-20">
                 <div class="absolute inset-0 z-0 pointer-events-none">
                     <div class="profile-header-backdrop absolute inset-0"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0a1618] via-[#0a1618]/55 to-transparent"></div>
-                    <div class="absolute -top-24 right-12 w-[26rem] h-[26rem] rounded-full bg-primary/15 blur-[140px]"></div>
+                    <div class="absolute -top-24 right-12 w-[26rem] h-[26rem] rounded-full bg-primary/15 blur-[140px]">
+                    </div>
                     <div class="absolute bottom-0 left-24 w-80 h-80 rounded-full bg-sky-500/10 blur-[120px]"></div>
                 </div>
 
-                <section class="profile-hero-shell relative z-10 w-full max-w-7xl mx-auto rounded-[2rem] border border-cyan-400/20 bg-[#081416]/38 backdrop-blur-2xl">
-                    <div class="profile-grid-overlay absolute inset-0 rounded-[2rem] opacity-50 pointer-events-none"></div>
-                    <div class="absolute -top-20 -left-16 w-56 h-56 rounded-full bg-cyan-400/20 blur-[120px] pointer-events-none"></div>
+                <section
+                    class="profile-hero-shell relative z-10 w-full max-w-7xl mx-auto rounded-[2rem] border border-cyan-400/20 bg-[#081416]/38 backdrop-blur-2xl">
+                    <div class="profile-grid-overlay absolute inset-0 rounded-[2rem] opacity-50 pointer-events-none">
+                    </div>
+                    <div
+                        class="absolute -top-20 -left-16 w-56 h-56 rounded-full bg-cyan-400/20 blur-[120px] pointer-events-none">
+                    </div>
 
                     <div class="relative p-6 md:p-8 lg:p-10">
-                        <div class="grid grid-cols-1 xl:grid-cols-[auto_minmax(0,1fr)_auto] gap-8 lg:gap-10 items-start">
+                        <div
+                            class="flex flex-col md:flex-row gap-8 lg:gap-10 items-center md:items-start text-center md:text-left">
                             <!-- Avatar Container -->
-                            <div class="relative group shrink-0 profile-view-container place-self-center xl:place-self-start">
-                                <div class="profile-avatar-frame h-44 w-44 sm:h-48 sm:w-48 rounded-[1.75rem] overflow-hidden border border-primary/60 shadow-[0_0_40px_rgba(13,242,242,0.25)] bg-[#0e1a1c] relative">
-                                    <img src="../../Assets/Images/avatar-placeholder.jpg" id="profile-avatar-img" class="h-full w-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=User&background=080f0f&color=0df2f2&size=200'">
+                            <div
+                                class="relative group shrink-0 profile-view-container place-self-center xl:place-self-start">
+                                <div
+                                    class="profile-avatar-frame h-44 w-44 sm:h-48 sm:w-48 rounded-[1.75rem] overflow-hidden border border-primary/60 shadow-[0_0_40px_rgba(13,242,242,0.25)] bg-[#0e1a1c] relative">
+                                    <img src="../../Assets/Images/avatar-placeholder.jpg" id="profile-avatar-img"
+                                        class="h-full w-full object-cover"
+                                        onerror="this.src='https://ui-avatars.com/api/?name=User&background=080f0f&color=0df2f2&size=200'">
                                     <!-- Edit Overlay for Avatar -->
-                                    <div id="avatar-edit-icon" class="hidden absolute inset-0 bg-black/40 items-center justify-center cursor-pointer group-hover:bg-black/60 transition-all" onclick="document.getElementById('avatar-input').click()">
+                                    <div id="avatar-edit-icon"
+                                        class="hidden absolute inset-0 bg-black/40 items-center justify-center cursor-pointer group-hover:bg-black/60 transition-all"
+                                        onclick="document.getElementById('avatar-input').click()">
                                         <span class="material-symbols-outlined text-white text-4xl">photo_camera</span>
                                     </div>
                                 </div>
-                                <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 h-11 px-5 rounded-xl bg-gradient-to-r from-primary to-cyan-300 text-[#042124] border border-cyan-200/60 shadow-xl shadow-primary/30 flex items-center justify-center">
-                                    <span class="xirod-font text-[11px] whitespace-nowrap font-black tracking-widest">LVL 42</span>
+                                <div
+                                    class="absolute -bottom-4 left-1/2 -translate-x-1/2 h-11 px-5 rounded-xl bg-gradient-to-r from-primary to-cyan-300 text-[#042124] border border-cyan-200/60 shadow-xl shadow-primary/30 flex items-center justify-center">
+                                    <span
+                                        class="xirod-font text-[11px] whitespace-nowrap font-black tracking-widest">LVL
+                                        42</span>
                                 </div>
                             </div>
 
                             <!-- User Info Section -->
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-4 md:gap-5 mb-3 group/name relative">
-                                    <h1 id="profile-username" class="text-4xl sm:text-5xl lg:text-6xl font-black neon-username tracking-wide uppercase leading-none transition-all duration-300 outline-none" contenteditable="false">USER</h1>
-                                    <span id="name-edit-icon" class="hidden material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform text-2xl" title="Edit name" onclick="document.getElementById('profile-username').focus()">edit</span>
+                                    <h1 id="profile-username"
+                                        class="text-4xl sm:text-5xl lg:text-6xl font-black neon-username tracking-wide uppercase leading-none transition-all duration-300 outline-none"
+                                        contenteditable="false">USER</h1>
+                                    <span id="name-edit-icon"
+                                        class="hidden material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform text-2xl"
+                                        title="Edit name"
+                                        onclick="document.getElementById('profile-username').focus()">edit</span>
                                 </div>
 
                                 <div class="group/bio relative mb-8 max-w-3xl">
-                                    <p id="profile-bio" class="text-slate-300 font-display text-base md:text-lg leading-relaxed opacity-90 outline-none transition-all duration-300 tracking-wide" contenteditable="false">
+                                    <p id="profile-bio"
+                                        class="text-slate-300 font-display text-base md:text-lg leading-relaxed opacity-90 outline-none transition-all duration-300 tracking-wide"
+                                        contenteditable="false">
                                         ...
                                     </p>
-                                    <span id="bio-edit-icon" class="hidden absolute top-0 -right-8 material-symbols-outlined text-primary/60 cursor-pointer hover:text-primary transition-colors text-xl" title="Edit bio" onclick="document.getElementById('profile-bio').focus()">edit_note</span>
+                                    <span id="bio-edit-icon"
+                                        class="hidden absolute top-0 -right-8 material-symbols-outlined text-primary/60 cursor-pointer hover:text-primary transition-colors text-xl"
+                                        title="Edit bio"
+                                        onclick="document.getElementById('profile-bio').focus()">edit_note</span>
                                 </div>
 
                                 <!-- Stats Bar -->
                                 <div class="profile-stats-grid grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
-                                    <div id="stat-box-owned" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="switchCarouselView('owned')">
-                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Owned</p>
+                                    <div id="stat-box-owned"
+                                        class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box"
+                                        onclick="switchCarouselView('owned')">
+                                        <p
+                                            class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">
+                                            Owned</p>
                                         <p class="text-3xl font-black text-white" id="stat-owned">0</p>
                                     </div>
 
-                                    <div id="stat-box-favorite" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="switchCarouselView('favorite')">
-                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Favorite</p>
+                                    <div id="stat-box-favorite"
+                                        class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box"
+                                        onclick="switchCarouselView('favorite')">
+                                        <p
+                                            class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">
+                                            Favorite</p>
                                         <p class="text-3xl font-black text-white" id="stat-favorite">0</p>
                                     </div>
 
-                                    <div id="stat-box-wishlist" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="switchCarouselView('wishlist')">
-                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Wishlisted</p>
+                                    <div id="stat-box-wishlist"
+                                        class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box"
+                                        onclick="switchCarouselView('wishlist')">
+                                        <p
+                                            class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">
+                                            Wishlisted</p>
                                         <p class="text-3xl font-black text-white" id="stat-wishlisted">0</p>
                                     </div>
 
-                                    <div id="stat-box-completed" class="profile-stat-card text-center py-4 px-3 relative group cursor-pointer transition-all stat-box" onclick="switchCarouselView('completed')">
+                                    <div id="stat-box-completed"
+                                        class="profile-stat-card text-center py-4 px-3 relative group cursor-pointer transition-all stat-box"
+                                        onclick="switchCarouselView('completed')">
                                         <div class="transition-all group/stat">
-                                            <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Completed</p>
+                                            <p
+                                                class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">
+                                                Completed</p>
                                             <div class="flex items-center justify-center gap-2">
                                                 <p class="text-3xl font-black text-white" id="stat-completed">0</p>
-                                                <span class="material-symbols-outlined text-[18px] text-slate-500 rotate-180 group-hover:text-primary group-hover:rotate-0 transition-all duration-300">expand_circle_down</span>
+                                                <span
+                                                    class="material-symbols-outlined text-[18px] text-slate-500 rotate-180 group-hover:text-primary group-hover:rotate-0 transition-all duration-300">expand_circle_down</span>
                                             </div>
                                         </div>
 
                                         <!-- Others Popup -->
-                                        <div id="other-stats-popup" onclick="event.stopPropagation()" class="opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute top-[calc(100%+14px)] left-1/2 -translate-x-1/2 w-56 bg-[#071013]/95 border border-[#1e293b] rounded-xl p-5 backdrop-blur-3xl z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 before:content-[''] before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
+                                        <div id="other-stats-popup" onclick="event.stopPropagation()"
+                                            class="opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute top-[calc(100%+14px)] left-1/2 -translate-x-1/2 w-56 bg-[#071013]/95 border border-[#1e293b] rounded-xl p-5 backdrop-blur-3xl z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 before:content-[''] before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
                                             <div class="space-y-4">
-                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('playing')">
-                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-primary transition-colors">PLAYING</span>
-                                                    <span class="text-lg font-bold text-white group-hover/item:text-primary transition-colors" id="stat-playing">0</span>
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item"
+                                                    onclick="switchCarouselView('playing')">
+                                                    <span
+                                                        class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-primary transition-colors">PLAYING</span>
+                                                    <span
+                                                        class="text-lg font-bold text-white group-hover/item:text-primary transition-colors"
+                                                        id="stat-playing">0</span>
                                                 </div>
-                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item" onclick="switchCarouselView('dropped')">
-                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-rose-400 transition-colors">DROPPED</span>
-                                                    <span class="text-lg font-bold text-white group-hover/item:text-rose-400 transition-colors" id="stat-dropped">0</span>
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:pl-4 group/item"
+                                                    onclick="switchCarouselView('dropped')">
+                                                    <span
+                                                        class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-rose-400 transition-colors">DROPPED</span>
+                                                    <span
+                                                        class="text-lg font-bold text-white group-hover/item:text-rose-400 transition-colors"
+                                                        id="stat-dropped">0</span>
                                                 </div>
-                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-orange-400/10 hover:border-l-2 hover:border-orange-400 hover:pl-4 group/item" onclick="switchCarouselView('onhold')">
-                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-orange-400 transition-colors">ON HOLD</span>
-                                                    <span class="text-lg font-bold text-white group-hover/item:text-orange-400 transition-colors" id="stat-onhold">0</span>
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-orange-400/10 hover:border-l-2 hover:border-orange-400 hover:pl-4 group/item"
+                                                    onclick="switchCarouselView('onhold')">
+                                                    <span
+                                                        class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-orange-400 transition-colors">ON
+                                                        HOLD</span>
+                                                    <span
+                                                        class="text-lg font-bold text-white group-hover/item:text-orange-400 transition-colors"
+                                                        id="stat-onhold">0</span>
                                                 </div>
-                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-slate-400/10 hover:border-l-2 hover:border-slate-400 hover:pl-4 group/item" onclick="switchCarouselView('pending')">
-                                                    <span class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-slate-300 transition-colors">PENDING</span>
-                                                    <span class="text-lg font-bold text-white group-hover/item:text-slate-300 transition-colors" id="stat-pending">0</span>
+                                                <div class="flex justify-between items-center cursor-pointer transition-all px-3 py-2 -mx-3 rounded-lg hover:bg-slate-400/10 hover:border-l-2 hover:border-slate-400 hover:pl-4 group/item"
+                                                    onclick="switchCarouselView('pending')">
+                                                    <span
+                                                        class="text-[10px] xirod-font text-slate-400 tracking-wider group-hover/item:text-slate-300 transition-colors">PENDING</span>
+                                                    <span
+                                                        class="text-lg font-bold text-white group-hover/item:text-slate-300 transition-colors"
+                                                        id="stat-pending">0</span>
                                                 </div>
                                             </div>
-                                            <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#071013] border-l border-t border-[#1e293b] rotate-45"></div>
+                                            <div
+                                                class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#071013] border-l border-t border-[#1e293b] rotate-45">
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div id="stat-box-friends" class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box" onclick="navigateToFriendsPage()">
-                                        <p class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">Friends</p>
+                                    <div id="stat-box-friends"
+                                        class="profile-stat-card text-center py-4 px-3 cursor-pointer transition-all group/stat stat-box"
+                                        onclick="navigateToFriendsPage()">
+                                        <p
+                                            class="text-[10px] xirod-font text-slate-400 uppercase tracking-[0.22em] mb-2 group-hover/stat:text-primary transition-colors">
+                                            Friends</p>
                                         <p class="text-3xl font-black text-white" id="stat-friends">0</p>
                                     </div>
                                 </div>
@@ -301,14 +408,20 @@
 
                             <!-- Right Actions -->
                             <div class="xl:pt-1">
-                                <div class="profile-actions-wrap flex flex-wrap xl:flex-col items-center xl:items-stretch gap-3 w-full xl:w-auto">
-                                    <div id="profile-edit-controls" class="profile-edit-controls flex flex-col gap-2 items-end xl:items-stretch w-full sm:w-auto" aria-hidden="true">
-                                        <button id="banner-edit-btn" type="button" class="h-10 w-36 rounded-xl bg-[#0f2023]/70 border border-cyan-400/30 text-primary text-[10px] xirod-font tracking-wider flex items-center justify-center gap-2 hover:bg-[#153136]/80 hover:border-cyan-300/60 transition-all" onclick="document.getElementById('banner-input').click()">
+                                <div
+                                    class="profile-actions-wrap flex flex-wrap xl:flex-col items-center xl:items-stretch gap-3 w-full xl:w-auto">
+                                    <div id="profile-edit-controls"
+                                        class="profile-edit-controls flex flex-col gap-2 items-end xl:items-stretch w-full sm:w-auto"
+                                        aria-hidden="true">
+                                        <button id="banner-edit-btn" type="button"
+                                            class="h-10 w-36 rounded-xl bg-[#0f2023]/70 border border-cyan-400/30 text-primary text-[10px] xirod-font tracking-wider flex items-center justify-center gap-2 hover:bg-[#153136]/80 hover:border-cyan-300/60 transition-all"
+                                            onclick="document.getElementById('banner-input').click()">
                                             <span class="material-symbols-outlined text-[18px]">image</span>
                                             <span>BANNER</span>
                                         </button>
 
-                                        <label id="rect-transparency-wrap" title="Toggle glass transparency" class="h-10 w-36 px-3 rounded-xl bg-[#0f2023]/70 border border-cyan-400/30 text-primary text-[10px] xirod-font tracking-wider flex items-center justify-between gap-2 select-none cursor-pointer hover:bg-[#153136]/80 hover:border-cyan-300/60 transition-all">
+                                        <label id="rect-transparency-wrap" title="Toggle glass transparency"
+                                            class="h-10 w-36 px-3 rounded-xl bg-[#0f2023]/70 border border-cyan-400/30 text-primary text-[10px] xirod-font tracking-wider flex items-center justify-between gap-2 select-none cursor-pointer hover:bg-[#153136]/80 hover:border-cyan-300/60 transition-all">
                                             <span class="material-symbols-outlined text-[16px]">contrast</span>
                                             <div class="rect-toggle-switch">
                                                 <input id="rect-transparency-toggle" type="checkbox">
@@ -317,13 +430,16 @@
                                         </label>
                                     </div>
 
-                                    <button id="add-friend-btn" class="hidden h-14 px-7 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg w-auto">
+                                    <button id="add-friend-btn"
+                                        class="hidden h-14 px-7 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider shadow-lg w-auto">
                                         <span class="material-symbols-outlined text-[20px]">person_add</span>
                                         <span>ADD FRIEND</span>
                                     </button>
 
-                                    <button id="edit-profile-btn" class="h-14 px-8 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider group shadow-lg shadow-primary/5 w-auto">
-                                        <span id="edit-btn-icon" class="material-symbols-outlined text-[20px]">edit</span>
+                                    <button id="edit-profile-btn"
+                                        class="h-14 px-8 rounded-2xl bg-primary/20 border border-primary/40 text-primary font-black hover:bg-primary/30 transition-all flex items-center gap-3 xirod-font text-[12px] uppercase tracking-wider group shadow-lg shadow-primary/5 w-auto">
+                                        <span id="edit-btn-icon"
+                                            class="material-symbols-outlined text-[20px]">edit</span>
                                         <span id="edit-btn-text">EDIT</span>
                                     </button>
                                 </div>
@@ -334,34 +450,39 @@
             </div>
 
             <!-- Lower Part -->
-              <div class="p-8 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
-                 <div class="max-w-7xl mx-auto">
+            <div
+                class="p-8 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+                <div class="max-w-7xl mx-auto">
                     <!-- Library Snapshot Header -->
                     <section class="mb-12">
                         <div class="flex justify-between items-end mb-8">
                             <div>
-                                <h2 id="carousel-title" class="text-4xl font-black text-slate-100 tracking-tight">a Quick Look To Your Favorite Games</h2>
+                                <h2 id="carousel-title" class="text-4xl font-black text-slate-100 tracking-tight">a
+                                    Quick Look To Your Favorite Games</h2>
                             </div>
                             <div class="flex gap-4">
                                 <div class="glass-panel px-6 py-3 rounded-xl text-center">
-                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">TOTAL GAMES</p>
+                                    <p
+                                        class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">
+                                        TOTAL GAMES</p>
                                     <p class="text-2xl font-bold text-primary" id="snapshot-total-games">40</p>
-                                </div>
-                                <div class="glass-panel px-6 py-3 rounded-xl text-center">
-                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">AVERAGE HOURS</p>
-                                    <p class="text-2xl font-bold text-primary" id="snapshot-total-hours">1,331</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 3D Carousel Simulation -->
-                        <div id="carousel-wrapper" class="relative w-full max-w-6xl mx-auto h-[600px] flex items-center justify-center perspective-container py-10 overflow-visible group/carousel">
+                        <div id="carousel-wrapper"
+                            class="relative w-full max-w-6xl mx-auto h-[600px] flex items-center justify-center perspective-container py-10 overflow-visible group/carousel">
                             <!-- Ambient Glow Effect -->
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-96 bg-primary/10 blur-[120px] rounded-full -z-10 pointer-events-none"></div>
+                            <div
+                                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-96 bg-primary/10 blur-[120px] rounded-full -z-10 pointer-events-none">
+                            </div>
 
                             <!-- Cards will be dynamically injected by JS -->
                             <div class="text-primary/20 flex flex-col items-center">
-                                <div class="w-12 h-12 border-4 border-slate-700 border-t-primary rounded-full animate-spin mb-4"></div>
+                                <div
+                                    class="w-12 h-12 border-4 border-slate-700 border-t-primary rounded-full animate-spin mb-4">
+                                </div>
                                 <p class="xirod-font text-[10px]">Accessing Library Architecture...</p>
                             </div>
                         </div>
@@ -372,116 +493,150 @@
                         <!-- Genre Row: Distribution + Radar -->
                         <div class="grid grid-cols-12 gap-6 mb-8">
 
-                        <!-- Genre Breakdown -->
-                        <div id="genre-breakdown-container" class="col-span-12 lg:col-span-7 glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden">
-                            <div class="flex justify-between items-start mb-5">
-                                <div>
-                                    <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Distribution</h3>
-                                    <p class="text-sm text-slate-500">Breakdown by library volume</p>
+                            <!-- Genre Breakdown -->
+                            <div id="genre-breakdown-container"
+                                class="col-span-12 lg:col-span-7 glass-panel rounded-2xl p-6 glow-border transition-all duration-500 ease-in-out overflow-hidden">
+                                <div class="flex justify-between items-start mb-5">
+                                    <div>
+                                        <h3
+                                            class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">
+                                            Genre Distribution</h3>
+                                        <p class="text-sm text-slate-500">Breakdown by library volume</p>
+                                    </div>
+                                    <button id="toggle-genre-report" onclick="toggleGenreReport()"
+                                        class="text-primary text-[10px] xirod-font font-bold flex items-center gap-2 hover:translate-x-1 transition-all group">
+                                        <span id="genre-report-text">VIEW FULL REPORT</span> <span
+                                            id="genre-report-icon"
+                                            class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+                                    </button>
                                 </div>
-                                <button id="toggle-genre-report" onclick="toggleGenreReport()" class="text-primary text-[10px] xirod-font font-bold flex items-center gap-2 hover:translate-x-1 transition-all group">
-                                    <span id="genre-report-text">VIEW FULL REPORT</span> <span id="genre-report-icon" class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
-                                </button>
-                            </div>
-                            <div id="genre-content" class="flex items-start gap-8 transition-all duration-500">
-                                <!-- Dynamic Donut Chart -->
-                                <div class="relative w-36 h-36 flex-shrink-0 self-start sticky top-0">
-                                    <svg id="genre-donut-svg" class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                        <circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b" stroke-width="3.5"></circle>
-                                    </svg>
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span class="text-2xl font-black text-slate-100 leading-none" id="top-genre-label">—</span>
-                                        <span class="text-[9px] text-slate-500 uppercase tracking-tighter xirod-font">TOP GENRE</span>
+                                <div id="genre-content" class="flex items-start gap-8 transition-all duration-500">
+                                    <!-- Dynamic Donut Chart -->
+                                    <div class="relative w-36 h-36 flex-shrink-0 self-start sticky top-0">
+                                        <svg id="genre-donut-svg" class="w-full h-full transform -rotate-90"
+                                            viewBox="0 0 36 36">
+                                            <circle cx="18" cy="18" fill="transparent" r="16" stroke="#1e292b"
+                                                stroke-width="3.5"></circle>
+                                        </svg>
+                                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span class="text-2xl font-black text-slate-100 leading-none"
+                                                id="top-genre-label">—</span>
+                                            <span
+                                                class="text-[9px] text-slate-500 uppercase tracking-tighter xirod-font">TOP
+                                                GENRE</span>
+                                        </div>
+                                    </div>
+                                    <!-- Progress-bar genre list -->
+                                    <div id="genre-bar-list" class="flex-1 flex flex-col gap-3">
+                                        <!-- Dynamically populated -->
                                     </div>
                                 </div>
-                                <!-- Progress-bar genre list -->
-                                <div id="genre-bar-list" class="flex-1 flex flex-col gap-3">
+                                <!-- Full-width breakdown section -->
+                                <div id="genre-full-breakdown" class="mt-1">
                                     <!-- Dynamically populated -->
                                 </div>
                             </div>
-                            <!-- Full-width breakdown section -->
-                            <div id="genre-full-breakdown" class="mt-1">
-                                <!-- Dynamically populated -->
-                            </div>
-                        </div>
 
-                        <!-- Genre Radar -->
-                        <div class="col-span-12 lg:col-span-5 glass-panel rounded-2xl p-6 border border-primary/10 flex flex-col gap-4">
-                            <div>
-                                <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">Genre Radar</h3>
-                                <p class="text-sm text-slate-500">Top genres visualised</p>
-                            </div>
-                            <div class="flex justify-center flex-1 items-center">
-                                <svg id="genre-radar-svg" viewBox="0 0 310 310" class="w-full max-w-[280px]">
+                            <!-- Genre Radar -->
+                            <div
+                                class="col-span-12 lg:col-span-5 glass-panel rounded-2xl p-6 border border-primary/10 flex flex-col gap-4">
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-100 xirod-font uppercase tracking-wider">
+                                        Genre Radar</h3>
+                                    <p class="text-sm text-slate-500">Top genres visualised</p>
+                                </div>
+                                <div class="flex justify-center flex-1 items-center">
+                                    <svg id="genre-radar-svg" viewBox="0 0 310 310" class="w-full max-w-[280px]">
+                                        <!-- Dynamically populated by JS -->
+                                    </svg>
+                                </div>
+                                <div id="genre-radar-stats"
+                                    class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-700/50">
                                     <!-- Dynamically populated by JS -->
-                                </svg>
+                                </div>
                             </div>
-                            <div id="genre-radar-stats" class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-700/50">
-                                <!-- Dynamically populated by JS -->
-                            </div>
-                        </div>
 
                         </div><!-- end genre row grid -->
 
                         <!-- Recently Added — 3 Widgets -->
                         <div class="flex items-center gap-3 mb-2">
-                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Your Recent Activity</h2>
+                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Your Recent
+                                Activity</h2>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                             <!-- Library Widget -->
                             <div class="glass-panel rounded-2xl p-5 glow-border flex flex-col gap-4">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
-                                        <span class="material-symbols-outlined text-primary text-[18px]">inventory_2</span>
+                                    <h3
+                                        class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span
+                                            class="material-symbols-outlined text-primary text-[18px]">inventory_2</span>
                                         Library
                                     </h3>
-                                    <a href="../../Collections/Library/Html/library.html" class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all">
+                                    <a href="../../Collections/Library/Html/library.html"
+                                        class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all">
                                         ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
                                     </a>
                                 </div>
                                 <div class="flex flex-col gap-2.5" id="recent-activity-list">
                                     <div class="flex gap-3 items-center opacity-40">
                                         <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
-                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                        <div class="flex-1">
+                                            <div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div>
+                                            <div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Favorites Widget -->
-                            <div class="glass-panel rounded-2xl p-5 border border-red-500/10 flex flex-col gap-4 transition-all duration-300 hover:border-red-500/40 hover:shadow-[0_0_24px_rgba(239,68,68,0.12)]">
+                            <div
+                                class="glass-panel rounded-2xl p-5 border border-red-500/10 flex flex-col gap-4 transition-all duration-300 hover:border-red-500/40 hover:shadow-[0_0_24px_rgba(239,68,68,0.12)]">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                    <h3
+                                        class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
                                         <span class="material-symbols-outlined text-red-400 text-[18px]">favorite</span>
                                         Favorites
                                     </h3>
-                                    <a href="../../Collections/Favorites/Html/favorites.html" class="text-[10px] xirod-font text-red-400/60 hover:text-red-400 flex items-center gap-0.5 transition-all">
+                                    <a href="../../Collections/Favorites/Html/favorites.html"
+                                        class="text-[10px] xirod-font text-red-400/60 hover:text-red-400 flex items-center gap-0.5 transition-all">
                                         ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
                                     </a>
                                 </div>
                                 <div class="flex flex-col gap-2.5" id="recent-favorites-list">
                                     <div class="flex gap-3 items-center opacity-40">
                                         <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
-                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                        <div class="flex-1">
+                                            <div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div>
+                                            <div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Wishlist Widget -->
-                            <div class="glass-panel rounded-2xl p-5 border border-blue-400/10 flex flex-col gap-4 transition-all duration-300 hover:border-blue-400/40 hover:shadow-[0_0_24px_rgba(96,165,250,0.12)]">
+                            <div
+                                class="glass-panel rounded-2xl p-5 border border-blue-400/10 flex flex-col gap-4 transition-all duration-300 hover:border-blue-400/40 hover:shadow-[0_0_24px_rgba(96,165,250,0.12)]">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
-                                        <span class="material-symbols-outlined text-blue-400 text-[18px]">bookmark</span>
+                                    <h3
+                                        class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                        <span
+                                            class="material-symbols-outlined text-blue-400 text-[18px]">bookmark</span>
                                         Wishlist
                                     </h3>
-                                    <a href="../../Collections/Wishlist/Html/wishlist.html" class="text-[10px] xirod-font text-blue-400/60 hover:text-blue-400 flex items-center gap-0.5 transition-all">
+                                    <a href="../../Collections/Wishlist/Html/wishlist.html"
+                                        class="text-[10px] xirod-font text-blue-400/60 hover:text-blue-400 flex items-center gap-0.5 transition-all">
                                         ALL <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
                                     </a>
                                 </div>
                                 <div class="flex flex-col gap-2.5" id="recent-wishlist-list">
                                     <div class="flex gap-3 items-center opacity-40">
                                         <div class="size-12 rounded-lg bg-slate-800 animate-pulse flex-shrink-0"></div>
-                                        <div class="flex-1"><div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div><div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div></div>
+                                        <div class="flex-1">
+                                            <div class="h-3 bg-slate-800 rounded w-3/4 mb-2 animate-pulse"></div>
+                                            <div class="h-2 bg-slate-800 rounded w-1/2 animate-pulse"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -492,7 +647,8 @@
                     <!-- Collections Section -->
                     <section class="mb-12">
                         <div class="flex items-center gap-3 mb-5">
-                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Collections</h2>
+                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Collections
+                            </h2>
                         </div>
                         <div id="recent-collections-list" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                             <!-- Dynamically populated -->
@@ -502,46 +658,60 @@
                     <!-- Recent Reviews -->
                     <section class="mb-12">
                         <div class="flex items-center gap-3 mb-5">
-                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Recent Reviews</h2>
+                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Recent
+                                Reviews</h2>
                         </div>
                         <div id="recent-reviews-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <!-- Dynamically populated -->
                         </div>
                     </section>
-+
-                     <!-- Friends Widget -->
+                    <!-- Friends Widget -->
                     <section class="mb-12" id="friends-section">
-                        <div class="glass-panel rounded-2xl p-6 border border-primary/10 transition-all duration-300 hover:border-primary/30">
-                            <div class="flex justify-between items-center mb-5">
-                                <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">group</span>
-                                    Friends
-                                    <span class="ml-1 text-primary" id="friends-count-header"></span>
-                                </h3>
-                                <a id="friends-show-all" href="#" class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all group">
-                                    SHOW ALL <span class="material-symbols-outlined text-[13px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
-                                </a>
-                            </div>
+                        <div class="flex justify-between items-center mb-5">
+                            <h3
+                                class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                <span class="material-symbols-outlined text-primary text-[18px]">group</span>
+                                Friends
+                                <span class="ml-1 text-primary" id="friends-count-header"></span>
+                            </h3>
+                            <a id="friends-show-all" href="#"
+                                class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all group">
+                                SHOW ALL <span
+                                    class="material-symbols-outlined text-[13px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                            </a>
+                        </div>
+                        <div
+                            class="glass-panel rounded-2xl p-6 border border-primary/10 transition-all duration-300 hover:border-primary/30">
                             <!-- Friends preview row -->
                             <div id="friends-preview-list" class="flex items-center gap-5 flex-wrap">
                                 <!-- Skeleton -->
                                 <div class="flex gap-5 items-end opacity-30">
-                                    <div class="flex flex-col items-center gap-1.5"><div class="h-14 w-14 rounded-full bg-slate-800 animate-pulse"></div><div class="h-2 w-10 bg-slate-800 rounded animate-pulse"></div></div>
-                                    <div class="flex flex-col items-center gap-1.5"><div class="h-14 w-14 rounded-full bg-slate-800 animate-pulse"></div><div class="h-2 w-10 bg-slate-800 rounded animate-pulse"></div></div>
-                                    <div class="flex flex-col items-center gap-1.5"><div class="h-14 w-14 rounded-full bg-slate-800 animate-pulse"></div><div class="h-2 w-10 bg-slate-800 rounded animate-pulse"></div></div>
+                                    <div class="flex flex-col items-center gap-1.5">
+                                        <div class="h-14 w-14 rounded-full bg-slate-800 animate-pulse"></div>
+                                        <div class="h-2 w-10 bg-slate-800 rounded animate-pulse"></div>
+                                    </div>
+                                    <div class="flex flex-col items-center gap-1.5">
+                                        <div class="h-14 w-14 rounded-full bg-slate-800 animate-pulse"></div>
+                                        <div class="h-2 w-10 bg-slate-800 rounded animate-pulse"></div>
+                                    </div>
+                                    <div class="flex flex-col items-center gap-1.5">
+                                        <div class="h-14 w-14 rounded-full bg-slate-800 animate-pulse"></div>
+                                        <div class="h-2 w-10 bg-slate-800 rounded animate-pulse"></div>
+                                    </div>
                                 </div>
                             </div>
                             <!-- Empty state -->
                             <div id="friends-empty" class="hidden text-center py-4">
-                                <span class="material-symbols-outlined text-3xl text-slate-700 block mb-2">group_off</span>
+                                <span
+                                    class="material-symbols-outlined text-3xl text-slate-700 block mb-2">group_off</span>
                                 <p class="text-xs xirod-font text-slate-600 uppercase tracking-wider">No friends yet</p>
                             </div>
                         </div>
                     </section>
 
-                 </div>
+                </div>
             </div>
-            
+
             <!-- Footer -->
             <footer class="mt-auto py-6 border-t border-[#1e293b]/50 text-center z-10">
                 <p class="text-xs text-slate-600">© 2026 N3M Library.</p>
@@ -553,9 +723,10 @@
     <div id="edit-profile-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeEditModal()"></div>
-        
+
         <!-- Modal Content -->
-        <div class="relative w-full max-w-xl bg-surface-dark border border-slate-800 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div
+            class="relative w-full max-w-xl bg-surface-dark border border-slate-800 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
             <div class="p-8">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-2xl font-bold text-white xirod-font tracking-tight">Edit Profile</h2>
@@ -566,20 +737,25 @@
 
                 <form id="edit-profile-form" class="space-y-6">
                     <div class="space-y-2">
-                        <label class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest">Display Name</label>
-                        <input type="text" name="displayName" id="edit-display-name" class="w-full h-14 bg-input-bg border border-input-border rounded-xl px-5 text-white focus:outline-none focus:border-primary transition-colors">
+                        <label class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest">Display
+                            Name</label>
+                        <input type="text" name="displayName" id="edit-display-name"
+                            class="w-full h-14 bg-input-bg border border-input-border rounded-xl px-5 text-white focus:outline-none focus:border-primary transition-colors">
                     </div>
 
                     <div class="space-y-2">
                         <label class="text-[10px] xirod-font text-slate-500 uppercase tracking-widest">Bio</label>
-                        <textarea name="bio" id="edit-bio" rows="4" class="w-full bg-input-bg border border-input-border rounded-xl p-5 text-white focus:outline-none focus:border-primary transition-colors resize-none"></textarea>
+                        <textarea name="bio" id="edit-bio" rows="4"
+                            class="w-full bg-input-bg border border-input-border rounded-xl p-5 text-white focus:outline-none focus:border-primary transition-colors resize-none"></textarea>
                     </div>
 
                     <div class="flex gap-4 pt-4">
-                        <button type="button" onclick="closeEditModal()" class="flex-1 h-14 rounded-2xl border border-slate-800 text-slate-400 font-bold hover:bg-slate-800 transition-all">
+                        <button type="button" onclick="closeEditModal()"
+                            class="flex-1 h-14 rounded-2xl border border-slate-800 text-slate-400 font-bold hover:bg-slate-800 transition-all">
                             CANCEL
                         </button>
-                        <button type="submit" id="save-profile-btn" class="flex-[2] h-14 rounded-2xl bg-primary text-[#080f0f] font-bold hover:bg-white transition-all xirod-font text-[12px]">
+                        <button type="submit" id="save-profile-btn"
+                            class="flex-[2] h-14 rounded-2xl bg-primary text-[#080f0f] font-bold hover:bg-white transition-all xirod-font text-[12px]">
                             SAVE CHANGES
                         </button>
                     </div>
@@ -605,4 +781,5 @@
         });
     </script>
 </body>
+
 </html>

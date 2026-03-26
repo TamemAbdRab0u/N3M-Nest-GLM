@@ -54,10 +54,12 @@
     </script>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex flex-col overflow-hidden">
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-200 font-body h-screen flex flex-col overflow-hidden">
 
     <!-- Top Bar Navigation -->
-    <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
+    <header
+        class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
         <!-- Left: Brand & Main Nav -->
         <div class="flex items-center gap-10">
             <div class="flex items-center gap-3">
@@ -68,19 +70,24 @@
             </div>
 
             <nav id="top-nav" class="hidden xl:flex items-center gap-1">
-                <a href="../../Dashboard/Html/dashboard.html?view=catalog" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Dashboard/Html/dashboard.html?view=catalog"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">dashboard</span> CATALOG
                 </a>
-                <a href="../../Collections/Library/Html/library.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/Library/Html/library.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">stadia_controller</span> LIBRARY
                 </a>
-                <a href="../../Collections/Favorites/Html/favorites.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/Favorites/Html/favorites.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">favorite</span> FAVORITES
                 </a>
-                <a href="../../Collections/Wishlist/Html/wishlist.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/Wishlist/Html/wishlist.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">bookmark</span> WISHLIST
                 </a>
-                <a href="../../Collections/UserCollections/Html/collections.html" class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
+                <a href="../../Collections/UserCollections/Html/collections.html"
+                    class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">folder_special</span> COLLECTIONS
                 </a>
 
@@ -99,8 +106,10 @@
 
                 <div class="flex items-center gap-2">
                     <a href="profile.html" class="group relative">
-                        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
-                            <div id="display-avatar-header" class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                        <div
+                            class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                            <div id="display-avatar-header"
+                                class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
                                 <span class="text-sm font-bold text-white uppercase">U</span>
                             </div>
                         </div>
@@ -110,26 +119,34 @@
                     <div class="relative" id="notif-wrapper">
                         <button id="notification-btn" onclick="toggleNotifDropdown()"
                             class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
-                            <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
-                            <span id="notif-badge" class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
+                            <span
+                                class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                            <span id="notif-badge"
+                                class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
                         </button>
 
                         <!-- Notif Dropdown -->
-                        <div id="notif-dropdown" class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
+                        <div id="notif-dropdown"
+                            class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
                             <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
+                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend
+                                    Requests</h3>
                                 <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
                             </div>
                             <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
                             <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
                                 <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                                <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No pending requests</p>
+                                <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No
+                                    pending requests</p>
                             </div>
                         </div>
                     </div>
 
-                    <button onclick="logout()" class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group" title="Logout">
-                        <span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
+                    <button onclick="logout()"
+                        class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-red-400 hover:border-red-400/50 hover:bg-red-400/10 transition-all group"
+                        title="Logout">
+                        <span
+                            class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">logout</span>
                     </button>
                 </div>
             </div>
@@ -166,7 +183,7 @@
 
                     <div class="relative p-6 md:p-8 lg:p-10">
                         <div
-                            class="grid grid-cols-1 xl:grid-cols-[auto_minmax(0,1fr)_auto] gap-8 lg:gap-10 items-start">
+                            class="flex flex-col md:flex-row gap-8 lg:gap-10 items-center md:items-start text-center md:text-left">
                             <!-- Avatar Container -->
                             <div
                                 class="relative group shrink-0 profile-view-container place-self-center xl:place-self-start">
@@ -343,12 +360,6 @@
                                         TOTAL GAMES</p>
                                     <p class="text-2xl font-bold text-primary" id="snapshot-total-games">0</p>
                                 </div>
-                                <div class="glass-panel px-6 py-3 rounded-xl text-center">
-                                    <p
-                                        class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 xirod-font">
-                                        AVERAGE HOURS</p>
-                                    <p class="text-2xl font-bold text-primary" id="snapshot-total-hours">0</p>
-                                </div>
                             </div>
                         </div>
 
@@ -492,7 +503,8 @@
                     <!-- Collections Section -->
                     <section class="mb-12">
                         <div class="flex items-center gap-3 mb-5">
-                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Collections</h2>
+                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Collections
+                            </h2>
                         </div>
                         <div id="recent-collections-list" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                             <!-- Dynamically populated -->
@@ -502,7 +514,8 @@
                     <!-- Recent Reviews -->
                     <section class="mb-12">
                         <div class="flex items-center gap-3 mb-5">
-                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Recent Reviews</h2>
+                            <h2 class="text-lg font-bold text-slate-100 xirod-font uppercase tracking-wider">Recent
+                                Reviews</h2>
                         </div>
                         <div id="recent-reviews-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <!-- Dynamically populated -->
@@ -511,21 +524,21 @@
 
                     <!-- Friends Widget -->
                     <section class="mb-12" id="friends-section">
+                        <div class="flex justify-between items-center mb-5">
+                            <h3
+                                class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
+                                <span class="material-symbols-outlined text-primary text-[18px]">group</span>
+                                Friends
+                                <span class="ml-1 text-primary" id="friends-count-header"></span>
+                            </h3>
+                            <a id="friends-show-all" href="#"
+                                class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all group">
+                                SHOW ALL <span
+                                    class="material-symbols-outlined text-[13px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                            </a>
+                        </div>
                         <div
                             class="glass-panel rounded-2xl p-6 border border-primary/10 transition-all duration-300 hover:border-primary/30">
-                            <div class="flex justify-between items-center mb-5">
-                                <h3
-                                    class="text-sm font-bold text-slate-100 flex items-center gap-2 xirod-font uppercase tracking-wider">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">group</span>
-                                    Friends
-                                    <span class="ml-1 text-primary" id="friends-count-header"></span>
-                                </h3>
-                                <a id="friends-show-all" href="#"
-                                    class="text-[10px] xirod-font text-primary/60 hover:text-primary flex items-center gap-0.5 transition-all group">
-                                    SHOW ALL <span
-                                        class="material-symbols-outlined text-[13px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
-                                </a>
-                            </div>
                             <div id="friends-preview-list" class="flex items-center gap-5 flex-wrap">
                                 <div class="flex gap-5 items-end opacity-30">
                                     <div class="flex flex-col items-center gap-1.5">
