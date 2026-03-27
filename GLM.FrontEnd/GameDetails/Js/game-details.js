@@ -482,9 +482,15 @@ function renderMediaStrip(g) {
 
     // 1. Add Video Square first
     if (g.trailerUrl) {
+        // Use backgroundImageAdditional (full-detail alt art) or a screenshot as the thumbnail
+        const thumbSrc = g.backgroundImageAdditional
+            || (g.screenshots && g.screenshots[1])
+            || (g.screenshots && g.screenshots[0])
+            || g.backgroundImage
+            || g.trailerPreview || '';
         html += `
             <div id="thumb-video" class="video-thumb group active" onclick="setMainVideo(null)">
-                <img src="${g.trailerPreview || g.backgroundImage}" alt="Trailer">
+                <img src="${thumbSrc}" alt="Trailer" style="image-rendering: high-quality;">
                 <div class="absolute inset-0 bg-primary/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <span class="material-symbols-outlined text-white text-3xl">play_circle</span>
                 </div>
@@ -529,15 +535,21 @@ function setMainVideo(g = null) {
     trailer.classList.remove('hidden');
     playBtn.classList.remove('hidden');
 
+    // Use backgroundImageAdditional (full-detail alt art) or screenshot as video poster
+    const bestPoster = game.backgroundImageAdditional
+        || (game.screenshots && game.screenshots[1])
+        || (game.screenshots && game.screenshots[0])
+        || game.backgroundImage
+        || game.trailerPreview || '';
+
     if (trailer.src !== game.trailerUrl) {
+        trailer.poster = bestPoster;
+        trailer.preload = 'auto';
         trailer.src = game.trailerUrl;
-        trailer.poster = game.trailerPreview || game.backgroundImage;
+        trailer.load(); // Force the browser to start buffering immediately at full quality
     } else {
-        // Force refresh poster image if needed
-        const currentPoster = game.trailerPreview || game.backgroundImage;
-        if (currentPoster) {
-            trailer.poster = currentPoster + (currentPoster.includes('?') ? '&' : '?') + 't=' + Date.now();
-        }
+        // Already loaded — just update poster to best quality
+        trailer.poster = bestPoster;
     }
 
     // Seek bar starts hidden — click video to toggle
@@ -577,6 +589,13 @@ function setMainVideo(g = null) {
         };
     }
 
+    const muteBtn = document.getElementById('mute-btn');
+    const muteIcon = document.getElementById('mute-icon');
+
+    // Show mute button and sync its icon state
+    if (muteBtn) muteBtn.classList.remove('hidden');
+    if (muteIcon) muteIcon.textContent = trailer.muted ? 'volume_off' : 'volume_up';
+
     playBtn.onclick = () => {
         if (trailer.paused) {
             trailer.play();
@@ -586,6 +605,15 @@ function setMainVideo(g = null) {
             playBtn.innerHTML = '<span class="material-symbols-outlined text-4xl fill-icon">play_arrow</span>';
         }
     };
+}
+
+/* Toggle mute / unmute for the trailer */
+function toggleVideoMute() {
+    const trailer = document.getElementById('main-trailer');
+    const muteIcon = document.getElementById('mute-icon');
+    if (!trailer) return;
+    trailer.muted = !trailer.muted;
+    if (muteIcon) muteIcon.textContent = trailer.muted ? 'volume_off' : 'volume_up';
 }
 
 function setMainMedia(url, index) {
@@ -611,6 +639,10 @@ function setMainMedia(url, index) {
     trailer.pause();
     placeholder.src = url;
     placeholder.classList.remove('hidden');
+
+    // Hide mute button when not on video
+    const muteBtn = document.getElementById('mute-btn');
+    if (muteBtn) muteBtn.classList.add('hidden');
     playBtn.classList.add('hidden');
 
     // Hide seek bar

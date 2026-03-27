@@ -257,7 +257,7 @@
                     <!-- Video / Main Screenshot Container -->
                     <div id="main-media-container"
                         class="relative aspect-video rounded-3xl overflow-hidden border border-white/10 bg-black group shadow-2xl shadow-primary/5">
-                        <video id="main-trailer" class="w-full h-full object-contain hidden" loop muted playsinline
+                        <video id="main-trailer" class="w-full h-full object-contain hidden" loop playsinline preload="auto"
                             poster=""></video>
                         <img id="main-media-placeholder" src=""
                             class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105">
@@ -296,7 +296,12 @@
                             </div>
                             <div class="flex justify-between items-end w-full">
                                 <div class="space-y-1">
-                                    <!-- Media Titles Removed -->
+                                    <!-- Mute toggle -->
+                                    <button id="mute-btn"
+                                        class="hidden w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all pointer-events-auto"
+                                        onclick="toggleVideoMute()" title="Mute / Unmute">
+                                        <span id="mute-icon" class="material-symbols-outlined text-xl">volume_up</span>
+                                    </button>
                                 </div>
                                 <button id="play-btn"
                                     class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 hover:scale-110 transition-all pointer-events-auto">

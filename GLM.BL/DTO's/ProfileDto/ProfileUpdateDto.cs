@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +15,6 @@ namespace Game_Library_Management_BL.DTO_s.ProfileDto
         public IFormFile? AvatarUrl { get; set; }
         public IFormFile? CoverUrl { get; set; }
         public bool? IsRectTransparent { get; set; }
+        public string? LevelBadge { get; set; }
     }
 }

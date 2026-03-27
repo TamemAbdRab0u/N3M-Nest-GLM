@@ -138,6 +138,21 @@ function initializeEventListeners() {
             localStorage.setItem(RECT_TRANSPARENCY_STORAGE_KEY, isOn ? '1' : '0');
         });
     }
+
+    const levelDisplay = document.getElementById("profile-level");
+    if (levelDisplay) {
+        levelDisplay.addEventListener("keydown", (e) => {
+            const controlKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
+            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) return;
+            if (levelDisplay.textContent.length >= 6) e.preventDefault();
+        });
+
+        levelDisplay.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text').substring(0, 6 - levelDisplay.textContent.length);
+            document.execCommand('insertText', false, text);
+        });
+    }
 }
 
 function applyRectTransparency(enabled) {
@@ -207,12 +222,16 @@ function applyVisitorMode() {
     if (nameEditIcon) nameEditIcon.classList.add('hidden');
     const bioEditIcon = document.getElementById('bio-edit-icon');
     if (bioEditIcon) bioEditIcon.classList.add('hidden');
+    const levelEditIcon = document.getElementById('level-edit-icon');
+    if (levelEditIcon) levelEditIcon.classList.add('hidden');
 
     // Ensure fields are not editable
     const nameDisplay = document.getElementById('profile-username');
     if (nameDisplay) nameDisplay.contentEditable = 'false';
     const bioDisplay = document.getElementById('profile-bio');
     if (bioDisplay) bioDisplay.contentEditable = 'false';
+    const levelDisplay = document.getElementById('profile-level');
+    if (levelDisplay) levelDisplay.contentEditable = 'false';
 
     // Update page title
     document.title = `${_visitedUser}'s Profile - N3M|Nest`;
@@ -268,6 +287,9 @@ async function fetchPublicProfile(username) {
 
         const bioEl = document.getElementById('profile-bio');
         if (bioEl) bioEl.textContent = profile.bio || '...';
+
+        const levelEl = document.getElementById('profile-level');
+        if (levelEl) levelEl.textContent = profile.levelBadge || 'LVL 42';
 
         const avatarImg = document.getElementById('profile-avatar-img');
         const timestamp = new Date().getTime();
@@ -376,6 +398,11 @@ function updateProfileUI(profile) {
         bioText.textContent = bioValue;
     }
 
+    const levelDisplay = document.getElementById("profile-level");
+    if (levelDisplay) {
+        levelDisplay.textContent = profile.levelBadge || "LVL 42";
+    }
+
     // Update Profile Header Avatar
     if (avatarImg) {
         if (resolvedAvatar) {
@@ -420,7 +447,9 @@ function toggleEditMode() {
     const avatarOverlay = document.getElementById("avatar-edit-icon");
     const nameEditIcon = document.getElementById("name-edit-icon");
     const bioEditIcon = document.getElementById("bio-edit-icon");
+    const levelEditIcon = document.getElementById("level-edit-icon");
     const profileEditControls = document.getElementById("profile-edit-controls");
+    const levelDisplay = document.getElementById("profile-level");
 
     if (isEditMode) {
         // Enter Edit Mode
@@ -446,6 +475,11 @@ function toggleEditMode() {
         }
         if (nameEditIcon) nameEditIcon.classList.remove("hidden");
         if (bioEditIcon) bioEditIcon.classList.remove("hidden");
+        if (levelEditIcon) levelEditIcon.classList.remove("hidden");
+        if (levelDisplay) {
+            levelDisplay.contentEditable = "true";
+            levelDisplay.classList.add("editing-active");
+        }
         if (profileEditControls) {
             profileEditControls.classList.add("is-visible");
             profileEditControls.setAttribute('aria-hidden', 'false');
@@ -477,6 +511,11 @@ function toggleEditMode() {
         }
         if (nameEditIcon) nameEditIcon.classList.add("hidden");
         if (bioEditIcon) bioEditIcon.classList.add("hidden");
+        if (levelEditIcon) levelEditIcon.classList.add("hidden");
+        if (levelDisplay) {
+            levelDisplay.contentEditable = "false";
+            levelDisplay.classList.remove("editing-active");
+        }
         if (profileEditControls) {
             profileEditControls.classList.remove("is-visible");
             profileEditControls.setAttribute('aria-hidden', 'true');
@@ -499,6 +538,11 @@ async function saveProfileChanges() {
     const formData = new FormData();
     formData.append("DisplayName", name);
     formData.append("Bio", bio);
+    
+    const levelText = document.getElementById("profile-level")?.textContent.trim();
+    if (levelText) {
+        formData.append("LevelBadge", levelText);
+    }
     if (selectedAvatarFile) {
         formData.append("AvatarUrl", selectedAvatarFile);
     }
