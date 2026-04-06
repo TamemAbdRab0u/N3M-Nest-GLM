@@ -1,6 +1,6 @@
 # Game Library Management
 
-Game Library Management is a full-stack game tracking platform where users can discover games, build a personal library, review titles, and interact with other players in real time.
+N3M|Nest is a full-stack Game Library Management tracking platform where users can discover games, build a personal library, review titles, and interact with other players in real time.
 
 ## What This Project Includes
 
