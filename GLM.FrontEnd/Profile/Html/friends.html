@@ -8,28 +8,16 @@
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#00f2ff",
-                        "deep-teal": "#0a1a1b",
-                        "cyber-cyan": "#00f2ff",
-                        "cyber-cyan-muted": "rgba(0, 242, 255, 0.5)",
-                        "glass-bg": "rgba(255, 255, 255, 0.05)",
-                        "status-online": "#10b981"
-                    },
-                    fontFamily: {
-                        "orbitron": ["Orbitron", "sans-serif"],
-                        "rajdhani": ["Rajdhani", "sans-serif"]
-                    }
-                }
-            }
-        };
-    </script>
+    <link rel="stylesheet" href="../../Assets/tailwind.css">
     <style>
+        :root {
+            --color-primary: 0 242 255;
+            --color-deep-teal: 10 26 27;
+            --color-cyber-cyan: 0 242 255;
+            --color-glass-bg: 255 255 255;
+            --color-status-online: 16 185 129;
+        }
+
         body {
             background-color: #0a1a1b;
             background-image: radial-gradient(circle at 50% 50%, #132d2f 0%, #0a1a1b 100%);
@@ -130,7 +118,7 @@
         <section class="mb-8 sm:mb-10 flex flex-col md:flex-row gap-4 sm:gap-6 items-stretch md:items-center" data-purpose="controls">
             <div class="relative w-full md:max-w-md">
                 <span class="material-symbols-outlined absolute inset-y-0 left-4 flex items-center pointer-events-none text-cyber-cyan/50 text-[20px]">search</span>
-                <input id="friends-search" class="w-full bg-glass-bg border border-cyber-cyan/20 text-white rounded-lg py-3 pl-12 pr-4 focus:ring-2 focus:ring-cyber-cyan/50 focus:border-cyber-cyan outline-none transition-all placeholder:text-cyber-cyan/30" placeholder="Search friends..." type="text" oninput="filterFriends()"/>
+                <input id="friends-search" class="w-full bg-glass-bg/5 border border-cyber-cyan/20 text-white rounded-lg py-3 pl-12 pr-4 focus:ring-2 focus:ring-cyber-cyan/50 focus:border-cyber-cyan outline-none transition-all placeholder:text-cyber-cyan/30" placeholder="Search friends..." type="text" oninput="filterFriends()"/>
             </div>
             <button id="open-add-friend" class="cyber-btn bg-cyber-cyan text-deep-teal font-orbitron font-bold py-3 px-8 tracking-wider uppercase md:ml-auto">
                 + Add New Friend
@@ -187,7 +175,7 @@
             <div class="relative mb-4">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-cyber-cyan/50 text-[18px] pointer-events-none">search</span>
                 <input id="add-friend-search-input" type="text" placeholder="Search by username or display name..."
-                    class="w-full h-12 bg-glass-bg border border-cyber-cyan/20 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-cyber-cyan/30 focus:outline-none focus:border-cyber-cyan transition-colors">
+                    class="w-full h-12 bg-glass-bg/5 border border-cyber-cyan/20 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-cyber-cyan/30 focus:outline-none focus:border-cyber-cyan transition-colors">
             </div>
 
             <p id="add-friend-feedback" class="hidden text-xs mb-3"></p>
@@ -195,7 +183,7 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="../../Assets/vendor/signalr/signalr.min.js"></script>
     <script src="../../Auth/Js/auth.js"></script>
     <script src="../../Shared/Js/notifications.js"></script>
     <script src="../Js/friends.js"></script>

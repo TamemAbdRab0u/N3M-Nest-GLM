@@ -46,7 +46,8 @@ namespace Game_Library_Management.Hubs
                 onlineUserTracker.AddConnection(userId, Context.ConnectionId);
                 if (!wasOnline)
                 {
-                    await notificationHubContext.Clients.All.SendAsync("PresenceChanged", userId, true);
+                    await notificationHubContext.Clients.Group(NotificationHub.PresenceGroup)
+                        .SendAsync("PresenceChanged", userId, true);
                 }
             }
 
@@ -98,7 +99,8 @@ namespace Game_Library_Management.Hubs
                         return;
                     }
 
-                    await notificationHubContext.Clients.All.SendAsync("PresenceChanged", userId, false);
+                    await notificationHubContext.Clients.Group(NotificationHub.PresenceGroup)
+                        .SendAsync("PresenceChanged", userId, false);
                 }
                 catch (TaskCanceledException)
                 {

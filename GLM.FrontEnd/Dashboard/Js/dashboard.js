@@ -385,6 +385,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Save state before leaving the page (e.g., clicking a link to Profile)
     window.addEventListener('beforeunload', savePageState);
+
+    // Pre-load Discovery data in the background after a short delay
+    // to ensure the Discover page loads instantly when clicked.
+    setTimeout(preloadDiscoverData, 2500);
 });
 
 function initializeCatalogInfiniteScroll() {
@@ -507,6 +511,35 @@ async function fetchProfileInfo() {
         }
     } catch (error) {
         console.error('Error fetching profile into dashboard:', error);
+    }
+}
+
+/**
+ * Pre-fetches Discovery (Steam Store) data in the background
+ * to ensure the Discover page loads instantly.
+ */
+async function preloadDiscoverData() {
+    const RAW_JSON_KEY = 'discover:raw_json';
+    const RAW_JSON_TS  = 'discover:raw_json:cached_at';
+    const CACHE_TTL_MS = 15 * 60 * 1000;
+    
+    // Don't pre-fetch if we already have fresh data (either raw or rendered)
+    const cachedAt = parseInt(sessionStorage.getItem(RAW_JSON_TS) || sessionStorage.getItem('discover:cached_at') || '0', 10);
+    if ((Date.now() - cachedAt) < CACHE_TTL_MS) {
+        return;
+    }
+
+    try {
+        console.log('Background: Starting Discovery pre-load...');
+        const response = await apiRequest('/api/Steam/store/home');
+        if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem(RAW_JSON_KEY, JSON.stringify(data));
+            sessionStorage.setItem(RAW_JSON_TS, Date.now().toString());
+            console.log('Background: Discovery data pre-loaded successfully.');
+        }
+    } catch (error) {
+        console.warn('Background: Discovery pre-load failed.', error);
     }
 }
 
@@ -2070,8 +2103,13 @@ function updateStatusSelectorUI(gameId, statusId) {
 
 // Initialize navigation
 function initializeNavigation() {
-    // Already handled by onclick in HTML primarily, but for sidebar active states:
-    // ...
+    const discoverLink = document.getElementById('nav-discover');
+    if (discoverLink) {
+        discoverLink.addEventListener('mouseenter', () => {
+            // Immediate pre-load on hover if not already fresh
+            preloadDiscoverData();
+        });
+    }
 }
 
 /**

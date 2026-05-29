@@ -101,9 +101,11 @@ function startPresenceSync() {
                 }
             });
 
-            presenceConnection.start().catch(() => {
-                // Silent fallback; periodic REST refresh still updates presence.
-            });
+            presenceConnection.start()
+                .then(() => presenceConnection.invoke('JoinPresence'))
+                .catch(() => {
+                    // Silent fallback; periodic REST refresh still updates presence.
+                });
         }
     }
 }
@@ -363,14 +365,14 @@ function renderFriendCard(friend, isOnline) {
 
                 ${isOnline ? `
                 <button
-                    class="h-10 w-10 rounded-lg bg-glass-bg border border-white/10 text-cyber-cyan hover:border-cyber-cyan transition-colors flex items-center justify-center"
+                    class="h-10 w-10 rounded-lg bg-glass-bg/5 border border-white/10 text-cyber-cyan hover:border-cyber-cyan transition-colors flex items-center justify-center"
                     title="Invite">
                     <span class="material-symbols-outlined text-[20px]">add</span>
                 </button>
                 ` : ''}
 
                 <button onclick="window.location.href='../Html/visit-profile.html?user=${encodeURIComponent(friend.username)}'"
-                    class="h-10 px-4 rounded-lg bg-glass-bg border border-white/10 font-orbitron text-[10px] tracking-widest text-white/70 hover:text-white hover:border-cyber-cyan transition-colors whitespace-nowrap uppercase">
+                    class="h-10 px-4 rounded-lg bg-glass-bg/5 border border-white/10 font-orbitron text-[10px] tracking-widest text-white/70 hover:text-white hover:border-cyber-cyan transition-colors whitespace-nowrap uppercase">
                     View Profile
                 </button>
             </div>

@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 74 125 255;
+  --color-background-light: 245 248 248;
+  --color-background-dark: 15 19 26;
+  --color-surface-dark: 29 32 38;
+  --color-surface-light: 255 255 255;
+  --color-input-bg: 30 41 43;
+  --color-input-border: 46 97 107;
+  --color-kinetic-blue: 130 207 255;
+  --color-neon-green: 170 214 22;
+  --color-accent-glow: 13 242 242;
+  --color-deep-teal: 10 26 27;
+  --color-cyber-cyan: 0 242 255;
+  --color-cyber-cyan-muted: 0 242 255;
+  --color-glass-bg: 255 255 255;
+  --color-status-online: 16 185 129;
+  --color-error: 255 71 87;
+  --color-accent: 0 242 255;
+  --color-card-bg: 15 32 35;
+}

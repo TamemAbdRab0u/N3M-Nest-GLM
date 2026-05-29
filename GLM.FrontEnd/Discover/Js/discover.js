@@ -52,13 +52,29 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadDiscoveryData() {
     const contentContainer = document.getElementById('discovery-content');
+    const RAW_JSON_KEY = 'discover:raw_json';
+    const RAW_JSON_TS  = 'discover:raw_json:cached_at';
 
     try {
-        const response = await apiRequest('/api/Steam/store/home');
+        let data = null;
 
-        if (!response.ok) throw new Error('Failed to fetch discovery data');
+        // Check if dashboard pre-fetched this for us
+        const rawJsonTs = parseInt(sessionStorage.getItem(RAW_JSON_TS) || '0', 10);
+        const isRawFresh = (Date.now() - rawJsonTs) < CACHE_TTL_MS;
+        const rawJson = sessionStorage.getItem(RAW_JSON_KEY);
 
-        const data = await response.json();
+        if (isRawFresh && rawJson) {
+            console.log('Discover: Using pre-fetched raw JSON from sessionStorage');
+            data = JSON.parse(rawJson);
+        } else {
+            const response = await apiRequest('/api/Steam/store/home');
+            if (!response.ok) throw new Error('Failed to fetch discovery data');
+            data = await response.json();
+            
+            // Save it for ourselves too
+            sessionStorage.setItem(RAW_JSON_KEY, JSON.stringify(data));
+            sessionStorage.setItem(RAW_JSON_TS, Date.now().toString());
+        }
 
         if (!data || !data.sections || data.sections.length === 0) {
             renderEmptyState();
