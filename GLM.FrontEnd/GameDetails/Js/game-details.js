@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameId = params.get('id');
 
     if (!gameId || isNaN(Number(gameId))) {
-        showError();
+        showPageErrorState();
         return;
     }
 
@@ -177,17 +177,17 @@ async function populateSidebarUser() {
 async function loadGameDetails(id) {
     try {
         const res = await apiRequest(`/api/Steam/catalog/${id}`);
-        if (!res.ok) { showError(); return; }
+        if (!res.ok) { showPageErrorState(); return; }
 
         currentGame = await res.json();
         renderGame(currentGame);
         loadCompanyGames(currentGame);
-        
+
         // Fetch collection IDs for this game
         currentGame.collectionIds = await getGameCollectionIds(currentGame.id);
     } catch (err) {
         console.error('Game details load error:', err);
-        showError();
+        showPageErrorState();
     }
 }
 
@@ -482,9 +482,15 @@ function renderMediaStrip(g) {
 
     // 1. Add Video Square first
     if (g.trailerUrl) {
+        // Use backgroundImageAdditional (full-detail alt art) or a screenshot as the thumbnail
+        const thumbSrc = g.backgroundImageAdditional
+            || (g.screenshots && g.screenshots[1])
+            || (g.screenshots && g.screenshots[0])
+            || g.backgroundImage
+            || g.trailerPreview || '';
         html += `
             <div id="thumb-video" class="video-thumb group active" onclick="setMainVideo(null)">
-                <img src="${g.trailerPreview || g.backgroundImage}" alt="Trailer">
+                <img src="${thumbSrc}" alt="Trailer" style="image-rendering: high-quality;">
                 <div class="absolute inset-0 bg-primary/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <span class="material-symbols-outlined text-white text-3xl">play_circle</span>
                 </div>
@@ -515,12 +521,10 @@ function setMainVideo(g = null) {
     const placeholder = document.getElementById('main-media-placeholder');
     const trailer = document.getElementById('main-trailer');
     const playBtn = document.getElementById('play-btn');
-    const label = document.getElementById('media-label');
-    const title = document.getElementById('media-title');
 
     // Trigger animation
     trailer.classList.remove('fade-in-media');
-    void trailer.offsetWidth; // Reflow
+    void trailer.offsetWidth; 
     trailer.classList.add('fade-in-media');
 
     // Update UI highlights
@@ -531,13 +535,22 @@ function setMainVideo(g = null) {
     trailer.classList.remove('hidden');
     playBtn.classList.remove('hidden');
 
-    if (trailer.src !== game.trailerUrl) {
-        trailer.src = game.trailerUrl;
-        trailer.poster = game.trailerPreview || game.backgroundImage;
-    }
+    // Use backgroundImageAdditional (full-detail alt art) or screenshot as video poster
+    const bestPoster = game.backgroundImageAdditional
+        || (game.screenshots && game.screenshots[1])
+        || (game.screenshots && game.screenshots[0])
+        || game.backgroundImage
+        || game.trailerPreview || '';
 
-    if (label) label.textContent = "Official Trailer";
-    if (title) title.textContent = "Cinematic Experience";
+    if (trailer.src !== game.trailerUrl) {
+        trailer.poster = bestPoster;
+        trailer.preload = 'auto';
+        trailer.src = game.trailerUrl;
+        trailer.load(); // Force the browser to start buffering immediately at full quality
+    } else {
+        // Already loaded — just update poster to best quality
+        trailer.poster = bestPoster;
+    }
 
     // Seek bar starts hidden — click video to toggle
     const videoControls = document.getElementById('video-controls');
@@ -576,6 +589,13 @@ function setMainVideo(g = null) {
         };
     }
 
+    const muteBtn = document.getElementById('mute-btn');
+    const muteIcon = document.getElementById('mute-icon');
+
+    // Show mute button and sync its icon state
+    if (muteBtn) muteBtn.classList.remove('hidden');
+    if (muteIcon) muteIcon.textContent = trailer.muted ? 'volume_off' : 'volume_up';
+
     playBtn.onclick = () => {
         if (trailer.paused) {
             trailer.play();
@@ -585,6 +605,15 @@ function setMainVideo(g = null) {
             playBtn.innerHTML = '<span class="material-symbols-outlined text-4xl fill-icon">play_arrow</span>';
         }
     };
+}
+
+/* Toggle mute / unmute for the trailer */
+function toggleVideoMute() {
+    const trailer = document.getElementById('main-trailer');
+    const muteIcon = document.getElementById('mute-icon');
+    if (!trailer) return;
+    trailer.muted = !trailer.muted;
+    if (muteIcon) muteIcon.textContent = trailer.muted ? 'volume_off' : 'volume_up';
 }
 
 function setMainMedia(url, index) {
@@ -610,14 +639,15 @@ function setMainMedia(url, index) {
     trailer.pause();
     placeholder.src = url;
     placeholder.classList.remove('hidden');
+
+    // Hide mute button when not on video
+    const muteBtn = document.getElementById('mute-btn');
+    if (muteBtn) muteBtn.classList.add('hidden');
     playBtn.classList.add('hidden');
 
     // Hide seek bar
     const videoControls = document.getElementById('video-controls');
     if (videoControls) videoControls.classList.add('hidden');
-
-    if (label) label.textContent = `Screenshot ${index + 1}`;
-    if (title) title.textContent = `Gallery Preview`;
 
     // Resume auto-slide after selecting manually
     startAutoSlide();
@@ -1162,7 +1192,7 @@ function showToast(message, type = 'info') {
 /* ──────────────────────────────────────────────
    Utility
 ────────────────────────────────────────────── */
-function showError() {
+function showPageErrorState() {
     const skeleton = document.getElementById('loading-skeleton');
     const err = document.getElementById('error-state');
     if (skeleton) skeleton.classList.add('hidden');
@@ -1573,6 +1603,8 @@ async function deleteReview(reviewId) {
     }
 }
 
+let currentCollectionSelection = {}; // Map of { collectionId: boolean }
+
 /* ──────────────────────────────────────────────
    Collections Logic
    ────────────────────────────────────────────── */
@@ -1581,13 +1613,40 @@ function openCollectionModal() {
     const modal = document.getElementById('collection-modal');
     if (modal) {
         modal.classList.remove('hidden');
+        // Initialise state from current game
+        currentCollectionSelection = {};
+        const gameColIds = currentGame.collectionIds || [];
+        gameColIds.forEach(id => {
+            currentCollectionSelection[id] = true;
+        });
+
+        // Toggle button visibility with transitions
+        const hasAnySelection = gameColIds.length > 0;
+        const actions = document.getElementById('collection-modal-actions');
+        if (actions) {
+            if (hasAnySelection) {
+                actions.classList.remove('hidden-action');
+                actions.classList.add('show-action');
+            } else {
+                actions.classList.remove('show-action');
+                actions.classList.add('hidden-action');
+            }
+        }
+
         loadCollections();
     }
 }
 
 function closeCollectionModal() {
     const modal = document.getElementById('collection-modal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        const actions = document.getElementById('collection-modal-actions');
+        if (actions) {
+            actions.classList.remove('show-action');
+            actions.classList.add('hidden-action');
+        }
+    }
 }
 
 async function loadCollections() {
@@ -1598,36 +1657,100 @@ async function loadCollections() {
         const collections = await getCollections();
         if (collections.length === 0) {
             container.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-8 text-slate-500">
-                    <span class="material-symbols-outlined text-4xl mb-2 opacity-20">inventory_2</span>
-                    <p class="text-[10px] uppercase font-bold tracking-widest">No collections yet</p>
+                <div class="flex flex-col items-center justify-center py-12 text-slate-500">
+                    <div class="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center mb-4 border border-white/5">
+                        <span class="material-symbols-outlined text-3xl opacity-20">inventory_2</span>
+                    </div>
+                    <p class="text-[10px] uppercase font-black xirod-font tracking-widest text-slate-600">Empty Vault</p>
                 </div>`;
             return;
         }
 
-        const gameColIds = currentGame.collectionIds || [];
-
         container.innerHTML = collections.map(c => {
-            const isChecked = gameColIds.includes(c.id);
+            const isChecked = !!currentCollectionSelection[c.id];
             return `
-                <label class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer group">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                            <span class="material-symbols-outlined text-sm">folder</span>
+                <label class="flex items-center justify-between p-4 rounded-2xl bg-white/5 border ${isChecked ? 'border-accent/40 bg-accent/5' : 'border-white/5 hover:border-white/10'} transition-all duration-300 active:duration-75 cursor-pointer group mb-1 last:mb-0 active:scale-[0.96] active:bg-white/10 active:brightness-110">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl ${isChecked ? 'bg-accent text-slate-900 shadow-[0_0_20px_rgba(0,242,255,0.3)]' : 'bg-white/5 text-accent/40'} flex items-center justify-center transition-all duration-300 group-active:scale-90">
+                            <span class="material-symbols-outlined text-[20px]">folder</span>
                         </div>
                         <div>
-                            <p class="text-xs font-bold text-white group-hover:text-primary transition-colors">${escapeHtml(c.name)}</p>
-                            <p class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">${c.games?.length || 0} games</p>
+                            <p class="text-sm font-heading font-bold ${isChecked ? 'text-white' : 'text-slate-300'} group-hover:text-accent transition-colors">${escapeHtml(c.name)}</p>
+                            <p class="text-[10px] font-heading font-medium text-slate-500 uppercase tracking-widest mt-0.5 opacity-60">${c.games?.length || 0} games</p>
                         </div>
                     </div>
-                    <input type="checkbox" class="w-4 h-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/20"
-                        ${isChecked ? 'checked' : ''} 
-                        onchange="toggleGameInCollection(${c.id}, this.checked)">
+                    <div class="relative flex items-center pr-1">
+                        <input type="checkbox" class="hidden"
+                            ${isChecked ? 'checked' : ''} 
+                            onchange="updateCollectionChoice(${c.id}, this.checked)">
+                        <div class="w-5 h-5 rounded-full border-2 ${isChecked ? 'bg-accent border-accent scale-110 shadow-[0_0_12px_rgba(0,242,255,0.4)]' : 'border-white/10'} flex items-center justify-center transition-all duration-300 group-active:scale-95">
+                            ${isChecked ? '<span class="material-symbols-outlined text-slate-900 text-[14px] font-bold checkmark-animate">check</span>' : ''}
+                        </div>
+                    </div>
                 </label>
             `;
         }).join('');
     } catch (err) {
         container.innerHTML = '<p class="text-[10px] text-red-400 p-4">Failed to load collections</p>';
+    }
+}
+
+function updateCollectionChoice(collectionId, isChecked) {
+    currentCollectionSelection[collectionId] = isChecked;
+
+    // Refresh list to update UI
+    loadCollections();
+
+    // Toggle button with smooth transition helper
+    const hasAnySelection = Object.values(currentCollectionSelection).some(v => v);
+    const actions = document.getElementById('collection-modal-actions');
+    if (actions) {
+        if (hasAnySelection) {
+            actions.classList.remove('hidden-action');
+            actions.classList.add('show-action');
+        } else {
+            actions.classList.remove('show-action');
+            actions.classList.add('hidden-action');
+        }
+    }
+}
+
+async function saveCollectionSelection() {
+    if (!currentGame) return;
+
+    const btn = document.querySelector('#collection-modal-actions button');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> SAVING...';
+    }
+
+    try {
+        const initialSet = new Set(currentGame.collectionIds || []);
+        const toAdd = Object.keys(currentCollectionSelection).filter(id => currentCollectionSelection[id] && !initialSet.has(Number(id)));
+        const toRemove = Object.keys(currentCollectionSelection).filter(id => !currentCollectionSelection[id] && initialSet.has(Number(id)));
+
+        // Perform requests
+        const addPromises = toAdd.map(id => addGameToCollection(Number(id), currentGame.id));
+        const removePromises = toRemove.map(id => removeGameFromCollection(Number(id), currentGame.id));
+
+        await Promise.all([...addPromises, ...removePromises]);
+
+        // Refresh game collection IDs
+        currentGame.collectionIds = await getGameCollectionIds(currentGame.id);
+
+        showToast('Collections updated!', 'success');
+        closeCollectionModal();
+    } catch (err) {
+        console.error('Save collections error:', err);
+        showToast('Some changes might have failed', 'error');
+        // Refresh to show actual state
+        currentGame.collectionIds = await getGameCollectionIds(currentGame.id);
+        loadCollections();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> ADD TO COLLECTIONS';
+        }
     }
 }
 
@@ -1641,41 +1764,19 @@ async function handleCreateCollection() {
         if (newCol) {
             input.value = '';
             showToast(`Collection "${name}" created!`, 'success');
+            // If created, we want to select it automatically
+            currentCollectionSelection[newCol.id] = true;
             loadCollections();
+
+            const actions = document.getElementById('collection-modal-actions');
+            if (actions) {
+                actions.classList.remove('hidden-action');
+                actions.classList.add('show-action');
+            }
         } else {
             showToast('Failed to create collection', 'error');
         }
     } catch (err) {
         showToast('Something went wrong', 'error');
-    }
-}
-
-async function toggleGameInCollection(collectionId, isChecked) {
-    if (!currentGame) return;
-
-    try {
-        let success = false;
-        if (isChecked) {
-            success = await addGameToCollection(collectionId, currentGame.id);
-            if (success) {
-                if (!currentGame.collectionIds) currentGame.collectionIds = [];
-                currentGame.collectionIds.push(collectionId);
-                showToast('Added to collection', 'success');
-            }
-        } else {
-            success = await removeGameFromCollection(collectionId, currentGame.id);
-            if (success) {
-                currentGame.collectionIds = currentGame.collectionIds.filter(id => id !== collectionId);
-                showToast('Removed from collection', 'success');
-            }
-        }
-        
-        if (!success) {
-            showToast('Action failed', 'error');
-            loadCollections(); // Refresh to revert checkbox
-        }
-    } catch (err) {
-        showToast('Something went wrong', 'error');
-        loadCollections();
     }
 }

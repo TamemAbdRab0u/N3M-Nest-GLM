@@ -19,5 +19,7 @@ namespace Game_Library_Management_BL.Services.IServices
         Task<(int Requested, int Stored, int Updated, int Failed)> PreloadPopularGamesAsync(int take = 1000, int hydrateTop = 200, int skip = 0);
         Task<(int Total, int Updated, int Skipped, int Failed, List<(int ExternalId, string TrailerUrl)> Results)>
             SyncAchievementsAndTrailersAsync(bool overwriteExisting = false, CancellationToken cancellationToken = default);
+        
+        Task<Game_Library_Management_BL.DTO_s.StoreHomeDto.StoreHomeDto> GetStoreHomeAsync();
     }
 }

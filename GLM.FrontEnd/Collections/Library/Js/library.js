@@ -277,7 +277,7 @@ async function loadGames(page = 1, query = '', genre = '', platform = '', orderi
             }
 
             const result = await response.json();
-            
+
             let gamesList = [];
             if (isCollectionSearch) {
                 // Update header title to collection name
@@ -1187,7 +1187,7 @@ function updateStatusIndicators(gameId, game) {
         const badgeEl = statusContainer.querySelector('.group\\/status');
         if (badgeEl) {
             // Route to independent renderers
-            badgeEl.outerHTML = isGrid 
+            badgeEl.outerHTML = isGrid
                 ? renderGridStatusBadgeFixedHTML(game.gamestatus, gameId, true)
                 : renderStatusBadgeHTML(game.gamestatus, gameId, true);
         } else {

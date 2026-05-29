@@ -1,4 +1,5 @@
 using Game_Library_Management_BL.DTO_s.GameCatalogDto;
+using Game_Library_Management_BL.DTO_s.StoreHomeDto;
 using Game_Library_Management_BL.Services.IServices;
 using Game_Library_Management_BL.UnitOfWork;
 using Game_Library_Management_DAL.Models;
@@ -11,6 +12,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +25,7 @@ namespace Game_Library_Management_BL.Services.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _config;
+        private readonly ILogger<SteamService> _logger;
 
         private const int PageSize = 12;
         private const string CatalogFeedVersion = "v3";
@@ -38,13 +41,14 @@ namespace Game_Library_Management_BL.Services.Services
             "simulation:Simulation", "sports:Sports", "racing:Racing", "casual:Casual", "fps:FPS"
         };
 
-        public SteamService(HttpClient http, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IMemoryCache cache, IConfiguration config)
+        public SteamService(HttpClient http, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IMemoryCache cache, IConfiguration config, ILogger<SteamService> logger)
         {
             _http = http;
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _cache = cache;
             _config = config;
+            _logger = logger;
         }
 
         private string? GetCurrentUserId()
@@ -152,6 +156,9 @@ namespace Game_Library_Management_BL.Services.Services
                 try
                 {
                     var existing = await _unitOfWork.Games.Query().FirstOrDefaultAsync(g => g.ExternalId == app.appId);
+                    
+                    // Convert review ratio (0-1) to 5-star rating (0-5)
+                    double? userRating = app.reviewRatio > 0 ? Math.Round(app.reviewRatio * 5.0, 1) : null;
 
                     if (hydrateSet.Contains(app.appId))
                     {
@@ -161,7 +168,7 @@ namespace Game_Library_Management_BL.Services.Services
                             var game = existing ?? new Game { ExternalId = app.appId };
                             var isNew = existing == null;
 
-                            await UpsertGameAggregateAsync(game, details.Value, isNew);
+                            await UpsertGameAggregateAsync(game, details.Value, isNew, userRating);
                             if (isNew) stored++; else updated++;
                             continue;
                         }
@@ -175,6 +182,7 @@ namespace Game_Library_Management_BL.Services.Services
                             Title = string.IsNullOrWhiteSpace(app.name) ? $"Steam App {app.appId}" : app.name,
                             ImgUrl = $"https://cdn.akamai.steamstatic.com/steam/apps/{app.appId}/header.jpg",
                             PosterImageUrl = BuildSteamPosterImageUrl(app.appId),
+                            Rating = userRating ?? 0,
                             IsDetailsHydrated = false,
                             DetailsLastSyncedAt = null
                         };
@@ -190,6 +198,13 @@ namespace Game_Library_Management_BL.Services.Services
                         if (string.IsNullOrWhiteSpace(existing.Title) && !string.IsNullOrWhiteSpace(app.name))
                         {
                             existing.Title = app.name;
+                            changed = true;
+                        }
+
+                        // Update rating if better data available
+                        if ((existing.Rating ?? 0) <= 0 && userRating.HasValue)
+                        {
+                            existing.Rating = userRating;
                             changed = true;
                         }
 
@@ -697,7 +712,7 @@ namespace Game_Library_Management_BL.Services.Services
                 .FirstOrDefaultAsync(g => g.ExternalId == externalId);
         }
 
-        private async Task UpsertGameAggregateAsync(Game game, (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price, int? achievementsCount) details, bool isNew)
+        private async Task UpsertGameAggregateAsync(Game game, (int appId, string name, string description, string headerImage, string backgroundImage, string releaseDate, int? metacritic, double rating, string website, List<string> genres, List<string> developers, List<string> publishers, List<string> platforms, string trailerUrl, string trailerPreview, List<string> screenshots, string minimumRequirements, string recommendedRequirements, decimal? price, int? achievementsCount) details, bool isNew, double? externalRating = null)
         {
             game.Title = details.name;
             game.Description = details.description;
@@ -708,7 +723,10 @@ namespace Game_Library_Management_BL.Services.Services
             game.Publisher = details.publishers.FirstOrDefault();
             game.Website = details.website;
             game.Metacritic = details.metacritic;
-            game.Rating = details.rating;
+            
+            // Prefer Metacritic rating if available, otherwise use external (User) rating
+            game.Rating = details.rating > 0 ? details.rating : (externalRating ?? game.Rating);
+            
             game.RatingTop = 5;
             game.RatingsCount = 0;
             game.Playtime = 0;
@@ -950,6 +968,308 @@ namespace Game_Library_Management_BL.Services.Services
             };
         }
 
+        public async Task<StoreHomeDto> GetStoreHomeAsync()
+        {
+            var cacheKey = "steam:store:home:genres:v2";
+            if (_cache.TryGetValue(cacheKey, out StoreHomeDto? cachedHome))
+            {
+                await PopulateUserStatesForSectionsAsync(cachedHome!.Sections);
+                return cachedHome;
+            }
+
+            var sections = new List<StoreSectionDto>();
+            
+            // Genres to display
+            var genres = new[] { "Action", "RPG", "Strategy", "Indie", "Adventure", "Simulation" };
+            
+            try
+            {
+                // 1. Fetch 10 Legendary Masterpieces for the Hero section (Atmospheric & Only for show)
+                var masterpieceIds = new[] { 
+                    1245620, // Elden Ring
+                    292030,  // Witcher 3
+                    1091500, // Cyberpunk 2077
+                    1174180, // RDR 2
+                    1086940, // Baldur's Gate 3
+                    1145360, // Hades
+                    1593500, // God of War
+                    1332010, // Stray
+                    814380,  // Sekiro
+                    367520   // Hollow Knight
+                };
+
+                var featuredSection = new StoreSectionDto { Id = "featured", Title = "Masterpieces" };
+                
+                // Fetching names from Steam Catalog or just using them as placeholders since JS will override with sentences
+                foreach (var externalId in masterpieceIds)
+                {
+                    featuredSection.Games.Add(new CatalogGameSummaryDto
+                    {
+                        ExternalId = externalId,
+                        // High quality library hero image
+                        ImageUrl = $"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{externalId}/library_hero.jpg",
+                        Platforms = new List<string> { "PC" }
+                    });
+                }
+                sections.Add(featuredSection);
+
+                // 2. Fetch Genre sections in parallel
+                var tasks = genres.Select(g => FetchGamesByGenreAsync(g, 20)).ToList();
+                var results = await Task.WhenAll(tasks);
+
+                for (int i = 0; i < genres.Length; i++)
+                {
+                    var genreGames = results[i];
+                    if (genreGames.Any())
+                    {
+                        sections.Add(new StoreSectionDto
+                        {
+                            Id = $"genre_{genres[i].ToLower()}",
+                            Title = genres[i] == "Action" ? "Adrenaline Action" : 
+                                    genres[i] == "RPG" ? "Epic Role Playing" : 
+                                    genres[i] == "Strategy" ? "Tactical Strategy" : 
+                                    $"{genres[i]} Games",
+                            Games = genreGames
+                        });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Fallback handled by returning whatever we gathered
+            }
+
+            var storeHome = new StoreHomeDto { Sections = sections, LastUpdated = DateTime.UtcNow };
+            
+            // Cache for 15 mins for development flexibility, normally 1 hour
+            _cache.Set(cacheKey, storeHome, TimeSpan.FromMinutes(15));
+
+            await PopulateUserStatesForSectionsAsync(storeHome.Sections);
+            return storeHome;
+        }
+
+        private async Task<List<CatalogGameSummaryDto>> FetchGamesByGenreAsync(string genre, int count)
+        {
+            var poolCacheKey = $"steam:genre-pool:{genre.ToLowerInvariant()}:v2";
+            
+            if (!_cache.TryGetValue(poolCacheKey, out List<CatalogGameSummaryDto>? pool))
+            {
+                pool = new List<CatalogGameSummaryDto>();
+
+                // Strategy: SteamSpy first (reliable, genre-specific), then supplement from DB
+                try
+                {
+                    var steamSpyGames = await FetchGamesByGenreFromSteamSpyAsync(genre, 80);
+                    pool.AddRange(steamSpyGames);
+                    _logger.LogInformation("SteamSpy returned {Count} games for genre {Genre}", pool.Count, genre);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "SteamSpy failed for genre {Genre}, falling back to search", genre);
+                }
+
+                // Supplement with high-quality DB games if available
+                try
+                {
+                    var dbGames = await _unitOfWork.Games.Query()
+                        .Include(g => g.GameTags).ThenInclude(gt => gt.Tag)
+                        .Include(g => g.GamePlatforms).ThenInclude(gp => gp.Platform)
+                        .Where(g => g.GameTags.Any(gt => gt.Tag.Name.ToLower() == genre.ToLower() || gt.Tag.Slug == genre.ToLower()))
+                        .Where(g => g.Rating >= 3.0 || g.Metacritic >= 65)
+                        .OrderByDescending(g => g.Rating ?? 0)
+                        .Take(50)
+                        .ToListAsync();
+
+                    var existingIds = pool.Select(p => p.ExternalId).ToHashSet();
+                    foreach (var g in dbGames.Select(MapGameToCatalogDto))
+                    {
+                        if (!existingIds.Contains(g.ExternalId))
+                        {
+                            pool.Add(g);
+                            existingIds.Add(g.ExternalId);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "DB supplement failed for genre {Genre}", genre);
+                }
+
+                // Last resort fallback: Steam Store search
+                if (pool.Count < 10)
+                {
+                    try
+                    {
+                        var searchGames = await FetchGamesByGenreFromSteamAsync(genre, 30);
+                        var existingIds2 = pool.Select(p => p.ExternalId).ToHashSet();
+                        foreach (var g in searchGames)
+                        {
+                            if (!existingIds2.Contains(g.ExternalId)) pool.Add(g);
+                        }
+                        _logger.LogInformation("Steam search fallback returned {Count} additional games for {Genre}", searchGames.Count, genre);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Steam search fallback also failed for {Genre}", genre);
+                    }
+                }
+
+                _logger.LogInformation("Final pool size for genre {Genre}: {Count}", genre, pool.Count);
+
+                if (pool.Any())
+                    _cache.Set(poolCacheKey, pool, TimeSpan.FromHours(24));
+            }
+
+            if (pool == null || !pool.Any()) return new List<CatalogGameSummaryDto>();
+
+            // Daily Randomization: same order per day, different per genre
+            var todaySeed = (DateTime.UtcNow.Year * 1000) + DateTime.UtcNow.DayOfYear;
+            var genreHash = 0;
+            foreach (char c in genre.ToLowerInvariant()) genreHash = (genreHash * 31) + c;
+            var rng = new Random(todaySeed + genreHash);
+
+            // Weighted shuffle: higher-rated games appear more often but not always
+            return pool
+                .OrderByDescending(g => (g.Rating > 0 ? g.Rating : 2.0) * (0.5 + rng.NextDouble()))
+                .Take(count)
+                .ToList();
+        }
+
+        private async Task<List<CatalogGameSummaryDto>> FetchGamesByGenreFromSteamAsync(string genre, int count)
+        {
+            var url = $"https://store.steampowered.com/api/storesearch/?term={Uri.EscapeDataString(genre)}&l=english&cc=us&start=0&count={count}";
+            try
+            {
+                using var response = await _http.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return new List<CatalogGameSummaryDto>();
+
+                using var stream = await response.Content.ReadAsStreamAsync();
+                using var doc = await JsonDocument.ParseAsync(stream);
+                var root = doc.RootElement;
+
+                if (!root.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
+                    return new List<CatalogGameSummaryDto>();
+
+                var list = new List<CatalogGameSummaryDto>();
+                foreach (var item in items.EnumerateArray())
+                {
+                    if (!item.TryGetProperty("id", out var idNode) || idNode.ValueKind != JsonValueKind.Number) continue;
+                    
+                    var appid = idNode.GetInt32();
+                    var title = item.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+                    var image = $"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg";
+                    var metascore = item.TryGetProperty("metascore", out var m) && m.ValueKind == JsonValueKind.Number ? m.GetInt32() : (int?)null;
+
+                    list.Add(new CatalogGameSummaryDto
+                    {
+                        ExternalId = appid,
+                        Title = title,
+                        ImageUrl = image,
+                        Metacritic = metascore,
+                        Rating = metascore.HasValue ? Math.Round(metascore.Value / 20.0, 1) : 0,
+                        Platforms = new List<string> { "PC" }
+                    });
+                }
+                return list;
+            }
+            catch
+            {
+                return new List<CatalogGameSummaryDto>();
+            }
+        }
+
+        private async Task<List<CatalogGameSummaryDto>> FetchGamesByGenreFromSteamSpyAsync(string genre, int count)
+        {
+            var url = $"https://steamspy.com/api.php?request=genre&genre={Uri.EscapeDataString(genre)}";
+            try
+            {
+                using var response = await _http.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return new List<CatalogGameSummaryDto>();
+
+                using var stream = await response.Content.ReadAsStreamAsync();
+                using var doc = await JsonDocument.ParseAsync(stream);
+                var root = doc.RootElement;
+
+                if (root.ValueKind != JsonValueKind.Object) return new List<CatalogGameSummaryDto>();
+
+                var list = new List<CatalogGameSummaryDto>();
+                foreach (var property in root.EnumerateObject())
+                {
+                    var gameNode = property.Value;
+                    if (!gameNode.TryGetProperty("appid", out var idNode)) continue;
+
+                    var appid = idNode.GetInt32();
+                    var title = gameNode.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "Steam Game";
+                    
+                    // Quality score from SteamSpy (positive / (positive + negative))
+                    double score = 0;
+                    if (gameNode.TryGetProperty("positive", out var pos) && gameNode.TryGetProperty("negative", out var neg))
+                    {
+                        var p = pos.GetDouble();
+                        var nVal = neg.GetDouble();
+                        if (p + nVal > 0) score = (p / (p + nVal)) * 5.0;
+                    }
+
+                    // Skip games with no reviews at all (truly unknown games)
+                    var totalReviews = 0.0;
+                    if (gameNode.TryGetProperty("positive", out var posCheck) && gameNode.TryGetProperty("negative", out var negCheck))
+                        totalReviews = posCheck.GetDouble() + negCheck.GetDouble();
+                    if (totalReviews < 100 && list.Count >= 20) continue;
+
+                    list.Add(new CatalogGameSummaryDto
+                    {
+                        ExternalId = appid,
+                        Title = title,
+                        ImageUrl = $"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg",
+                        Rating = Math.Round(score, 1),
+                        Platforms = new List<string> { "PC" }
+                    });
+
+                    if (list.Count >= count) break;
+                }
+                return list;
+            }
+            catch
+            {
+                return new List<CatalogGameSummaryDto>();
+            }
+        }
+
+        private async Task PopulateUserStatesForSectionsAsync(List<StoreSectionDto> sections)
+        {
+            var allGames = sections.SelectMany(s => s.Games).ToList();
+            await PopulateUserStatesAsync(allGames);
+        }
+
+        private CatalogGameSummaryDto? ParseFeaturedItem(JsonElement item)
+        {
+            if (!item.TryGetProperty("id", out var idNode) || idNode.ValueKind != JsonValueKind.Number) return null;
+            
+            var id = idNode.GetInt32();
+            var title = item.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+            var image = item.TryGetProperty("large_capsule_image", out var i) ? i.GetString() ?? "" : "";
+            var metascore = item.TryGetProperty("metascore", out var m) && m.ValueKind == JsonValueKind.Number ? m.GetInt32() : (int?)null;
+            var releaseDate = item.TryGetProperty("release_date", out var rd) ? rd.GetString() ?? "" : "";
+
+            var platforms = new List<string>();
+            if (item.TryGetProperty("windows_available", out var w) && w.ValueKind == JsonValueKind.True) platforms.Add("PC");
+            if (item.TryGetProperty("mac_available", out var mac) && mac.ValueKind == JsonValueKind.True) platforms.Add("Mac");
+            if (item.TryGetProperty("linux_available", out var lin) && lin.ValueKind == JsonValueKind.True) platforms.Add("Linux");
+            if (!platforms.Any()) platforms.Add("PC");
+
+            return new CatalogGameSummaryDto
+            {
+                ExternalId = id,
+                Title = title,
+                ImageUrl = image,
+                Metacritic = metascore,
+                Rating = metascore.HasValue ? Math.Round(metascore.Value / 20.0, 1) : 0,
+                ReleaseDate = releaseDate,
+                Genres = new List<string>(),
+                Platforms = platforms
+            };
+        }
+
         private async Task<List<CatalogGameSummaryDto>> FetchFeaturedCatalogAsync()
         {
             var popularApps = await FetchSteamSpyPopularAppsAsync(1000);
@@ -1087,7 +1407,7 @@ namespace Game_Library_Management_BL.Services.Services
                 .ToList();
         }
 
-        private async Task<List<(int appId, string name, double score)>> FetchSteamSpyPopularAppsAsync(int targetCount)
+        private async Task<List<(int appId, string name, double score, double reviewRatio)>> FetchSteamSpyPopularAppsAsync(int targetCount)
         {
             try
             {
@@ -1105,7 +1425,7 @@ namespace Game_Library_Management_BL.Services.Services
                     return await FetchSteamSpyPopularAppsFallbackAsync(targetCount);
                 }
 
-                var ranked = new List<(int appId, string name, double score)>();
+                var ranked = new List<(int appId, string name, double score, double reviewRatio)>();
 
                 foreach (var prop in doc.RootElement.EnumerateObject())
                 {
@@ -1139,7 +1459,7 @@ namespace Game_Library_Management_BL.Services.Services
 
                     if (appId > 0)
                     {
-                        ranked.Add((appId, name, score));
+                        ranked.Add((appId, name, score, reviewRatio));
                     }
                 }
 
@@ -1154,12 +1474,12 @@ namespace Game_Library_Management_BL.Services.Services
             }
         }
 
-        private async Task<List<(int appId, string name, double score)>> FetchSteamSpyPopularAppsFallbackAsync(int targetCount)
+        private async Task<List<(int appId, string name, double score, double reviewRatio)>> FetchSteamSpyPopularAppsFallbackAsync(int targetCount)
         {
             var ids = await FetchSteamSpyPopularAppIdsAsync();
             return ids
                 .Take(targetCount)
-                .Select((id, index) => (id, string.Empty, (double)(targetCount - index)))
+                .Select((id, index) => (id, string.Empty, (double)(targetCount - index), 0.0))
                 .ToList();
         }
 
@@ -1339,15 +1659,15 @@ namespace Game_Library_Management_BL.Services.Services
                 {
                     if (first.TryGetProperty("mp4", out var mp4) && mp4.ValueKind == JsonValueKind.Object)
                     {
-                        if (mp4.TryGetProperty("480", out var p480)) trailerUrl = p480.GetString() ?? string.Empty;
-                        if (string.IsNullOrWhiteSpace(trailerUrl) && mp4.TryGetProperty("max", out var pMax)) trailerUrl = pMax.GetString() ?? string.Empty;
+                        if (mp4.TryGetProperty("max", out var pMax)) trailerUrl = pMax.GetString() ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(trailerUrl) && mp4.TryGetProperty("480", out var p480)) trailerUrl = p480.GetString() ?? string.Empty;
                     }
 
                     // Fallback to WebM if MP4 is missing
                     if (string.IsNullOrWhiteSpace(trailerUrl) && first.TryGetProperty("webm", out var webm) && webm.ValueKind == JsonValueKind.Object)
                     {
-                        if (webm.TryGetProperty("480", out var w480)) trailerUrl = w480.GetString() ?? string.Empty;
-                        if (string.IsNullOrWhiteSpace(trailerUrl) && webm.TryGetProperty("max", out var wMax)) trailerUrl = wMax.GetString() ?? string.Empty;
+                        if (webm.TryGetProperty("max", out var wMax)) trailerUrl = wMax.GetString() ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(trailerUrl) && webm.TryGetProperty("480", out var w480)) trailerUrl = w480.GetString() ?? string.Empty;
                     }
 
                     // Fallback to HLS (Streaming Format - very common now)
@@ -1361,7 +1681,13 @@ namespace Game_Library_Management_BL.Services.Services
                     {
                         trailerUrl = dash.GetString() ?? string.Empty;
                     }
-                    if (first.TryGetProperty("thumbnail", out var thumb)) trailerPreview = thumb.GetString() ?? string.Empty;
+                    if (first.TryGetProperty("thumbnail", out var thumb)) 
+                    {
+                        var thumbUrl = thumb.GetString() ?? string.Empty;
+                        // First preference: background_raw (already in backgroundImage variable)
+                        // Second preference: standard thumbnail
+                        trailerPreview = !string.IsNullOrWhiteSpace(backgroundImage) ? backgroundImage : thumbUrl;
+                    }
                 }
             }
 

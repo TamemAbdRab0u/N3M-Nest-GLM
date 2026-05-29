@@ -138,6 +138,21 @@ function initializeEventListeners() {
             localStorage.setItem(RECT_TRANSPARENCY_STORAGE_KEY, isOn ? '1' : '0');
         });
     }
+
+    const levelDisplay = document.getElementById("profile-level");
+    if (levelDisplay) {
+        levelDisplay.addEventListener("keydown", (e) => {
+            const controlKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
+            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) return;
+            if (levelDisplay.textContent.length >= 6) e.preventDefault();
+        });
+
+        levelDisplay.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text').substring(0, 6 - levelDisplay.textContent.length);
+            document.execCommand('insertText', false, text);
+        });
+    }
 }
 
 function applyRectTransparency(enabled) {
@@ -207,12 +222,16 @@ function applyVisitorMode() {
     if (nameEditIcon) nameEditIcon.classList.add('hidden');
     const bioEditIcon = document.getElementById('bio-edit-icon');
     if (bioEditIcon) bioEditIcon.classList.add('hidden');
+    const levelEditIcon = document.getElementById('level-edit-icon');
+    if (levelEditIcon) levelEditIcon.classList.add('hidden');
 
     // Ensure fields are not editable
     const nameDisplay = document.getElementById('profile-username');
     if (nameDisplay) nameDisplay.contentEditable = 'false';
     const bioDisplay = document.getElementById('profile-bio');
     if (bioDisplay) bioDisplay.contentEditable = 'false';
+    const levelDisplay = document.getElementById('profile-level');
+    if (levelDisplay) levelDisplay.contentEditable = 'false';
 
     // Update page title
     document.title = `${_visitedUser}'s Profile - N3M|Nest`;
@@ -269,6 +288,9 @@ async function fetchPublicProfile(username) {
         const bioEl = document.getElementById('profile-bio');
         if (bioEl) bioEl.textContent = profile.bio || '...';
 
+        const levelEl = document.getElementById('profile-level');
+        if (levelEl) levelEl.textContent = profile.levelBadge || 'LVL 42';
+
         const avatarImg = document.getElementById('profile-avatar-img');
         const timestamp = new Date().getTime();
         if (avatarImg) {
@@ -309,6 +331,8 @@ async function loadPublicGames(username) {
         loadRecentActivity();
         loadRecentFavorites();
         loadRecentWishlist();
+        loadRecentReviews(username);
+        loadRecentCollections(username);
         switchCarouselView('owned');
     } catch (error) {
         console.error('Error loading public games:', error);
@@ -374,6 +398,11 @@ function updateProfileUI(profile) {
         bioText.textContent = bioValue;
     }
 
+    const levelDisplay = document.getElementById("profile-level");
+    if (levelDisplay) {
+        levelDisplay.textContent = profile.levelBadge || "LVL 42";
+    }
+
     // Update Profile Header Avatar
     if (avatarImg) {
         if (resolvedAvatar) {
@@ -418,7 +447,9 @@ function toggleEditMode() {
     const avatarOverlay = document.getElementById("avatar-edit-icon");
     const nameEditIcon = document.getElementById("name-edit-icon");
     const bioEditIcon = document.getElementById("bio-edit-icon");
+    const levelEditIcon = document.getElementById("level-edit-icon");
     const profileEditControls = document.getElementById("profile-edit-controls");
+    const levelDisplay = document.getElementById("profile-level");
 
     if (isEditMode) {
         // Enter Edit Mode
@@ -444,6 +475,11 @@ function toggleEditMode() {
         }
         if (nameEditIcon) nameEditIcon.classList.remove("hidden");
         if (bioEditIcon) bioEditIcon.classList.remove("hidden");
+        if (levelEditIcon) levelEditIcon.classList.remove("hidden");
+        if (levelDisplay) {
+            levelDisplay.contentEditable = "true";
+            levelDisplay.classList.add("editing-active");
+        }
         if (profileEditControls) {
             profileEditControls.classList.add("is-visible");
             profileEditControls.setAttribute('aria-hidden', 'false');
@@ -475,6 +511,11 @@ function toggleEditMode() {
         }
         if (nameEditIcon) nameEditIcon.classList.add("hidden");
         if (bioEditIcon) bioEditIcon.classList.add("hidden");
+        if (levelEditIcon) levelEditIcon.classList.add("hidden");
+        if (levelDisplay) {
+            levelDisplay.contentEditable = "false";
+            levelDisplay.classList.remove("editing-active");
+        }
         if (profileEditControls) {
             profileEditControls.classList.remove("is-visible");
             profileEditControls.setAttribute('aria-hidden', 'true');
@@ -497,6 +538,11 @@ async function saveProfileChanges() {
     const formData = new FormData();
     formData.append("DisplayName", name);
     formData.append("Bio", bio);
+    
+    const levelText = document.getElementById("profile-level")?.textContent.trim();
+    if (levelText) {
+        formData.append("LevelBadge", levelText);
+    }
     if (selectedAvatarFile) {
         formData.append("AvatarUrl", selectedAvatarFile);
     }
@@ -563,6 +609,8 @@ async function loadInitialData() {
         loadRecentActivity();
         loadRecentFavorites();
         loadRecentWishlist();
+        loadRecentReviews(getUserInfo()?.userName);
+        loadRecentCollections(getUserInfo()?.userName);
 
         // Initial view is owned games
         switchCarouselView('owned');
@@ -583,23 +631,23 @@ function switchCarouselView(category) {
 
     // Update Heading
     const labels = isVisitorMode ? {
-        'favorite':  `In ${_visitedUser}'s Favorites`,
-        'owned':     `In ${_visitedUser}'s Library`,
-        'wishlist':  `In ${_visitedUser}'s Wishlist`,
+        'favorite': `In ${_visitedUser}'s Favorites`,
+        'owned': `In ${_visitedUser}'s Library`,
+        'wishlist': `In ${_visitedUser}'s Wishlist`,
         'completed': `${_visitedUser}'s Completed Games`,
-        'playing':   `${_visitedUser} Is Currently Playing`,
-        'dropped':   `Games ${_visitedUser} Dropped`,
-        'onhold':    `${_visitedUser}'s Games On Hold`,
-        'pending':   `${_visitedUser}'s Pending Games`
+        'playing': `${_visitedUser} Is Currently Playing`,
+        'dropped': `Games ${_visitedUser} Dropped`,
+        'onhold': `${_visitedUser}'s Games On Hold`,
+        'pending': `${_visitedUser}'s Pending Games`
     } : {
         'favorite': 'a Quick Look To Your Favorite Games',
-        'owned':    'All Owned Games In Your Collection',
+        'owned': 'All Owned Games In Your Collection',
         'wishlist': 'Games On Your Current Wishlist',
-        'completed':'Your Fully Completed Adventures',
-        'playing':  'What You Are Currently Playing',
-        'dropped':  'Games You Have Dropped',
-        'onhold':   'Games Currently On Hold',
-        'pending':  'Games Pending In Your Library'
+        'completed': 'Your Fully Completed Adventures',
+        'playing': 'What You Are Currently Playing',
+        'dropped': 'Games You Have Dropped',
+        'onhold': 'Games Currently On Hold',
+        'pending': 'Games Pending In Your Library'
     };
 
     if (titleEl) {
@@ -680,95 +728,13 @@ function switchCarouselView(category) {
 
 function updateSnapshotCards(filteredGames) {
     const totalGamesEl = document.getElementById('snapshot-total-games');
-    const totalHoursEl = document.getElementById('snapshot-total-hours');
 
     if (totalGamesEl) {
         totalGamesEl.textContent = (filteredGames?.length || 0).toLocaleString();
     }
-
-    if (!totalHoursEl) return;
-
-    const currentToken = ++snapshotRequestToken;
-    totalHoursEl.textContent = '...';
-
-    computeTotalHours(filteredGames || [])
-        .then(totalHours => {
-            if (currentToken !== snapshotRequestToken) return;
-            totalHoursEl.textContent = Math.round(totalHours).toLocaleString();
-        })
-        .catch(() => {
-            if (currentToken !== snapshotRequestToken) return;
-            totalHoursEl.textContent = '0';
-        });
 }
 
-async function computeTotalHours(games) {
-    if (!games || games.length === 0) return 0;
 
-    let total = 0;
-    const missingIds = [];
-
-    for (const g of games) {
-        const immediate = extractHoursFromGame(g);
-        if (immediate !== null) {
-            total += immediate;
-            continue;
-        }
-
-        const id = g.externalId ?? g.id;
-        if (!id) continue;
-
-        if (playtimeCache.has(id)) {
-            total += playtimeCache.get(id) || 0;
-        } else {
-            missingIds.push(id);
-        }
-    }
-
-    if (missingIds.length === 0) return total;
-
-    const fetches = missingIds.map(async id => {
-        try {
-            const res = await apiRequest(`/api/Steam/catalog/${id}`);
-            if (!res.ok) {
-                playtimeCache.set(id, 0);
-                return 0;
-            }
-            const details = await res.json();
-            const hours = extractHoursFromGame(details) ?? 0;
-            playtimeCache.set(id, hours);
-            return hours;
-        } catch {
-            playtimeCache.set(id, 0);
-            return 0;
-        }
-    });
-
-    const fetched = await Promise.all(fetches);
-    return total + fetched.reduce((sum, h) => sum + (h || 0), 0);
-}
-
-function extractHoursFromGame(game) {
-    if (!game) return null;
-
-    const candidates = [
-        game.playtime,
-        game.hoursPlayed,
-        game.avgHours,
-        game.averageHours,
-        game.estimatedHours
-    ];
-
-    for (const value of candidates) {
-        if (value === null || value === undefined || value === '') continue;
-        const num = Number(value);
-        if (!Number.isNaN(num) && Number.isFinite(num)) {
-            return Math.max(0, num);
-        }
-    }
-
-    return null;
-}
 
 function updateLibraryStats(allGames) {
     if (!allGames) return;
@@ -1303,11 +1269,11 @@ function getHqGameImage(url, isVertical = false) {
         const appIdMatch = cleanUrl.match(/\/apps\/(\d+)\//);
         if (appIdMatch) {
             const appId = appIdMatch[1];
-            
+
             // Reconstruct URL with target image type
             const appsIndex = cleanUrl.indexOf('/apps/');
             const domainPath = cleanUrl.substring(0, appsIndex);
-            
+
             // Check if we already have the right type in the URL
             if (cleanUrl.toLowerCase().includes(isVertical ? 'library_600x900' : 'capsule_616x353')) {
                 return cleanUrl;
@@ -1374,7 +1340,7 @@ function renderRecentGames(listId, games, cfg) {
         const posterImg = getHqGameImage(game.posterImageUrl || game.gameImageUrl || '../../Assets/Images/Bg1.jpg', true);
         const capsuleImg = getHqGameImage(game.gameImageUrl || '../../Assets/Images/Bg1.jpg', false);
         const originalImg = game.gameImageUrl || '../../Assets/Images/Bg1.jpg';
-        
+
         const sKey = String(game.gamestatus).toLowerCase();
         const st = cfg.statusOverride || _statusLabels[sKey] || { label: 'Library', color: 'text-slate-400', icon: 'inventory_2' };
         const time = _relativeTime(game.addedAt);
@@ -1435,6 +1401,90 @@ function loadRecentWishlist() {
         viewHref: '../../Dashboard/Html/dashboard.html?view=wishlist',
         accentText: 'text-blue-400',
         statusOverride: { label: 'Wishlisted', color: 'text-blue-400', icon: 'bookmark' },
+    });
+}
+
+async function loadRecentReviews(username) {
+    if (!username) return;
+    try {
+        const response = await apiRequest(`/api/Reviews/GetUserReviews?username=${encodeURIComponent(username)}&count=3`);
+        if (!response.ok) throw new Error('Failed to load reviews');
+        const reviews = await response.json();
+        renderRecentReviews(reviews);
+    } catch (error) {
+        console.error('Error loading recent reviews:', error);
+        const list = document.getElementById('recent-reviews-list');
+        if (list) {
+            list.innerHTML = `
+                <div class="col-span-full py-6 text-center text-slate-600">
+                    <span class="material-symbols-outlined text-3xl mb-1 block opacity-30">rate_review</span>
+                    <p class="text-[10px] xirod-font uppercase tracking-wider">No reviews found</p>
+                </div>`;
+        }
+    }
+}
+
+function renderRecentReviews(reviews) {
+    const list = document.getElementById('recent-reviews-list');
+    if (!list) return;
+
+    if (!reviews || reviews.length === 0) {
+        list.innerHTML = `
+            <div class="col-span-full py-8 text-center text-slate-700 bg-white/5 rounded-2xl border border-dashed border-white/5">
+                <span class="material-symbols-outlined text-4xl mb-2 block opacity-30">rate_review</span>
+                <p class="text-[11px] xirod-font uppercase tracking-widest text-slate-500">Protocol Void: No recent reviews identified</p>
+            </div>`;
+        return;
+    }
+
+    list.innerHTML = '';
+    reviews.forEach((review, i) => {
+        const posterImg = getHqGameImage(review.gamePosterUrl || '../../Assets/Images/Bg1.jpg', true);
+        const time = _relativeTime(review.createdAt);
+
+        let starsHtml = '';
+        for (let s = 1; s <= 5; s++) {
+            const isFilled = s <= review.rating;
+            starsHtml += `<span class="material-symbols-outlined text-[10px] ${isFilled ? 'text-primary' : 'text-white/10'}">${isFilled ? 'star' : 'star'}</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `glass-panel profile-review-card rounded-2xl p-5 border border-primary/10 flex flex-col gap-4 transition-all duration-300 cursor-pointer group relative overflow-hidden`;
+        card.style.animation = `fade-in-up 0.5s ease-out forwards ${i * 0.1}s`;
+        card.onclick = () => window.location.href = `../../GameDetails/Html/game-details.html?id=${review.externalId}`;
+
+        card.innerHTML = `
+            <div class="absolute -top-4 -right-4 size-24 bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+            <div class="flex gap-4 items-start">
+                <div class="relative size-16 rounded-xl bg-slate-800 overflow-hidden flex-shrink-0 shadow-lg border border-white/5">
+                    <img src="${posterImg}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a1618]/80 via-transparent to-transparent"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-xs font-black text-white truncate uppercase group-hover:text-primary transition-colors tracking-tight">${review.gameTitle || 'Unknown Game'}</h4>
+                    <div class="flex items-center gap-0.5 mt-1.5 bg-black/40 w-fit px-1.5 py-0.5 rounded-md">
+                        ${starsHtml}
+                    </div>
+                </div>
+            </div>
+            <div class="relative mt-1">
+                <p class="text-[11px] text-slate-400 leading-relaxed italic line-clamp-3 relative z-10">
+                    <span class="text-primary/40 text-lg leading-none align-top mr-1 font-serif">"</span>${review.comment || 'No comment provided.'}<span class="text-primary/40 text-lg leading-none align-middle ml-1 font-serif">"</span>
+                </p>
+            </div>
+            <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] text-slate-500 font-medium opacity-60">${time}</span>
+                    <div class="flex items-center gap-3 ml-2 border-l border-white/5 pl-3">
+                        <div class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px] text-slate-600 group-hover:text-primary/60 transition-colors">thumb_up</span>
+                            <span class="text-[10px] font-bold text-slate-600">${review.likes || 0}</span>
+                        </div>
+                    </div>
+                </div>
+                <span class="material-symbols-outlined text-[18px] text-slate-700 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+            </div>`;
+        list.appendChild(card);
     });
 }
 
@@ -1664,4 +1714,203 @@ async function loadFriendsPreview(username) {
     } catch (e) {
         console.error('Error loading friends preview:', e);
     }
+}
+
+// Recent Collections Widget
+async function loadRecentCollections(username) {
+    const list = document.getElementById('recent-collections-list');
+    const seeAllLink = document.getElementById('see-all-collections');
+    if (!list) return;
+
+    if (seeAllLink) {
+        seeAllLink.href = `../../Collections/Html/collections.html?user=${encodeURIComponent(username)}`;
+    }
+
+    try {
+        const response = await apiRequest(`/api/Collections/user/${encodeURIComponent(username)}`);
+        if (!response.ok) throw new Error("Failed to load collections");
+
+        const collections = await response.json();
+        renderRecentCollections(collections);
+    } catch (error) {
+        console.error("Error loading recent collections:", error);
+        list.innerHTML = `
+            <div class="col-span-full py-12 flex flex-col items-center justify-center text-slate-500 opacity-50">
+                <span class="material-symbols-outlined text-4xl mb-3">folder_open</span>
+                <p class="text-[10px] xirod-font uppercase tracking-wider">No collections found</p>
+            </div>`;
+    }
+}
+
+function renderRecentCollections(collections) {
+    const list = document.getElementById('recent-collections-list');
+    if (!list) return;
+
+    if (!collections || collections.length === 0) {
+        list.innerHTML = `
+            <div class="col-span-full py-12 flex flex-col items-center justify-center text-slate-500 bg-white/5 rounded-2xl border border-dashed border-white/5">
+                <span class="material-symbols-outlined text-4xl mb-3 opacity-30">folder_open</span>
+                <p class="text-[11px] xirod-font uppercase tracking-widest text-slate-500">Protocol Empty: No collections identified</p>
+            </div>`;
+        return;
+    }
+
+    const recent = collections.slice(0, 3);
+    list.innerHTML = '';
+
+    recent.forEach((coll, i) => {
+        const games = coll.games || [];
+        const posters = [
+            games[0]?.imgUrl || '../../Assets/Images/Bg2.jpg',
+            games[1]?.imgUrl || games[0]?.imgUrl || '../../Assets/Images/Bg2.jpg',
+            games[2]?.imgUrl || games[0]?.imgUrl || '../../Assets/Images/Bg2.jpg'
+        ];
+        const time = _relativeTime(coll.createdAt);
+        const username = isVisitorMode ? _visitedUser : getUserInfo()?.userName;
+        const detailUrl = `../../Collections/Html/collections.html?user=${encodeURIComponent(username)}&id=${coll.id}`;
+
+        const card = document.createElement('div');
+        // Added expansion classes
+        card.className = `glass-panel collection-expansion-card rounded-3xl py-7 px-0 border border-primary/10 flex flex-col transition-all cursor-default group relative overflow-hidden`;
+        card.style.animation = `fade-in-up 0.5s ease-out forwards ${i * 0.15}s`;
+
+        card.innerHTML = `
+            <div class="absolute -top-10 -right-10 size-40 bg-primary/5 blur-3xl group-hover:bg-primary/20 transition-colors pointer-events-none"></div>
+            
+            <!-- Header Area (Better spacing for full titles) -->
+            <div class="flex gap-10 items-center pl-8 pr-7 cursor-pointer">
+                <div class="relative size-24 flex-shrink-0 flex items-center justify-center group/icon overflow-visible">
+                    ${games.length > 0 ? `
+                        <img src="${getHqGameImage(posters[2], true)}" 
+                             class="absolute left-0 z-10 h-[90%] w-[68%] object-cover rounded-md shadow-lg -rotate-12 -translate-x-6 opacity-40 brightness-50 blur-[0.5px] transition-all duration-300"
+                             data-fallback-capsule="${getHqGameImage(posters[2], false)}"
+                             data-fallback-original="${posters[2]}"
+                             onerror="handleCarouselImageError(this)">
+                        <img src="${getHqGameImage(posters[1], true)}" 
+                             class="absolute right-0 z-10 h-[90%] w-[68%] object-cover rounded-md shadow-lg rotate-12 translate-x-6 opacity-40 brightness-50 blur-[0.5px] transition-all duration-300"
+                             data-fallback-capsule="${getHqGameImage(posters[1], false)}"
+                             data-fallback-original="${posters[1]}"
+                             onerror="handleCarouselImageError(this)">
+                        <img src="${getHqGameImage(posters[0], true)}" 
+                             class="relative z-20 h-full w-[68%] object-cover rounded-lg shadow-2xl border border-white/10 transition-transform duration-500 group-hover:scale-105"
+                             data-fallback-capsule="${getHqGameImage(posters[0], false)}"
+                             data-fallback-original="${posters[0]}"
+                             onerror="handleCarouselImageError(this)">
+                    ` : `
+                        <div class="size-20 rounded-lg border border-white/5 bg-white/5 flex items-center justify-center opacity-30">
+                             <span class="material-symbols-outlined text-3xl text-slate-500">layers_clear</span>
+                        </div>
+                    `}
+                </div>
+                <div class="flex-1 min-w-0 pl-2 relative z-30">
+                    <h4 class="text-sm font-black text-white uppercase group-hover:text-primary transition-colors tracking-widest xirod-font">${coll.name}</h4>
+                    <div class="flex items-center gap-1.5 mt-2.5 bg-primary/10 w-fit px-3 py-1 rounded-md">
+                        <span class="material-symbols-outlined text-[14px] text-primary">layers</span>
+                        <span class="text-[10px] font-bold text-primary xirod-font uppercase tracking-tighter">${games.length} Games</span>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="middle-interaction-shield w-full">
+                <!-- Expansion Area (Slide-only strip) -->
+                <div class="expansion-content">
+                    <div class="px-8 mt-2 pt-6 border-t border-white/5">
+                        <div class="games-scroll-row pb-6 cursor-grab active:cursor-grabbing" id="games-strip-${coll.id}">
+                            ${games.length === 0 ? `
+                                <div class="flex flex-col items-center justify-center w-full min-h-[138px] py-4 text-center">
+                                     <img src="../../Assets/Images/Empty.png" class="size-20 mb-3 opacity-70 group-hover:opacity-100 transition-opacity" alt="Empty">
+                                     <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest">Vault Empty: No games found</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spacer to push footer lower when collapsed -->
+                <div class="h-8"></div>
+            </div>
+
+            <!-- Footer Area (Now contains the expand trigger) -->
+            <div class="flex items-center justify-between mt-auto pt-6 border-t border-white/5 px-8 cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-slate-500 font-bold opacity-60 uppercase tracking-widest xirod-font">SEE ALL</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                     <span class="material-symbols-outlined expand-icon text-slate-600 transition-transform duration-300">expand_more</span>
+                </div>
+            </div>
+        `;
+
+        // Interactive Toggle Logic
+        card.addEventListener('click', (e) => {
+            // EXCLUSION ZONE: Clicking anywhere in the expansion area (games strip, background, etc.)
+            // will NOT trigger the card to collapse. This makes the shelf stable for scrolling.
+            if (e.target.closest('.middle-interaction-shield')) return;
+
+            const isExpanding = !card.classList.contains('expanded');
+
+            // Toggle this card
+            card.classList.toggle('expanded');
+
+            // Populate slidable strip
+            if (isExpanding) {
+                const strip = document.getElementById(`games-strip-${coll.id}`);
+                if (strip && strip.childElementCount === 0) {
+                    // Show all games in a slidable row (no hard limit to allow "slide to see all")
+                    games.forEach(game => {
+                        const thumb = document.createElement('img');
+                        thumb.className = 'expanded-game-thumb';
+
+                        // Use multiple fallbacks for the expansion strip as well
+                        const verticalImg = getHqGameImage(game.imgUrl || game.posterImageUrl || '../../Assets/Images/Bg1.jpg', true);
+                        const capsuleImg = getHqGameImage(game.imgUrl || game.posterImageUrl || '../../Assets/Images/Bg1.jpg', false);
+                        const originalImg = game.imgUrl || game.posterImageUrl || '../../Assets/Images/Bg1.jpg';
+
+                        thumb.src = verticalImg;
+                        thumb.setAttribute('data-fallback-capsule', capsuleImg);
+                        thumb.setAttribute('data-fallback-original', originalImg);
+                        thumb.onerror = function () { handleCarouselImageError(this); };
+
+                        thumb.title = game.title;
+                        thumb.alt = game.title;
+                        thumb.draggable = false;
+
+                        strip.appendChild(thumb);
+                    });
+
+                    // Add Mouse-Drag to Scroll functionality (Making it "Slidable")
+                    let isDown = false;
+                    let startX;
+                    let scrollLeft;
+
+                    strip.addEventListener('mousedown', (e) => {
+                        isDown = true;
+                        strip.classList.add('active');
+                        startX = e.pageX - strip.offsetLeft;
+                        scrollLeft = strip.scrollLeft;
+                    });
+                    strip.addEventListener('mouseleave', () => {
+                        isDown = false;
+                        strip.classList.remove('active');
+                    });
+                    strip.addEventListener('mouseup', () => {
+                        isDown = false;
+                        strip.classList.remove('active');
+                    });
+                    strip.addEventListener('mousemove', (e) => {
+                        if (!isDown) return;
+                        e.preventDefault();
+                        const x = e.pageX - strip.offsetLeft;
+                        const walk = (x - startX) * 1.2; // Slightly slower sliding for better control
+                        strip.scrollLeft = scrollLeft - walk;
+                    });
+                }
+            }
+        });
+
+        list.appendChild(card);
+    });
 }

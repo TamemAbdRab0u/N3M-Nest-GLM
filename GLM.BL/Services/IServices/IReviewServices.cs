@@ -1,4 +1,4 @@
-﻿using Game_Library_Management_BL.DTO_s.ReviewDto;
+using Game_Library_Management_BL.DTO_s.ReviewDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ namespace Game_Library_Management_BL.Services.IServices
     public interface IReviewServices
     {
         Task<IEnumerable<ReviewResponseDto>> GetReviewsAsync(int ExternalId, string userId = null);
+        Task<IEnumerable<ReviewResponseDto>> GetUserReviewsAsync(string username, int? count = null);
         Task<ReviewResponseDto> CreateReviewAsync(string UserId, CreateReviewDto dto);
         Task<ReviewResponseDto> UpdateReviewAsync(string UserId, int ReviewId, UpdateReviewDto dto);
         Task<bool> DeleteReviewAsync(int ReviewId);

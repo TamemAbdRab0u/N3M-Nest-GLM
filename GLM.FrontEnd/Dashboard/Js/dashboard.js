@@ -313,8 +313,8 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
 
     const isRightAligned = alignment === 'justify-end';
 
-    const selectorPositionClass = isRightAligned 
-        ? 'right-0 translate-x-4' 
+    const selectorPositionClass = isRightAligned
+        ? 'right-0 translate-x-4'
         : 'left-0 -translate-x-4';
 
     return `
@@ -385,6 +385,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Save state before leaving the page (e.g., clicking a link to Profile)
     window.addEventListener('beforeunload', savePageState);
+
+    // Pre-load Discovery data in the background after a short delay
+    // to ensure the Discover page loads instantly when clicked.
+    setTimeout(preloadDiscoverData, 2500);
 });
 
 function initializeCatalogInfiniteScroll() {
@@ -507,6 +511,35 @@ async function fetchProfileInfo() {
         }
     } catch (error) {
         console.error('Error fetching profile into dashboard:', error);
+    }
+}
+
+/**
+ * Pre-fetches Discovery (Steam Store) data in the background
+ * to ensure the Discover page loads instantly.
+ */
+async function preloadDiscoverData() {
+    const RAW_JSON_KEY = 'discover:raw_json';
+    const RAW_JSON_TS  = 'discover:raw_json:cached_at';
+    const CACHE_TTL_MS = 15 * 60 * 1000;
+    
+    // Don't pre-fetch if we already have fresh data (either raw or rendered)
+    const cachedAt = parseInt(sessionStorage.getItem(RAW_JSON_TS) || sessionStorage.getItem('discover:cached_at') || '0', 10);
+    if ((Date.now() - cachedAt) < CACHE_TTL_MS) {
+        return;
+    }
+
+    try {
+        console.log('Background: Starting Discovery pre-load...');
+        const response = await apiRequest('/api/Steam/store/home');
+        if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem(RAW_JSON_KEY, JSON.stringify(data));
+            sessionStorage.setItem(RAW_JSON_TS, Date.now().toString());
+            console.log('Background: Discovery data pre-loaded successfully.');
+        }
+    } catch (error) {
+        console.warn('Background: Discovery pre-load failed.', error);
     }
 }
 
@@ -1414,19 +1447,19 @@ function renderAjaxSearchResults(games, query) {
 
     games.forEach(game => {
         const item = document.createElement('div');
-        item.className = 'group flex items-center gap-3 px-4 py-3 hover:bg-white/5 cursor-pointer transition-all border-b border-white/[0.03] last:border-0';
-
+        item.className = 'result-item-group flex items-center gap-3 px-4 py-3 hover:bg-white/5 cursor-pointer transition-all border-b border-white/[0.03] last:border-0';
+        
         const imageUrl = game.imageUrl || game.imgUrl || game.backgroundImage || game.background_image || '../../Assets/Images/default-game.jpg';
         const title = game.title || game.name || 'Unknown Game';
 
         item.innerHTML = `
-            <div class="w-12 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 shadow-lg">
+            <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10 shadow-lg">
                 <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover">
             </div>
-            <div class="flex-1 min-w-0">
-                <h4 class="text-sm font-semibold text-white truncate group-hover:text-primary transition-colors">${title}</h4>
+            <div class="flex-1 min-w-0 pr-2">
+                <h4 class="text-[13px] font-semibold text-white truncate result-item-group-hover:text-primary transition-colors">${title}</h4>
             </div>
-            <div class="opacity-0 group-hover:opacity-100 transition-all mr-2">
+            <div class="opacity-0 result-item-group-hover:opacity-100 transition-all ml-auto">
                 <span class="material-symbols-outlined text-primary text-lg">arrow_forward</span>
             </div>
         `;
@@ -1797,11 +1830,11 @@ function updateStatusIndicators(gameId, game, isUpdating = false) {
                 // Clear any potential clashing white-opacity classes from BOTH btn and icon
                 btn.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'text-white/60');
                 icon?.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'text-white/60');
-                
+
                 btn.classList.add(...activeClass.split(' '));
                 btn.classList.remove(...inactiveClass.split(' '));
                 icon?.classList.add('fill-icon');
-                
+
                 // Favorite and Wishlist get the pop animation
                 if (type === 'favorite' || type === 'wishlist') {
                     icon?.classList.add('animate-pop');
@@ -1870,7 +1903,7 @@ function updateLibraryUI(gameId, isInLibrary) {
                 // Clear any potential clashing white-opacity classes from BOTH btn and icon
                 btn.classList.remove('text-white/70', 'text-white/40', 'text-white/50', 'hover:text-primary');
                 iconSpan?.classList.remove('text-white/70', 'text-white/40', 'text-white/50');
-                
+
                 btn.classList.add('text-green-500');
                 iconSpan.textContent = 'inventory_2';
                 iconSpan.classList.add('fill-icon');
@@ -2054,7 +2087,7 @@ function updateStatusSelectorUI(gameId, statusId) {
                 const baseClasses = 'w-8 h-8 rounded-full bg-slate-900 border flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95';
                 const activeClasses = 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]';
                 const inactiveClasses = 'border-white/10';
-                
+
                 btn.className = `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
 
                 // Sync icon fill state
@@ -2070,8 +2103,13 @@ function updateStatusSelectorUI(gameId, statusId) {
 
 // Initialize navigation
 function initializeNavigation() {
-    // Already handled by onclick in HTML primarily, but for sidebar active states:
-    // ...
+    const discoverLink = document.getElementById('nav-discover');
+    if (discoverLink) {
+        discoverLink.addEventListener('mouseenter', () => {
+            // Immediate pre-load on hover if not already fresh
+            preloadDiscoverData();
+        });
+    }
 }
 
 /**

@@ -47,7 +47,6 @@ namespace Game_Library_Management_BL.Services.Services
                 unitOfWork.Save();
             }
 
-            // Prefer user.ImageUrl as the authoritative avatar source
             var imageUrl = user?.ImageUrl;
             var avatarUrl = imageUrl ?? profile.AvatarUrl;
 
@@ -58,7 +57,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Email = profile.Email,
                 AvatarUrl = avatarUrl,
                 CoverUrl = profile.CoverUrl,
-                IsRectTransparent = profile.IsRectTransparent
+                IsRectTransparent = profile.IsRectTransparent,
+                LevelBadge = profile.LevelBadge ?? "PRO"
             };
         }
 
@@ -78,7 +78,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Bio = profile?.Bio,
                 AvatarUrl = avatarUrl,
                 CoverUrl = profile?.CoverUrl,
-                IsRectTransparent = profile?.IsRectTransparent ?? false
+                IsRectTransparent = profile?.IsRectTransparent ?? false,
+                LevelBadge = profile?.LevelBadge ?? "LVL 42"
                 // Email intentionally omitted for public view
             };
         }
@@ -178,6 +179,15 @@ namespace Game_Library_Management_BL.Services.Services
                 profile.IsRectTransparent = model.IsRectTransparent.Value;
             }
 
+            if (!string.IsNullOrEmpty(model.LevelBadge))
+            {
+                profile.LevelBadge = model.LevelBadge.Length > 6 ? model.LevelBadge.Substring(0, 6) : model.LevelBadge;
+            }
+            else
+            {
+                profile.LevelBadge = "LVL 42";
+            }
+
             
             unitOfWork.Save();
 
@@ -191,7 +201,8 @@ namespace Game_Library_Management_BL.Services.Services
                 Email = profile.Email,
                 AvatarUrl = updatedImageUrl,
                 CoverUrl = profile.CoverUrl,
-                IsRectTransparent = profile.IsRectTransparent
+                IsRectTransparent = profile.IsRectTransparent,
+                LevelBadge = profile.LevelBadge
             };
         }
 

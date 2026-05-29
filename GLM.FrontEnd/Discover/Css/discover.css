@@ -1,0 +1,268 @@
+/* 
+    Neon Kinetic Design System 
+    Derived from The Obsidian Pulse philosophy
+*/
+
+@font-face {
+    font-family: 'ModernCosmo';
+    src: url('../../Assets/Fonts/ModernCosmo-q25Dr.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Xirod';
+    src: url('../../Assets/Fonts/Xirod.otf') format('opentype');
+}
+
+.xirod-font {
+    font-family: 'Xirod', sans-serif;
+    letter-spacing: 0.08em;
+}
+
+
+:root {
+    --bg-obsidian: #0f131b;
+    --surface-dark: #1d2026;
+    --kinetic-blue: #82cfff;
+    --neon-green: #aad616;
+    --accent-purple: #7c3aed;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --glass-bg: rgba(29, 32, 38, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+h1,
+h2,
+.xirod-font {
+    font-family: inherit;
+    font-weight: 700;
+}
+
+.section-title {
+    font-family: 'Xirod', sans-serif;
+    letter-spacing: 0.1em;
+}
+
+/* Typography Helpers */
+.neon-glow-blue {
+    text-shadow: 0 0 10px rgba(130, 207, 255, 0.5), 0 0 20px rgba(130, 207, 255, 0.3);
+}
+
+/* Hero Carousel */
+.hero-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+    border-radius: 0 0 40px 40px;
+    background-color: #000;
+}
+
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.hero-slide.active {
+    opacity: 1;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(1.2) contrast(1.1);
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg-obsidian) 0%, transparent 60%),
+        linear-gradient(to right, rgba(15, 19, 27, 0.8) 0%, transparent 50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 4rem;
+}
+
+.hero-content {
+    max-width: 900px;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.hero-content h1 {
+    font-family: 'ModernCosmo', 'Inter', sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1.1;
+    text-shadow: 0 0 25px rgba(74, 125, 255, 0.6);
+}
+
+@keyframes fadeInUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Discovery Sections */
+.discovery-section {
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-title::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: var(--kinetic-blue);
+    border-radius: 2px;
+    display: inline-block;
+}
+
+/* Horizontal Scroll Container */
+.scroll-lane {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 1rem 3rem 2rem 3rem;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.scroll-lane::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+/* Lane wrapper for positioning scroll arrows */
+.lane-wrapper {
+    position: relative;
+}
+
+.lane-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 19, 27, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    backdrop-filter: blur(6px);
+    border-radius: 3px;
+}
+
+.lane-arrow:hover {
+    background: rgba(74, 125, 255, 0.25);
+    border-color: rgba(130, 207, 255, 0.4);
+}
+
+.lane-arrow-left  { left: 0; }
+.lane-arrow-right { right: 0; }
+
+/* Game Card - Premium Steam Aesthetic */
+.game-card {
+    flex: 0 0 380px;
+    background: #151a21;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.game-card:hover {
+    border-color: rgba(130, 207, 255, 0.3);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7),
+        0 0 20px rgba(130, 207, 255, 0.1);
+}
+
+.card-image-wrapper {
+    width: 100%;
+    aspect-ratio: 460 / 215;
+    overflow: hidden;
+    background: #000;
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s ease;
+    opacity: 0.9;
+}
+
+.game-card:hover .card-image {
+    transform: scale(1.08);
+    opacity: 1;
+}
+
+.card-content {
+    padding: 0.85rem 1rem;
+    background: linear-gradient(to bottom, #1a1e26, #11141b);
+}
+
+.game-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #82cfff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+/* Skeleton Loading */
+.skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}

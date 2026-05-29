@@ -110,6 +110,9 @@ namespace Game_Library_Management_DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -432,6 +435,9 @@ namespace Game_Library_Management_DAL.Migrations
 
                     b.Property<bool>("IsRectTransparent")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LevelBadge")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +14,6 @@ namespace Game_Library_Management_BL.DTO_s.ProfileDto
         public string? AvatarUrl { get; set; }
         public string? CoverUrl { get; set; }
         public bool IsRectTransparent { get; set; }
+        public string? LevelBadge { get; set; }
     }
 }

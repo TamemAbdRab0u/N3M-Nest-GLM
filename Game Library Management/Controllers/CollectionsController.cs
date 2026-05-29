@@ -21,6 +21,15 @@ namespace Game_Library_Management.Controllers
             _collectionServices = collectionServices;
         }
 
+        [HttpGet("user/{username}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCollectionsByUsername(string username)
+        {
+            if (string.IsNullOrEmpty(username)) return BadRequest("Username is required.");
+            var collections = await _collectionServices.GetCollectionsByUsernameAsync(username);
+            return Ok(collections);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetUserCollections()
         {
@@ -49,6 +58,18 @@ namespace Game_Library_Management.Controllers
 
             var deleted = await _collectionServices.DeleteCollectionAsync(id, userId);
             if (!deleted) return NotFound();
+
+            return Ok();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCollection(int id, [FromBody] CollectionCreateDto dto)
+        {
+            var userId = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var updated = await _collectionServices.UpdateCollectionAsync(id, userId, dto);
+            if (!updated) return NotFound();
 
             return Ok();
         }

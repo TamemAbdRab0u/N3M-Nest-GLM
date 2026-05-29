@@ -271,14 +271,17 @@ function getUserInfo() {
 
 // Show error message
 function showError(element, message) {
-    element.textContent = message;
+    if (!element) return;
+    element.textContent = message || '';
     element.classList.add('show');
 }
 
 // Hide error message
 function hideError(element) {
-    element.classList.remove('show');
-    element.textContent = '';
+    if (element) {
+        element.classList.remove('show');
+        element.textContent = '';
+    }
 }
 
 // Set loading state

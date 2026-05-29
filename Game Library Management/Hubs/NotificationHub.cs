@@ -11,6 +11,7 @@ namespace Game_Library_Management.Hubs
         private readonly IOnlineUserTracker onlineUserTracker;
         private static readonly ConcurrentDictionary<string, CancellationTokenSource> pendingOfflineBroadcasts = new();
         private const int OfflineBroadcastDelayMs = 1800;
+        public const string PresenceGroup = "presence";
 
         public NotificationHub(IOnlineUserTracker onlineUserTracker)
         {
@@ -28,7 +29,7 @@ namespace Game_Library_Management.Hubs
 
                 if (!wasOnline)
                 {
-                    _ = Clients.All.SendAsync("PresenceChanged", userId, true);
+                    _ = Clients.Group(PresenceGroup).SendAsync("PresenceChanged", userId, true);
                 }
             }
 
@@ -45,6 +46,16 @@ namespace Game_Library_Management.Hubs
             }
 
             return base.OnDisconnectedAsync(exception);
+        }
+
+        public Task JoinPresence()
+        {
+            return Groups.AddToGroupAsync(Context.ConnectionId, PresenceGroup);
+        }
+
+        public Task LeavePresence()
+        {
+            return Groups.RemoveFromGroupAsync(Context.ConnectionId, PresenceGroup);
         }
 
         private void CancelPendingOffline(string userId)
@@ -74,7 +85,7 @@ namespace Game_Library_Management.Hubs
                         return;
                     }
 
-                    await Clients.All.SendAsync("PresenceChanged", userId, false);
+                    await Clients.Group(PresenceGroup).SendAsync("PresenceChanged", userId, false);
                 }
                 catch (TaskCanceledException)
                 {

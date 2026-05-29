@@ -7,30 +7,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#4a7dff",
-                        "background-light": "#f5f8f8",
-                        "background-dark": "#0f2023",
-                        "surface-dark": "#121212",
-                        "input-bg": "#1e292b",
-                        "input-border": "#2e616b",
-                        "error": "#ff4757",
-                    },
-                    fontFamily: {
-                        "display": ["Inter", "sans-serif"],
-                        "body": ["Inter", "sans-serif"],
-                    },
-                },
-            },
-        }
-    </script>
+    <link rel="stylesheet" href="../../Assets/tailwind.css">
     <style>
+        :root {
+            --color-background-dark: 15 32 35;
+            --color-surface-dark: 18 18 18;
+        }
+
         @font-face {
             font-family: 'Xirod';
             src: url('../../Assets/Fonts/Xirod.otf') format('opentype');

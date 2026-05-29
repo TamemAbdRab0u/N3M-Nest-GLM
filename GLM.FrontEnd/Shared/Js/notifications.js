@@ -130,6 +130,10 @@
             }
         });
 
+        _notifConnection.on('PresenceChanged', () => {
+            // Ignore presence updates on pages that only use notifications.
+        });
+
         _notifConnection.onreconnected(() => _loadPending());
 
         (async function tryStart() {
