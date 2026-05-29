@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Game_Library_Management</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <UserSecretsId>6d3d9a10-9419-42a9-8117-bd59521731aa</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
