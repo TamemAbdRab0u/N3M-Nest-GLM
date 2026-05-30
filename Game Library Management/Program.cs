@@ -119,30 +119,40 @@ namespace Game_Library_Management
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+            //}
 
             // Comment out HTTPS redirection for development
             // app.UseHttpsRedirection();
 
             app.UseStaticFiles(); // Serve files from wwwroot
+
+            // Ensure the Uploads directory exists to avoid DirectoryNotFoundException on startup
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
                 RequestPath = "/Uploads"
             });
 
-            // Serve the frontend files
-            app.UseStaticFiles(new StaticFileOptions
+            // Serve the frontend files if they exist (prevents crash on environments like Azure where they might not be deployed)
+            var frontEndPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../GLM.FrontEnd"));
+            if (Directory.Exists(frontEndPath))
             {
-                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-                    Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../GLM.FrontEnd"))),
-                RequestPath = "/GLM.FrontEnd"
-            });
+                app.UseStaticFiles(new StaticFileOptions
+                {
+                    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(frontEndPath),
+                    RequestPath = "/GLM.FrontEnd"
+                });
+            }
 
             app.UseCors("AllowFrontend");
 
