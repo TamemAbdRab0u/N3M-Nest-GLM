@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = 'http://localhost:5268';
+const API_URL = 'https://n3mnest-hgf4dgbrfef2hcgy.spaincentral-01.azurewebsites.net';
 
 // Reveal header once fonts are ready — eliminates icon/text FOUC on page navigation
 document.fonts.ready.then(() => document.documentElement.classList.add('fonts-loaded'));
