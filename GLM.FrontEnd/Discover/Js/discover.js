@@ -276,9 +276,9 @@ async function setupUserInfo() {
         welcomeUsername.style.letterSpacing = '0.08em';
     }
 
-    // Show initial letter immediately as placeholder
+    // Show initial letters immediately as placeholder
     if (displayAvatar && userName) {
-        displayAvatar.textContent = userName.charAt(0).toUpperCase();
+        displayAvatar.textContent = userName.substring(0, 2).toUpperCase();
     }
 
     // Fetch real avatar from API
@@ -290,12 +290,13 @@ async function setupUserInfo() {
         if (!displayAvatar) return;
 
         const name = profile.displayName || userName || 'User';
+        const initials = name.substring(0, 2).toUpperCase();
         const imgSrc = profile.avatarUrl
             ? `${getUploadUrl(profile.avatarUrl)}?t=${Date.now()}`
             : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=080f0f&color=0df2f2&size=80`;
 
         displayAvatar.innerHTML = `<img src="${imgSrc}" class="h-full w-full object-cover" alt="Avatar"
-            onerror="this.parentElement.textContent='${name.charAt(0).toUpperCase()}'">` ;
+            onerror="this.parentElement.textContent='${initials}'">` ;
 
         // Update username to display name from API
         if (welcomeUsername && profile.displayName) {

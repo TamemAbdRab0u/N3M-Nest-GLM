@@ -140,9 +140,9 @@ async function populateSidebarUser() {
         const avatarEls = document.querySelectorAll('#display-avatar, #display-avatar-header');
         const usernameEls = document.querySelectorAll('#display-username, #welcome-username');
 
+        const initial = (userInfo.userName || 'User').substring(0, 2).toUpperCase();
         usernameEls.forEach(el => el.textContent = userInfo.userName || 'User');
         avatarEls.forEach(el => {
-            const initial = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
             el.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
         });
 
@@ -152,9 +152,10 @@ async function populateSidebarUser() {
             if (profile.displayName) {
                 usernameEls.forEach(el => el.textContent = profile.displayName);
             }
+            const profileInitials = (profile.displayName || userInfo.userName || 'User').substring(0, 2).toUpperCase();
             if (profile.avatarUrl) {
                 avatarEls.forEach(el => {
-                    el.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}" class="h-full w-full object-cover">`;
+                    el.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${profileInitials}'">`;
                     const parent = el.parentElement;
                     if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
                         parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500', 'to-purple-600');
@@ -163,8 +164,7 @@ async function populateSidebarUser() {
                 });
             } else if (profile.displayName) {
                 avatarEls.forEach(el => {
-                    const initial = profile.displayName.charAt(0).toUpperCase();
-                    el.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
+                    el.innerHTML = `<span class="text-sm font-bold text-white uppercase">${profileInitials}</span>`;
                 });
             }
         }
@@ -1171,7 +1171,7 @@ function showToast(message, type = 'info') {
         error: 'error',
         info: 'info',
         'status-1': 'play_circle',
-        'status-3': 'task_alt',
+        'status-3': 'check_circle',
         'status-5': 'pause_circle',
         'status-4': 'do_not_disturb_on',
         'status-6': 'schedule'

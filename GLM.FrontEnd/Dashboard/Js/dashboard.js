@@ -249,8 +249,8 @@ function getRelativeTime(dateString) {
 const STATUS_ICON_MAP = {
     'playing': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
     '1': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
-    'completed': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
-    '3': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+    'completed': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
+    '3': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
     'onhold': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
     '5': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
     'dropped': { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' },
@@ -306,7 +306,7 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
 
     const selectorItems = [
         { id: '1', icon: 'play_circle', color: 'text-primary', label: 'Playing' },
-        { id: '3', icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+        { id: '3', icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
         { id: '5', icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
         { id: '4', icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' }
     ];
@@ -331,9 +331,13 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false, alignment
             <div class="absolute ${selectorPositionClass} flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
+        const activeClass = s.id === '1' ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' :
+                            s.id === '3' ? 'border-green-500/60 bg-green-500/20 shadow-[0_0_12px_rgba(34,197,94,0.3)]' :
+                            s.id === '5' ? 'border-yellow-500/60 bg-yellow-500/20 shadow-[0_0_12px_rgba(234,179,8,0.3)]' :
+                                           'border-red-500/60 bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.3)]';
         return `
                         <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
-                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
+                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? activeClass : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
                                 title="${s.label}">
                             <span class="material-symbols-outlined text-[18px] ${s.color} ${isActive ? 'fill-icon' : ''}">${s.icon}</span>
                         </button>
@@ -465,7 +469,7 @@ function displayUserInfo() {
 
     if (userInfo.userName) {
         avatarContainers.forEach(container => {
-            container.textContent = userInfo.userName.charAt(0).toUpperCase();
+            container.textContent = userInfo.userName.substring(0, 2).toUpperCase();
         });
     }
 
@@ -493,9 +497,10 @@ async function fetchProfileInfo() {
             }
 
             const resolvedAvatar = profile.avatarUrl;
+            const initials = (profile.displayName || getUserInfo()?.userName || 'User').substring(0, 2).toUpperCase();
             if (resolvedAvatar && avatarContainers.length > 0) {
                 avatarContainers.forEach(container => {
-                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}" class="h-full w-full object-cover">`;
+                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
 
                     // Remove background gradient from parent div if it exists
                     const parent = container.parentElement;
@@ -505,7 +510,7 @@ async function fetchProfileInfo() {
                 });
             } else if (profile.displayName) {
                 avatarContainers.forEach(container => {
-                    container.textContent = profile.displayName.charAt(0).toUpperCase();
+                    container.textContent = initials;
                 });
             }
         }

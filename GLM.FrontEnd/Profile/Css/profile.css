@@ -492,8 +492,8 @@
     z-index: 100 !important;
     /* Force active card to stay on top */
     opacity: 1;
-    border: 1px solid rgba(13, 242, 242, 0.5);
-    box-shadow: 0 0 50px rgba(13, 242, 242, 0.4);
+    border: 1px solid rgba(var(--glow-color, 13, 242, 242), 0.5);
+    box-shadow: 0 0 50px rgba(var(--glow-color, 13, 242, 242), 0.4);
     pointer-events: auto;
 }
 
@@ -528,6 +528,29 @@
     pointer-events: none;
     transform: scale(0.5);
     z-index: 0;
+}
+
+/* Hover effects for stacked cards */
+.carousel-card:hover {
+    opacity: 1 !important;
+    filter: none !important;
+    border: 1px solid rgba(var(--glow-color, 13, 242, 242), 0.8) !important;
+    box-shadow: 0 0 45px rgba(var(--glow-color, 13, 242, 242), 0.6) !important;
+}
+
+.carousel-card.active:hover {
+    transform: scale(1.15) translateY(-20px) !important;
+    z-index: 100 !important;
+}
+
+.carousel-card.left:hover {
+    transform: scale(0.9) rotate(-4deg) translateY(-25px) !important;
+    z-index: 50 !important;
+}
+
+.carousel-card.right:hover {
+    transform: scale(0.9) rotate(4deg) translateY(-25px) !important;
+    z-index: 50 !important;
 }
 
 .carousel-card img {

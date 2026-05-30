@@ -201,10 +201,11 @@ async function displayUserInfo() {
             }
 
             const resolvedAvatar = profile.avatarUrl;
+            const initials = (profile.displayName || getUserInfo()?.userName || 'User').substring(0, 2).toUpperCase();
             if (resolvedAvatar && avatarContainers.length > 0) {
                 avatarContainers.forEach(container => {
                     const timestamp = new Date().getTime();
-                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
                     const parent = container.parentElement;
                     if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
                         parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600', 'to-purple-500');
@@ -212,7 +213,7 @@ async function displayUserInfo() {
                 });
             } else if (profile.displayName) {
                 avatarContainers.forEach(container => {
-                    container.textContent = profile.displayName.charAt(0).toUpperCase();
+                    container.textContent = initials;
                 });
             }
         }
@@ -534,7 +535,7 @@ function createGridGameCard(game) {
         const s = String(status).toLowerCase();
         if (s === 'playing' || s === '1') return { icon: 'play_circle', color: 'text-primary', label: 'Playing' };
         if (s === 'whishlist' || s === '2') return { icon: 'bookmark', color: 'text-blue-400', label: 'Wishlist' };
-        if (s === 'completed' || s === '3') return { icon: 'task_alt', color: 'text-green-500', label: 'Completed' };
+        if (s === 'completed' || s === '3') return { icon: 'check_circle', color: 'text-green-500', label: 'Completed' };
         if (s === 'dropped' || s === '4') return { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' };
         if (s === 'onhold' || s === '5') return { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' };
         if (s === 'pending' || s === '6') return { icon: 'schedule', color: 'text-slate-400', label: 'Pending' };
@@ -1059,12 +1060,11 @@ function updateWishlistUI(gameId, isInWishlist) {
     }
 }
 
-// --- Reusable status icon map ---
 const STATUS_ICON_MAP = {
     'playing': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
     '1': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
-    'completed': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
-    '3': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+    'completed': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
+    '3': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
     'onhold': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
     '5': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
     'dropped': { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' },
@@ -1080,7 +1080,7 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
 
     const selectorItems = [
         { id: '1', icon: 'play_circle', color: 'text-primary', label: 'Playing' },
-        { id: '3', icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+        { id: '3', icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
         { id: '5', icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
         { id: '4', icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' }
     ];
@@ -1101,9 +1101,13 @@ function renderStatusBadgeHTML(gamestatus, gameId, isUpdating = false) {
             <div class="absolute left-0 flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
+        const activeClass = s.id === '1' ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' :
+                            s.id === '3' ? 'border-green-500/60 bg-green-500/20 shadow-[0_0_12px_rgba(34,197,94,0.3)]' :
+                            s.id === '5' ? 'border-yellow-500/60 bg-yellow-500/20 shadow-[0_0_12px_rgba(234,179,8,0.3)]' :
+                                           'border-red-500/60 bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.3)]';
         return `
                         <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
-                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
+                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? activeClass : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
                                 title="${s.label}">
                             <span class="material-symbols-outlined text-[18px] ${s.color} ${isActive ? 'fill-icon' : ''}">${s.icon}</span>
                         </button>
@@ -1125,7 +1129,7 @@ function renderGridStatusBadgeFixedHTML(gamestatus, gameId, isUpdating = false) 
 
     const selectorItems = [
         { id: '1', icon: 'play_circle', color: 'text-primary', label: 'Playing' },
-        { id: '3', icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+        { id: '3', icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
         { id: '5', icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
         { id: '4', icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' }
     ];
@@ -1146,9 +1150,13 @@ function renderGridStatusBadgeFixedHTML(gamestatus, gameId, isUpdating = false) 
             <div class="absolute left-0 flex items-center gap-1.5 opacity-0 pointer-events-none group-hover/status:opacity-100 group-hover/status:pointer-events-auto transition-all duration-300 z-50">
                 ${selectorItems.map(s => {
         const isActive = (key === s.id || key === s.label.toLowerCase());
+        const activeClass = s.id === '1' ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' :
+                            s.id === '3' ? 'border-green-500/60 bg-green-500/20 shadow-[0_0_12px_rgba(34,197,94,0.3)]' :
+                            s.id === '5' ? 'border-yellow-500/60 bg-yellow-500/20 shadow-[0_0_12px_rgba(234,179,8,0.3)]' :
+                                           'border-red-500/60 bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.3)]';
         return `
                         <button onclick="event.stopPropagation(); changeGameStatus('${gameId}', ${s.id})" 
-                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? 'border-primary/60 bg-primary/20 shadow-[0_0_12px_rgba(74,125,235,0.3)]' : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
+                                class="w-8 h-8 rounded-full bg-slate-900 border ${isActive ? activeClass : 'border-white/10'} flex items-center justify-center hover:bg-white/10 transition-all hover:scale-110 active:scale-95" 
                                 title="${s.label}">
                             <span class="material-symbols-outlined text-[18px] ${s.color} ${isActive ? 'fill-icon' : ''}">${s.icon}</span>
                         </button>

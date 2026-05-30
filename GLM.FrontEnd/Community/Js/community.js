@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatars = document.querySelectorAll('#sidebar-avatar, #display-avatar-header');
     avatars.forEach(av => {
         if (av) {
-            const initial = currentUser.charAt(0).toUpperCase();
+            const initial = (currentUser || 'U').substring(0, 2).toUpperCase();
             av.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
         }
     });
@@ -47,9 +47,10 @@ async function loadAvatar() {
         const profile = await res.json();
         if (profile.avatarUrl) {
             const avatars = document.querySelectorAll('#sidebar-avatar, #display-avatar-header');
+            const initials = (currentUser || 'U').substring(0, 2).toUpperCase();
             avatars.forEach(av => {
                 if (av) {
-                    av.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${currentUser.charAt(0).toUpperCase()}'">`;
+                    av.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
                 }
             });
 

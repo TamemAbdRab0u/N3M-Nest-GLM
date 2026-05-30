@@ -108,17 +108,20 @@ async function displayUserInfo() {
                 saveAuthData(userInfo);
             }
             const resolvedAvatar = profile.avatarUrl;
+            const initials = (profile.displayName || getUserInfo()?.userName || 'User').substring(0, 2).toUpperCase();
             if (resolvedAvatar && avatarContainers.length > 0) {
                 avatarContainers.forEach(container => {
                     const timestamp = new Date().getTime();
-                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
                     const parent = container.parentElement;
                     if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
                         parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600', 'to-purple-500');
                     }
                 });
             } else if (profile.displayName) {
-                avatarContainers.forEach(container => container.textContent = profile.displayName.charAt(0).toUpperCase());
+                avatarContainers.forEach(container => {
+                    container.textContent = initials;
+                });
             }
         }
     } catch (error) {
@@ -357,8 +360,8 @@ function initializeSearch() {
 const STATUS_ICON_MAP = {
     'playing': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
     '1': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
-    'completed': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
-    '3': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+    'completed': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
+    '3': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
     'onhold': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
     '5': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
     'dropped': { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' },

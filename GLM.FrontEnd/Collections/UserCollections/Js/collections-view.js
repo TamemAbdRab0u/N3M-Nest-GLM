@@ -26,7 +26,8 @@ async function displayUserInfo() {
     const avatarElem = document.getElementById('display-avatar-header');
 
     if (usernameElem) usernameElem.textContent = userInfo.userName || 'Gamer';
-    if (avatarElem && userInfo.userName) avatarElem.textContent = userInfo.userName.charAt(0).toUpperCase();
+    const initials = (userInfo.userName || 'Gamer').substring(0, 2).toUpperCase();
+    if (avatarElem && userInfo.userName) avatarElem.textContent = initials;
 
     if (typeof apiRequest !== 'function') return;
     try {
@@ -36,14 +37,16 @@ async function displayUserInfo() {
 
         if (profile.displayName && usernameElem) usernameElem.textContent = profile.displayName;
 
+        const profileInitials = (profile.displayName || userInfo.userName || 'U').substring(0, 2).toUpperCase();
         if (profile.avatarUrl && avatarElem) {
             const ts = Date.now();
-            const fallbackChar = (profile.displayName || userInfo.userName || 'U').charAt(0).toUpperCase();
-            avatarElem.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}?t=${ts}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${fallbackChar}'">`;
+            avatarElem.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}?t=${ts}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${profileInitials}'">`;
             const parent = avatarElem.parentElement;
             if (parent && parent.classList.contains('bg-gradient-to-tr')) {
                 parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600');
             }
+        } else if (avatarElem) {
+            avatarElem.textContent = profileInitials;
         }
     } catch (e) { /* silent */ }
 }
@@ -424,8 +427,8 @@ function getStatusObj(status) {
     const map = {
         'playing': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
         '1': { icon: 'play_circle', color: 'text-primary', label: 'Playing' },
-        'completed': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
-        '3': { icon: 'task_alt', color: 'text-green-500', label: 'Completed' },
+        'completed': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
+        '3': { icon: 'check_circle', color: 'text-green-500', label: 'Completed' },
         'onhold': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
         '5': { icon: 'pause_circle', color: 'text-yellow-500', label: 'On Hold' },
         'dropped': { icon: 'do_not_disturb_on', color: 'text-red-400', label: 'Dropped' },

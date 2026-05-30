@@ -56,7 +56,7 @@ function displayUserInfo() {
     });
 
     displayAvatar.forEach(el => {
-        const initial = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "U";
+        const initial = (userInfo.userName || "US").substring(0, 2).toUpperCase();
         el.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
     });
 
@@ -174,7 +174,7 @@ function setProfileBannerImage(imageUrl) {
 function applyVisitorMode() {
     // Populate the logged-in user's info into the topbar (and sidebar if present)
     const userInfo = getUserInfo();
-    const initial = userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : 'U';
+    const initial = (userInfo.userName || 'US').substring(0, 2).toUpperCase();
 
     // Old sidebar IDs (kept for backwards compat if sidebar ever reappears)
     const sidebarUsername = document.getElementById('display-username');
@@ -246,7 +246,8 @@ async function fetchOwnSidebarAvatar() {
         if (!profile.avatarUrl) return;
 
         const timestamp = new Date().getTime();
-        const imgHtml = `<img src="${getUploadUrl(profile.avatarUrl)}?t=${timestamp}" class="h-full w-full object-cover">`;
+        const initials = (profile.displayName || userInfo.userName || 'U').substring(0, 2).toUpperCase();
+        const imgHtml = `<img src="${getUploadUrl(profile.avatarUrl)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
 
         // Update old sidebar avatar if present
         const displayAvatar = document.getElementById('display-avatar');
@@ -370,18 +371,18 @@ function updateProfileUI(profile) {
 
     // Sidebar Avatar / Initial
     const resolvedAvatar = profile.avatarUrl;
+    const profileInitials = (profile.displayName || (getUserInfo()?.userName) || 'U').substring(0, 2).toUpperCase();
     displayAvatars.forEach(displayAvatar => {
         if (displayAvatar) {
             if (resolvedAvatar) {
-                displayAvatar.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+                displayAvatar.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${profileInitials}'">`;
                 const parent = displayAvatar.parentElement;
                 if (parent && (parent.classList.contains("bg-gradient-to-tr") || parent.classList.contains("from-primary"))) {
                     parent.classList.remove("bg-gradient-to-tr", "from-primary", "to-purple-500", "to-purple-600");
                     parent.classList.add("bg-transparent");
                 }
             } else if (profile.displayName) {
-                const initial = profile.displayName.charAt(0).toUpperCase();
-                displayAvatar.innerHTML = `<span class="text-sm font-bold text-white uppercase">${initial}</span>`;
+                displayAvatar.innerHTML = `<span class="text-sm font-bold text-white uppercase">${profileInitials}</span>`;
             }
         }
     });
@@ -1133,9 +1134,22 @@ function renderCarousel() {
 
     const theme = categoryThemes[currentCategory] || categoryThemes['owned'];
 
+    const rgbColors = {
+        'favorite': '250, 204, 21',
+        'owned': '13, 242, 242',
+        'wishlist': '192, 132, 252',
+        'completed': '52, 211, 153',
+        'playing': '96, 165, 250',
+        'dropped': '251, 113, 133',
+        'onhold': '251, 146, 60',
+        'pending': '148, 163, 184'
+    };
+    const rgbColor = rgbColors[currentCategory] || '13, 242, 242';
+
     currentCarouselGames.forEach((game, index) => {
         const card = document.createElement("div");
-        card.className = `carousel-card hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-[1.15] hover:-translate-y-4 hover:brightness-125 ${theme.glow}`;
+        card.className = `carousel-card hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${theme.glow}`;
+        card.style.setProperty('--glow-color', rgbColor);
 
         let status = game.gamestatus || game.gameStatus || "Library";
         const statusMap = {
@@ -1306,8 +1320,8 @@ function handleCarouselImageError(img) {
 const _statusLabels = {
     'playing': { label: 'Playing', color: 'text-primary', icon: 'play_circle' },
     '1': { label: 'Playing', color: 'text-primary', icon: 'play_circle' },
-    'completed': { label: 'Completed', color: 'text-green-400', icon: 'task_alt' },
-    '3': { label: 'Completed', color: 'text-green-400', icon: 'task_alt' },
+    'completed': { label: 'Completed', color: 'text-green-400', icon: 'check_circle' },
+    '3': { label: 'Completed', color: 'text-green-400', icon: 'check_circle' },
     'dropped': { label: 'Dropped', color: 'text-red-400', icon: 'do_not_disturb_on' },
     '4': { label: 'Dropped', color: 'text-red-400', icon: 'do_not_disturb_on' },
     'onhold': { label: 'On Hold', color: 'text-yellow-400', icon: 'pause_circle' },
