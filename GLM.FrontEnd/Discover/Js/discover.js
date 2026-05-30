@@ -291,7 +291,7 @@ async function setupUserInfo() {
 
         const name = profile.displayName || userName || 'User';
         const imgSrc = profile.avatarUrl
-            ? `${API_URL}/Uploads/${profile.avatarUrl}?t=${Date.now()}`
+            ? `${getUploadUrl(profile.avatarUrl)}?t=${Date.now()}`
             : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=080f0f&color=0df2f2&size=80`;
 
         displayAvatar.innerHTML = `<img src="${imgSrc}" class="h-full w-full object-cover" alt="Avatar"

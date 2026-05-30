@@ -173,7 +173,7 @@
         list.innerHTML = _pendingRequests.map(req => {
             const name = req.FromDisplayName || req.FromUsername;
             const avatar = req.FromAvatarUrl
-                ? `${API_URL}/Uploads/${req.FromAvatarUrl}`
+                ? getUploadUrl(req.FromAvatarUrl)
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=080f0f&color=0df2f2&size=60`;
             return `
             <div class="notif-item flex items-center gap-3 px-4 py-3.5 border-b border-[#1e293b]/60 hover:bg-white/5 transition-all" data-fid="${req.FriendshipId}">
@@ -262,7 +262,7 @@
 
         const name = notification.fromDisplayName || notification.fromUsername;
         const avatar = notification.fromAvatarUrl
-            ? `${API_URL}/Uploads/${notification.fromAvatarUrl}`
+            ? getUploadUrl(notification.fromAvatarUrl)
             : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=080f0f&color=0df2f2&size=60`;
 
         const isReceived = type === 'received';

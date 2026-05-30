@@ -339,3 +339,9 @@ async function apiRequest(endpoint, options = {}) {
     
     return response;
 }
+
+// Helper to construct image/upload URLs supporting both relative filenames and full Azure Blob Storage URLs
+function getUploadUrl(path) {
+    if (!path) return '';
+    return (path.startsWith('http://') || path.startsWith('https://')) ? path : `${API_URL}/Uploads/${path}`;
+}

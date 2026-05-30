@@ -135,7 +135,7 @@ namespace Game_Library_Management_BL.Services.Services
                         appUser.ImageUrl = fileName;
 
                     
-                    if (!string.IsNullOrEmpty(originalAvatar))
+                    if (!string.IsNullOrEmpty(originalAvatar) && !originalAvatar.StartsWith("http://") && !originalAvatar.StartsWith("https://"))
                     {
                         try
                         {
@@ -159,7 +159,7 @@ namespace Game_Library_Management_BL.Services.Services
                 {
                     profile.CoverUrl = coverFileName;
 
-                    if (!string.IsNullOrEmpty(originalCover))
+                    if (!string.IsNullOrEmpty(originalCover) && !originalCover.StartsWith("http://") && !originalCover.StartsWith("https://"))
                     {
                         try
                         {

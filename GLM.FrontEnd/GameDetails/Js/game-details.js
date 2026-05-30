@@ -154,7 +154,7 @@ async function populateSidebarUser() {
             }
             if (profile.avatarUrl) {
                 avatarEls.forEach(el => {
-                    el.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover">`;
+                    el.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}" class="h-full w-full object-cover">`;
                     const parent = el.parentElement;
                     if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
                         parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-500', 'to-purple-600');
@@ -1279,7 +1279,7 @@ function renderReviews(reviews, friendUsernames = new Set()) {
         ).join('');
 
         const avatar = r.imageUrl
-            ? `<img src="${API_URL}/Uploads/${r.imageUrl}" class="w-full h-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            ? `<img src="${getUploadUrl(r.imageUrl)}" class="w-full h-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                <span style="display:none" class="w-full h-full flex items-center justify-center text-white font-bold">${r.userName?.charAt(0).toUpperCase() || 'U'}</span>`
             : `<span class="text-white font-bold text-sm">${r.userName?.charAt(0).toUpperCase() || 'U'}</span>`;
 

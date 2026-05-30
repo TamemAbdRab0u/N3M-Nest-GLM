@@ -144,7 +144,7 @@ async function displayUserInfo() {
             if (resolvedAvatar && avatarContainers.length > 0) {
                 avatarContainers.forEach(container => {
                     const timestamp = new Date().getTime();
-                    container.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
                     const parent = container.parentElement;
                     if (parent && (parent.classList.contains('bg-gradient-to-tr') || parent.classList.contains('from-primary'))) {
                         parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600', 'to-purple-500');

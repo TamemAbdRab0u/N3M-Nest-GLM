@@ -39,7 +39,7 @@ async function displayUserInfo() {
         if (profile.avatarUrl && avatarElem) {
             const ts = Date.now();
             const fallbackChar = (profile.displayName || userInfo.userName || 'U').charAt(0).toUpperCase();
-            avatarElem.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${ts}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${fallbackChar}'">`;
+            avatarElem.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}?t=${ts}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${fallbackChar}'">`;
             const parent = avatarElem.parentElement;
             if (parent && parent.classList.contains('bg-gradient-to-tr')) {
                 parent.classList.remove('bg-gradient-to-tr', 'from-primary', 'to-purple-600');

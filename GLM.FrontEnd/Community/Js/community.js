@@ -49,7 +49,7 @@ async function loadAvatar() {
             const avatars = document.querySelectorAll('#sidebar-avatar, #display-avatar-header');
             avatars.forEach(av => {
                 if (av) {
-                    av.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${currentUser.charAt(0).toUpperCase()}'">`;
+                    av.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${currentUser.charAt(0).toUpperCase()}'">`;
                 }
             });
 

@@ -1,48 +1,49 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Game_Library_Management_BL.Helper
 {
     public class UploadHandler
     {
+        private readonly string _connectionString;
+        private readonly string _containerName;
+
+        public UploadHandler(IConfiguration configuration)
+        {
+            _connectionString = configuration["AzureStorage:ConnectionString"];
+            _containerName = configuration["AzureStorage:ContainerName"];
+        }
+
         public async Task<string> UploadAsync(IFormFile file)
         {
             // Check File Extension
-            List<string> ValidExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
+            List<string> validExtensions = new List<string> { ".jpg", ".jpeg", ".png" };
             var extension = Path.GetExtension(file.FileName).ToLower();
-
-            if (!ValidExtensions.Contains(extension))
-            {
-                return $"Invalid File Extension ({string.Join(',', ValidExtensions)})";
-            }
+            if (!validExtensions.Contains(extension))
+                return $"Invalid File Extension ({string.Join(',', validExtensions)})";
 
             // Check Size
-            var size = file.Length;
-            if (size > 5 * 1024 * 1024)
-            {
+            if (file.Length > 5 * 1024 * 1024)
                 return "File size exceeds the 5MB limit.";
-            }
 
-            // Name and Save File
+            // Upload to Azure Blob Storage
             var fileName = Guid.NewGuid().ToString() + extension;
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            var blobServiceClient = new BlobServiceClient(_connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
+            var blobClient = containerClient.GetBlobClient(fileName);
 
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-
-            var filePath = Path.Combine(path, fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+            using (var stream = file.OpenReadStream())
             {
-                await file.CopyToAsync(stream);
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                {
+                    ContentType = file.ContentType
+                });
             }
 
-            return fileName;
+            // Return full URL instead of just filename
+            return blobClient.Uri.ToString();
         }
     }
-
-
 }

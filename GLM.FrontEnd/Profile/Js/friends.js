@@ -212,7 +212,7 @@ async function fetchSidebarAvatar() {
         }
 
         const fallbackInitial = (profile.displayName || 'U').charAt(0).toUpperCase();
-        avatarEl.innerHTML = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${Date.now()}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${fallbackInitial}'">`;
+        avatarEl.innerHTML = `<img src="${getUploadUrl(profile.avatarUrl)}?t=${Date.now()}" class="h-full w-full object-cover rounded-full" onerror="this.parentElement.textContent='${fallbackInitial}'">`;
 
         const parent = avatarEl.parentElement;
         if (parent && parent.classList.contains('bg-gradient-to-tr')) {
@@ -241,7 +241,7 @@ async function loadProfileHeader() {
 
         if (avatarEl) {
             avatarEl.src = profile.avatarUrl
-                ? `${API_URL}/Uploads/${profile.avatarUrl}?t=${Date.now()}`
+                ? `${getUploadUrl(profile.avatarUrl)}?t=${Date.now()}`
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName || _profileUser)}&background=080f0f&color=0df2f2&size=80`;
         }
     } catch (error) {
@@ -339,7 +339,7 @@ function renderFriends(list) {
 function renderFriendCard(friend, isOnline) {
     const displayName = friend.displayName || friend.username;
     const avatarSrc = friend.avatarUrl
-        ? `${API_URL}/Uploads/${friend.avatarUrl}`
+        ? getUploadUrl(friend.avatarUrl)
         : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=96`;
 
     const statusDotClass = isOnline ? 'bg-status-online border-status-online/50' : 'bg-slate-500 border-slate-400/30';
@@ -444,7 +444,7 @@ function renderAddFriendResults(users, helperText = '') {
     container.innerHTML = users.map((user) => {
         const displayName = user.displayName || user.username;
         const avatarSrc = user.avatarUrl
-            ? `${API_URL}/Uploads/${user.avatarUrl}`
+            ? getUploadUrl(user.avatarUrl)
             : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=80`;
 
         return `

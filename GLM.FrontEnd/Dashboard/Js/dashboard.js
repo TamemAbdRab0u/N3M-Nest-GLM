@@ -495,7 +495,7 @@ async function fetchProfileInfo() {
             const resolvedAvatar = profile.avatarUrl;
             if (resolvedAvatar && avatarContainers.length > 0) {
                 avatarContainers.forEach(container => {
-                    container.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}" class="h-full w-full object-cover">`;
+                    container.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}" class="h-full w-full object-cover">`;
 
                     // Remove background gradient from parent div if it exists
                     const parent = container.parentElement;

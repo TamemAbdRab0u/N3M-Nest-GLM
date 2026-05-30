@@ -246,7 +246,7 @@ async function fetchOwnSidebarAvatar() {
         if (!profile.avatarUrl) return;
 
         const timestamp = new Date().getTime();
-        const imgHtml = `<img src="${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}" class="h-full w-full object-cover">`;
+        const imgHtml = `<img src="${getUploadUrl(profile.avatarUrl)}?t=${timestamp}" class="h-full w-full object-cover">`;
 
         // Update old sidebar avatar if present
         const displayAvatar = document.getElementById('display-avatar');
@@ -295,12 +295,12 @@ async function fetchPublicProfile(username) {
         const timestamp = new Date().getTime();
         if (avatarImg) {
             avatarImg.src = profile.avatarUrl
-                ? `${API_URL}/Uploads/${profile.avatarUrl}?t=${timestamp}`
+                ? `${getUploadUrl(profile.avatarUrl)}?t=${timestamp}`
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName || username)}&background=080f0f&color=0df2f2&size=200`;
         }
 
         if (profile.coverUrl) {
-            setProfileBannerImage(`${API_URL}/Uploads/${profile.coverUrl}?t=${timestamp}`);
+            setProfileBannerImage(`${getUploadUrl(profile.coverUrl)}?t=${timestamp}`);
         }
 
         const isRectTransparent = !!profile.isRectTransparent;
@@ -373,7 +373,7 @@ function updateProfileUI(profile) {
     displayAvatars.forEach(displayAvatar => {
         if (displayAvatar) {
             if (resolvedAvatar) {
-                displayAvatar.innerHTML = `<img src="${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
+                displayAvatar.innerHTML = `<img src="${getUploadUrl(resolvedAvatar)}?t=${timestamp}" class="h-full w-full object-cover" onerror="this.parentElement.textContent='${(profile.displayName || "U").charAt(0).toUpperCase()}'">`;
                 const parent = displayAvatar.parentElement;
                 if (parent && (parent.classList.contains("bg-gradient-to-tr") || parent.classList.contains("from-primary"))) {
                     parent.classList.remove("bg-gradient-to-tr", "from-primary", "to-purple-500", "to-purple-600");
@@ -388,7 +388,7 @@ function updateProfileUI(profile) {
 
     // Update Sidebar Image if exists separately
     if (sidebarAvatar && resolvedAvatar) {
-        sidebarAvatar.src = `${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}`;
+        sidebarAvatar.src = `${getUploadUrl(resolvedAvatar)}?t=${timestamp}`;
     }
 
     // Update Bio
@@ -406,7 +406,7 @@ function updateProfileUI(profile) {
     // Update Profile Header Avatar
     if (avatarImg) {
         if (resolvedAvatar) {
-            const newSrc = `${API_URL}/Uploads/${resolvedAvatar}?t=${timestamp}`;
+            const newSrc = `${getUploadUrl(resolvedAvatar)}?t=${timestamp}`;
 
             // Set source
             avatarImg.src = newSrc;
@@ -421,7 +421,7 @@ function updateProfileUI(profile) {
     }
 
     if (profile.coverUrl) {
-        setProfileBannerImage(`${API_URL}/Uploads/${profile.coverUrl}?t=${timestamp}`);
+        setProfileBannerImage(`${getUploadUrl(profile.coverUrl)}?t=${timestamp}`);
     }
 
     const isRectTransparent = !!profile.isRectTransparent;
@@ -1690,7 +1690,7 @@ async function loadFriendsPreview(username) {
         list.innerHTML = preview.map(f => {
             const displayName = f.displayName || f.username;
             const avatarSrc = f.avatarUrl
-                ? `${API_URL}/Uploads/${f.avatarUrl}`
+                ? getUploadUrl(f.avatarUrl)
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=80`;
             const safeName = encodeURIComponent(f.username);
             return `
