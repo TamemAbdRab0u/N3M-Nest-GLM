@@ -332,12 +332,15 @@
         const path = window.location.pathname.toLowerCase();
         const search = window.location.search.toLowerCase();
         
+        const isDiscover = path.includes('discover.html');
         const isDashboard = path.includes('dashboard.html');
         const isLibrary = path.includes('library.html') || (isDashboard && search.includes('view=library'));
         const isWishlist = path.includes('wishlist.html') || (isDashboard && search.includes('view=wishlist'));
         const isFavorite = path.includes('favorites.html') || (isDashboard && search.includes('view=favorites'));
         const isProfile = path.includes('profile.html') && !search.includes('user=');
-        const isCatalog = (isDashboard && !isLibrary && !isWishlist && !isFavorite) || path.includes('discover.html');
+        const isCatalog = isDashboard && !isLibrary && !isWishlist && !isFavorite;
+        const isCollections = path.includes('collections.html');
+        const isBrowseActive = isDiscover || isCatalog || isCollections;
 
         // Inject Styles
         const style = document.createElement('style');
@@ -423,6 +426,58 @@
                 align-items: center;
                 justify-content: center;
             }
+            /* Browse Dropdown Menu styling */
+            .mobile-browse-dropdown {
+                position: fixed;
+                bottom: 6.5rem;
+                left: 1.5rem;
+                background: rgba(10, 22, 24, 0.95);
+                border: 1px solid rgba(13, 242, 242, 0.25);
+                border-radius: 1.25rem;
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                display: flex;
+                flex-direction: column;
+                padding: 0.5rem;
+                min-width: 170px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 15px rgba(13, 242, 242, 0.1);
+                z-index: 500;
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+                pointer-events: none;
+                transition: opacity 0.2s ease, transform 0.2s ease;
+            }
+            .mobile-browse-dropdown.show {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+            }
+            .mobile-dropdown-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 0.75rem 1rem;
+                color: #94a3b8;
+                font-family: 'Space Grotesk', sans-serif;
+                font-weight: 700;
+                font-size: 0.75rem;
+                border-radius: 0.75rem;
+                text-decoration: none;
+                transition: all 0.2s ease;
+                background: transparent;
+                border: none;
+                text-align: left;
+                width: 100%;
+                cursor: pointer;
+            }
+            .mobile-dropdown-item:hover, .mobile-dropdown-item.active {
+                color: #0df2f2;
+                background: rgba(13, 242, 242, 0.08);
+                text-shadow: 0 0 8px rgba(13, 242, 242, 0.3);
+            }
+            .mobile-dropdown-item .material-symbols-outlined {
+                font-size: 18px;
+            }
             /* Hide widget on desktop */
             @media (min-width: 1280px) {
                 #mobile-dock-wrapper {
@@ -433,11 +488,30 @@
         document.head.appendChild(style);
 
         wrapper.innerHTML = `
-            <div class="mobile-widget-dock">
-                <button onclick="window.location.href='${_getRelativeUrl('Dashboard/Html/dashboard.html?view=catalog')}'" 
-                    class="mobile-widget-btn ${isCatalog ? 'active' : ''}">
+            <!-- Dropdown Menu -->
+            <div id="mobile-browse-dropdown" class="mobile-browse-dropdown">
+                <button onclick="window.location.href='${_getRelativeUrl('Discover/Html/discover.html')}'" 
+                    class="mobile-dropdown-item ${isDiscover ? 'active' : ''}">
                     <span class="material-symbols-outlined">explore</span>
+                    <span>DISCOVER</span>
+                </button>
+                <button onclick="window.location.href='${_getRelativeUrl('Dashboard/Html/dashboard.html?view=catalog')}'" 
+                    class="mobile-dropdown-item ${isCatalog ? 'active' : ''}">
+                    <span class="material-symbols-outlined">dashboard</span>
                     <span>CATALOG</span>
+                </button>
+                <button onclick="window.location.href='${_getRelativeUrl('Collections/UserCollections/Html/collections.html')}'" 
+                    class="mobile-dropdown-item ${isCollections ? 'active' : ''}">
+                    <span class="material-symbols-outlined">folder_special</span>
+                    <span>COLLECTIONS</span>
+                </button>
+            </div>
+
+            <div class="mobile-widget-dock">
+                <button id="mobile-browse-btn" onclick="toggleMobileBrowseDropdown(event)" 
+                    class="mobile-widget-btn ${isBrowseActive ? 'active' : ''}">
+                    <span class="material-symbols-outlined">explore</span>
+                    <span>BROWSE</span>
                 </button>
                 <button onclick="window.location.href='${_getRelativeUrl('Collections/Library/Html/library.html')}'" 
                     class="mobile-widget-btn ${isLibrary ? 'active' : ''}">
@@ -466,6 +540,25 @@
             </div>
         `;
         document.body.appendChild(wrapper);
+
+        // Add dropdown toggle logic globally if not present
+        if (!window.toggleMobileBrowseDropdown) {
+            window.toggleMobileBrowseDropdown = function(event) {
+                event.stopPropagation();
+                const dropdown = document.getElementById('mobile-browse-dropdown');
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                }
+            };
+
+            document.addEventListener('click', (e) => {
+                const dropdown = document.getElementById('mobile-browse-dropdown');
+                const btn = document.getElementById('mobile-browse-btn');
+                if (dropdown && !dropdown.contains(e.target) && !btn?.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
 
         // Fetch user avatar
         _loadMobileAvatar();
