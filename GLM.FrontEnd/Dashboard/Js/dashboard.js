@@ -1027,15 +1027,16 @@ function displayGames(games) {
     if (!container) return;
 
     // Toggle layout class based on view and search query
-    // If we're in catalog and HAVE a search query, use vertical simple view.
-    if (currentView === 'catalog' && currentQuery) {
+    // If we're in catalog and HAVE a search query, use vertical simple view (desktop only).
+    const isMobile = window.innerWidth < 1280;
+    if (currentView === 'catalog' && currentQuery && !isMobile) {
         container.classList.add('vertical-search-view');
         // Remove standard grid classes
-        container.classList.remove('grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+        container.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
     } else {
         container.classList.remove('vertical-search-view');
         // Add standard grid classes
-        container.classList.add('grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+        container.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
     }
 
     container.innerHTML = '';
@@ -1055,7 +1056,8 @@ function appendGames(games) {
 
 // Create game card element
 function createGameCard(game) {
-    if (currentView === 'catalog' && currentQuery) {
+    const isMobile = window.innerWidth < 1280;
+    if (currentView === 'catalog' && currentQuery && !isMobile) {
         return createVerticalGameCard(game);
     } else {
         return createGridGameCard(game);

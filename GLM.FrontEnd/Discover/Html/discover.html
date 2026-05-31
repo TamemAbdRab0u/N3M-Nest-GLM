@@ -236,8 +236,8 @@
     <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0a1618]/90 backdrop-blur-xl sticky top-0 z-50">
         <div class="flex items-center gap-10">
             <div class="flex items-center gap-3">
-                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-7 w-7 object-contain">
-                <span class="neon-xirod font-bold text-base tracking-widest hidden sm:block">
+                <img src="../../Assets/Images/logo.png" alt="Logo" class="h-10 w-10 object-contain">
+                <span class="neon-xirod font-bold text-lg tracking-widest hidden sm:block">
                     N3M<span class="mx-0.5 flicker-pipe">|</span>Nest
                 </span>
             </div>
@@ -289,7 +289,7 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="../../Profile/Html/profile.html" class="group relative">
+                <a href="../../Profile/Html/profile.html" class="group relative hidden xl:block">
                     <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
                         <div class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
                             <span id="display-avatar-header" class="text-sm font-bold text-white uppercase">U</span>
@@ -346,7 +346,9 @@
     </main>
 
     <!-- Scripts -->
+    <script src="../../Assets/vendor/signalr/signalr.min.js"></script>
     <script src="../../Auth/Js/auth.js"></script>
+    <script src="../../Shared/Js/notifications.js"></script>
     <script src="../Js/discover.js"></script>
 </body>
 

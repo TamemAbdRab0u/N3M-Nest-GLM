@@ -99,6 +99,28 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+
+        /* Pure CSS Independent Mobile Layout Ordering */
+        @media (max-width: 1023px) {
+            #main-grid-layout {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 2rem !important;
+            }
+            #left-column, #right-column {
+                display: contents !important;
+            }
+            #game-info-card { order: 1 !important; }
+            #media-title { display: none !important; }
+            #main-media-container { order: 3 !important; }
+            #screenshots-strip { order: 4 !important; }
+            #tags-section { order: 5 !important; }
+            #links-container { order: 6 !important; }
+            #similar-games-card { order: 7 !important; }
+            #about-section { order: 8 !important; }
+            #system-requirements-section { order: 9 !important; }
+            #reviews-section { order: 10 !important; }
+        }
     </style>
     <link rel="stylesheet" href="../Css/game-details.css" />
 </head>
@@ -223,13 +245,13 @@
         <div class="relative z-10 px-8 py-4 max-w-[1600px] mx-auto">
 
             <!-- Main Grid Layout -->
-            <div class="grid grid-cols-12 gap-8">
+            <div id="main-grid-layout" class="grid grid-cols-12 gap-8">
 
                 <!-- Left Column: Title & Main Media (Col 1-8) -->
-                <div class="col-span-12 lg:col-span-8 space-y-8">
+                <div id="left-column" class="col-span-12 lg:col-span-8 space-y-8">
 
                     <!-- Game Header Title -->
-                    <div class="space-y-4">
+                    <div id="media-title" class="space-y-4">
                         <h1 id="game-title"
                             class="text-5xl lg:text-7xl font-black text-white italic tracking-tighter uppercase leading-none">
                         </h1>
@@ -305,7 +327,7 @@
                     </div>
 
                     <!-- About Section -->
-                    <div class="space-y-4">
+                    <div id="about-section" class="space-y-4">
                         <h2
                             class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
                             <span class="w-8 h-1 bg-primary rounded-full"></span>
@@ -317,7 +339,7 @@
                     </div>
 
                     <!-- System Requirements -->
-                    <div class="space-y-6 pt-8">
+                    <div id="system-requirements-section" class="space-y-6 pt-8">
                         <h2
                             class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
                             <span class="w-8 h-1 bg-primary rounded-full"></span>
@@ -396,10 +418,10 @@
                 </div>
 
                 <!-- Right Column: Sidebar (Col 9-12) -->
-                <div class="col-span-12 lg:col-span-4 space-y-6">
+                <div id="right-column" class="col-span-12 lg:col-span-4 space-y-6">
 
                     <!-- Main CTA Card -->
-                    <div
+                    <div id="game-info-card"
                         class="p-8 rounded-[40px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
                         <!-- Background Glow -->
                         <div
@@ -527,7 +549,7 @@
                     </div>
 
                     <!-- Tags Card -->
-                    <div class="p-6 rounded-3xl bg-white/5 border border-white/10">
+                    <div id="tags-section" class="p-6 rounded-3xl bg-white/5 border border-white/10">
                         <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest mb-4">Popular Tags</h3>
                         <div id="genres-row" class="flex flex-wrap gap-2">
                             <!-- Tags here -->

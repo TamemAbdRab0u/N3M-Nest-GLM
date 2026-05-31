@@ -313,6 +313,208 @@
         });
     }
 
+    // ── Helper to determine relative URLs for mobile navigation ──
+    function _getRelativeUrl(targetPath) {
+        const isCollections = window.location.pathname.toLowerCase().includes('/collections/');
+        const prefix = isCollections ? '../../../' : '../../';
+        return prefix + targetPath;
+    }
+
+    // ── Mobile Bottom Navigation Bar widget implementation ──
+    function _ensureMobileWidget() {
+        if (window.location.pathname.toLowerCase().includes('game-details.html')) return;
+        if (document.getElementById('mobile-dock-wrapper')) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.id = 'mobile-dock-wrapper';
+        
+        // Active page state calculations
+        const path = window.location.pathname.toLowerCase();
+        const search = window.location.search.toLowerCase();
+        
+        const isDashboard = path.includes('dashboard.html');
+        const isLibrary = path.includes('library.html') || (isDashboard && search.includes('view=library'));
+        const isWishlist = path.includes('wishlist.html') || (isDashboard && search.includes('view=wishlist'));
+        const isFavorite = path.includes('favorites.html') || (isDashboard && search.includes('view=favorites'));
+        const isProfile = path.includes('profile.html') && !search.includes('user=');
+        const isCatalog = (isDashboard && !isLibrary && !isWishlist && !isFavorite) || path.includes('discover.html');
+
+        // Inject Styles
+        const style = document.createElement('style');
+        style.id = 'mobile-widget-styles';
+        style.textContent = `
+            .mobile-widget-dock {
+                position: fixed;
+                bottom: 1.25rem;
+                left: 1.25rem;
+                right: 1.25rem;
+                height: 4.75rem;
+                border-radius: 1.75rem;
+                background: rgba(10, 22, 24, 0.85);
+                border: 1px solid rgba(13, 242, 242, 0.2);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                padding: 0 0.75rem;
+                z-index: 400;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255,255,255,0.06);
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+            }
+            .mobile-widget-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #64748b;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+                background: transparent;
+                border: none;
+                outline: none;
+                font-size: 0.65rem;
+                font-family: 'Space Grotesk', sans-serif;
+                font-weight: 700;
+                gap: 3px;
+                flex: 1;
+                min-width: 0;
+            }
+            .mobile-widget-btn .material-symbols-outlined {
+                font-size: 22px;
+                transition: transform 0.25s ease;
+            }
+            .mobile-widget-btn:active .material-symbols-outlined {
+                transform: scale(0.85);
+            }
+            .mobile-widget-btn:hover, .mobile-widget-btn.active {
+                color: #0df2f2;
+                text-shadow: 0 0 10px rgba(13, 242, 242, 0.45);
+            }
+            .mobile-widget-btn.active .material-symbols-outlined {
+                font-variation-settings: 'FILL' 1;
+            }
+            .mobile-center-avatar-btn {
+                position: relative;
+                width: 3.75rem;
+                height: 3.75rem;
+                border-radius: 50%;
+                margin-top: -1.75rem;
+                background: linear-gradient(135deg, #0df2f2, #7c3aed);
+                padding: 2.5px;
+                box-shadow: 0 8px 24px rgba(13, 242, 242, 0.35), 0 0 0 1px rgba(255,255,255,0.05);
+                cursor: pointer;
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+                z-index: 401;
+            }
+            .mobile-center-avatar-btn:active {
+                transform: scale(0.9) translateY(-1px);
+            }
+            .mobile-center-avatar-btn.active {
+                box-shadow: 0 0 35px rgba(13, 242, 242, 0.7);
+            }
+            .mobile-center-avatar-inner {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                background: #080f0f;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            /* Hide widget on desktop */
+            @media (min-width: 1280px) {
+                #mobile-dock-wrapper {
+                    display: none !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        wrapper.innerHTML = `
+            <div class="mobile-widget-dock">
+                <button onclick="window.location.href='${_getRelativeUrl('Dashboard/Html/dashboard.html?view=catalog')}'" 
+                    class="mobile-widget-btn ${isCatalog ? 'active' : ''}">
+                    <span class="material-symbols-outlined">explore</span>
+                    <span>CATALOG</span>
+                </button>
+                <button onclick="window.location.href='${_getRelativeUrl('Collections/Library/Html/library.html')}'" 
+                    class="mobile-widget-btn ${isLibrary ? 'active' : ''}">
+                    <span class="material-symbols-outlined">stadia_controller</span>
+                    <span>LIBRARY</span>
+                </button>
+                
+                <!-- Center Avatar -->
+                <div id="mobile-dock-avatar-btn" onclick="window.location.href='${_getRelativeUrl('Profile/Html/profile.html')}'" class="mobile-center-avatar-btn ${isProfile ? 'active' : ''}">
+                    <div class="mobile-center-avatar-inner">
+                        <img id="mobile-dock-avatar-img" src="" class="h-full w-full object-cover animate-pulse" 
+                             onerror="this.src='https://ui-avatars.com/api/?name=U&background=080f0f&color=0df2f2&size=100'">
+                    </div>
+                </div>
+
+                <button onclick="window.location.href='${_getRelativeUrl('Collections/Favorites/Html/favorites.html')}'" 
+                    class="mobile-widget-btn ${isFavorite ? 'active' : ''}">
+                    <span class="material-symbols-outlined">favorite</span>
+                    <span>FAVORITE</span>
+                </button>
+                <button onclick="window.location.href='${_getRelativeUrl('Collections/Wishlist/Html/wishlist.html')}'" 
+                    class="mobile-widget-btn ${isWishlist ? 'active' : ''}">
+                    <span class="material-symbols-outlined">bookmark</span>
+                    <span>WISHLIST</span>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(wrapper);
+
+        // Fetch user avatar
+        _loadMobileAvatar();
+    }
+
+    async function _loadMobileAvatar() {
+        const userInfo = getUserInfo();
+        const me = userInfo?.userName;
+        if (!me) return;
+
+        try {
+            const pRes = await apiRequest('/api/Profile');
+            if (pRes.ok) {
+                const profile = await pRes.json();
+                const displayName = profile.displayName || me;
+                const initials = displayName.substring(0, 2).toUpperCase();
+                
+                const rawAvatar = profile.avatarUrl;
+                let avatarUrl = '';
+                if (rawAvatar) {
+                    avatarUrl = (rawAvatar.startsWith('http://') || rawAvatar.startsWith('https://'))
+                        ? rawAvatar
+                        : `${API_URL}/Uploads/${rawAvatar}`;
+                } else {
+                    avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=080f0f&color=0df2f2&size=100`;
+                }
+
+                const dockAvatarImg = document.getElementById('mobile-dock-avatar-img');
+                if (dockAvatarImg) {
+                    dockAvatarImg.src = avatarUrl;
+                    dockAvatarImg.classList.remove('animate-pulse');
+                    dockAvatarImg.onerror = () => {
+                        dockAvatarImg.style.display = 'none';
+                        const parent = dockAvatarImg.parentElement;
+                        if (parent) {
+                            parent.textContent = initials;
+                            parent.style.color = '#0df2f2';
+                            parent.style.fontFamily = "'Xirod', sans-serif";
+                            parent.style.fontSize = '12px';
+                            parent.style.fontWeight = 'bold';
+                        }
+                    };
+                }
+            }
+        } catch (e) {
+            console.error('Mobile Widget: profile load error', e);
+        }
+    }
+
     // ── Main init ──────────────────────────────────────────────
     async function initNotificationSystem() {
         if (_initialized) return;
@@ -321,6 +523,7 @@
         _ensureBellWidget();
         _ensureToastContainer();
         _bindOutsideClick();
+        _ensureMobileWidget();
         await _loadPending();
         _connect();
     }
