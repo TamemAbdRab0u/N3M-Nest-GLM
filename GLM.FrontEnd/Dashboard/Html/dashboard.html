@@ -123,6 +123,51 @@
             font-weight: 800;
         }
 
+        /* Centering Search Results Dropdown on Mobile */
+        @media (max-width: 1279px) {
+            #search-results-dropdown {
+                position: fixed !important;
+                top: 50vh !important;
+                left: 50vw !important;
+                transform: translate(-50%, -50%) !important;
+                width: calc(100vw - 2.5rem) !important;
+                max-width: 400px !important;
+                z-index: 600 !important;
+            }
+            .search-bar {
+                width: 2.5rem !important;
+                transition: width 0.3s ease-in-out !important;
+            }
+            .search-bar:focus-within {
+                width: 10rem !important;
+            }
+            .search-bar input {
+                color: transparent !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                transition: padding 0.3s ease-in-out, color 0.2s ease-in-out !important;
+            }
+            .search-bar:focus-within input {
+                color: #fff !important;
+                padding-left: 2.5rem !important;
+                padding-right: 1rem !important;
+            }
+            .search-bar:focus-within span.absolute {
+                left: 0.75rem !important;
+                justify-content: flex-start !important;
+            }
+        }
+        @media (max-width: 1279px) and (min-width: 640px) {
+            .search-bar:focus-within {
+                width: 14rem !important;
+            }
+        }
+        @media (max-width: 1279px) and (min-width: 768px) {
+            .search-bar:focus-within {
+                width: 16rem !important;
+            }
+        }
+
         /* Toast Animations */
         @keyframes slideIn {
             from {
@@ -509,6 +554,24 @@
         }
         .nav-dropdown-menu a:hover { color: #fff; background: rgba(255,255,255,0.06); }
         .nav-dropdown-menu a.active { color: #4a7dff; background: rgba(74,125,255,0.12); }
+
+        /* Hide Catalog Games and align Search Results to right when back button is active */
+        #search-back-btn:not(.hidden) ~ div {
+            padding-top: 3.5rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+        #search-back-btn:not(.hidden) ~ div .header-title {
+            display: none !important;
+        }
+        #search-back-btn:not(.hidden) ~ div #total-games {
+            position: absolute !important;
+            top: 40px !important;
+            right: 2rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            text-align: right !important;
+            display: block !important;
+        }
     </style>
 </head>
 
@@ -583,12 +646,12 @@
             <!-- Right: Account & Notifications -->
             <div class="flex items-center gap-4">
                 <!-- Header Search -->
-                <div class="flex items-center relative search-bar group">
-                    <span class="absolute left-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-primary transition-colors">
+                <div class="flex items-center relative search-bar group h-10 w-10 flex-shrink-0 focus-within:w-40 sm:focus-within:w-56 md:focus-within:w-64 xl:w-60 transition-all duration-300">
+                    <span class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-500 group-focus-within:text-primary transition-colors group-focus-within:left-3 group-focus-within:justify-start xl:left-3 xl:justify-start">
                         <span class="material-symbols-outlined text-base">search</span>
                     </span>
                     <input type="text" placeholder="Search games..."
-                        class="h-10 w-10 focus:w-40 sm:focus:w-56 md:focus:w-64 xl:w-60 bg-white/[0.03] border border-white/10 rounded-xl text-xs text-white pl-10 pr-4 outline-none focus:outline-none focus:ring-0 transition-all duration-300 ease-in-out focus:border-[#82cfff] focus:bg-white/[0.07] placeholder-transparent focus:placeholder-slate-600 xl:placeholder-slate-600 focus:shadow-[0_0_8px_rgba(130,207,255,0.3)]">
+                        class="h-10 w-full min-w-0 bg-white/[0.03] border border-white/10 rounded-xl text-xs text-white pl-0 pr-0 focus:pl-10 focus:pr-4 xl:pl-10 xl:pr-4 outline-none focus:outline-none focus:ring-0 transition-all duration-300 ease-in-out focus:border-[#82cfff] focus:bg-white/[0.07] placeholder-transparent focus:placeholder-slate-600 xl:placeholder-slate-600 focus:shadow-[0_0_8px_rgba(130,207,255,0.3)]">
 
                     <!-- Search Results Dropdown -->
                     <div id="search-results-dropdown"
