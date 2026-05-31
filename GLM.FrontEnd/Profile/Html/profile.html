@@ -235,6 +235,13 @@
                     <div class="absolute bottom-0 left-24 w-80 h-80 rounded-full bg-sky-500/10 blur-[120px]"></div>
                 </div>
 
+                <!-- Camera Edit Button directly on Banner -->
+                <button id="banner-camera-edit-btn" type="button"
+                    class="hidden absolute top-12 right-12 lg:right-20 z-30 h-10 w-10 rounded-xl bg-black/50 border border-white/20 text-white items-center justify-center hover:bg-black/70 hover:border-primary/50 transition-all cursor-pointer shadow-lg"
+                    onclick="document.getElementById('banner-input').click()">
+                    <span class="material-symbols-outlined text-[20px]">photo_camera</span>
+                </button>
+
                 <section
                     class="profile-hero-shell relative z-10 w-full max-w-7xl mx-auto rounded-[2rem] border border-cyan-400/20 bg-[#081416]/38 backdrop-blur-2xl">
                     <div class="profile-grid-overlay absolute inset-0 rounded-[2rem] opacity-50 pointer-events-none">
@@ -409,7 +416,6 @@
                                             <span class="material-symbols-outlined text-[18px]">image</span>
                                             <span>BANNER</span>
                                         </button>
-
                                         <label id="rect-transparency-wrap" title="Toggle glass transparency"
                                             class="h-10 w-36 px-3 rounded-xl bg-[#0f2023]/70 border border-cyan-400/30 text-primary text-[10px] xirod-font tracking-wider flex items-center justify-between gap-2 select-none cursor-pointer hover:bg-[#153136]/80 hover:border-cyan-300/60 transition-all">
                                             <span class="material-symbols-outlined text-[16px]">contrast</span>

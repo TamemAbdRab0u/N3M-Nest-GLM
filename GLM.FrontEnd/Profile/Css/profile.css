@@ -291,6 +291,10 @@
     opacity: 0.28;
 }
 
+#banner-camera-edit-btn {
+    display: none !important;
+}
+
 .profile-edit-controls {
     max-height: 0;
     opacity: 0;
@@ -870,4 +874,328 @@ html.fonts-loaded header {
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+
+/* ============================================================
+   Mobile Layout Adjustments (FB/Twitter Style Banner & PFP)
+   ============================================================ */
+@media (max-width: 1023px) {
+
+    /* Set header stage background to transparent to show the page background */
+    .profile-header-stage {
+        padding: 0 !important;
+        position: relative !important;
+        background: transparent !important;
+    }
+
+    /* Hide the dark bottom-fade gradient overlay on mobile to keep page background consistent */
+    .profile-header-stage > .absolute.inset-0.z-0 > div[class*="bg-gradient-to-t"] {
+        display: none !important;
+    }
+
+    /* Convert upper gradient/image wrapper to a clean rectangular banner slot */
+    .profile-header-stage>.absolute.inset-0.z-0 {
+        position: relative !important;
+        height: 180px !important;
+        width: 100% !important;
+        display: block !important;
+    }
+
+    .profile-header-backdrop {
+        position: absolute !important;
+        inset: 0 !important;
+        height: 100% !important;
+        opacity: 0.9 !important;
+    }
+
+    /* Hide background blur glows on mobile for standard clean banner look */
+    .profile-header-stage>.absolute.inset-0.z-0>.absolute[class*="blur"] {
+        display: none !important;
+    }
+
+    /* Position the user card body directly below the banner, overlapping slightly */
+    .profile-hero-shell {
+        margin-top: -50px !important;
+        border-radius: 0 !important;
+        border: none !important;
+        background: linear-gradient(180deg, rgba(10, 22, 24, 0.6) 0%, rgba(15, 32, 35, 0.4) 100%) !important;
+        backdrop-filter: blur(16px) saturate(120%) !important;
+        -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+        border-bottom: 1px solid rgba(13, 242, 242, 0.1) !important;
+        box-shadow: none !important;
+        padding: 0 16px 20px 16px !important;
+        position: relative !important;
+        z-index: 30 !important;
+    }
+
+    .profile-hero-shell>div {
+        padding: 0 !important;
+    }
+
+    /* Center layout structures */
+    .profile-hero-shell>div>.flex,
+    .profile-hero-shell>div>div.flex {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    /* Center and resize profile picture to be circular, smaller and bordered */
+    .profile-view-container {
+        margin: 0 auto !important;
+        align-self: center !important;
+        place-self: center !important;
+    }
+
+    .profile-avatar-frame {
+        width: 110px !important;
+        height: 110px !important;
+        border-radius: 50% !important;
+        border: 4px solid #080f0f !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    .profile-avatar-frame img {
+        border-radius: 50% !important;
+    }
+
+    .profile-avatar-frame::after {
+        border-radius: 50% !important;
+        inset: 0 !important;
+        border: 1px solid rgba(13, 242, 242, 0.3) !important;
+    }
+
+    /* Relative Level Badge placement below the circle pfp */
+    .profile-view-container>div.absolute.-bottom-4 {
+        position: relative !important;
+        bottom: auto !important;
+        margin: 12px auto 0 auto !important;
+        left: auto !important;
+        transform: none !important;
+        width: fit-content !important;
+    }
+
+    /* Center Username & Info texts */
+    #profile-username {
+        font-size: 2.25rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+        margin-top: 10px !important;
+    }
+
+    .group\/name {
+        justify-content: center !important;
+    }
+
+    #profile-bio {
+        text-align: center !important;
+        margin: 0 auto 20px auto !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Center Buttons & Action Controls */
+    .profile-actions-wrap {
+        justify-content: center !important;
+        align-items: center !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+
+    #add-friend-btn,
+    #banner-edit-btn {
+        height: 42px !important;
+        padding: 0 20px !important;
+        border-radius: 12px !important;
+        font-size: 10px !important;
+        margin: 0 !important;
+    }
+
+    #edit-profile-btn {
+        position: absolute !important;
+        top: 4rem !important;
+        right: -0.5rem !important;
+        left: auto !important;
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 40 !important;
+        background: rgba(13, 242, 242, 0.2) !important;
+        border: 1px solid rgba(13, 242, 242, 0.4) !important;
+        box-shadow: 0 4px 10px rgba(13, 242, 242, 0.2) !important;
+    }
+
+    #edit-btn-icon {
+        font-size: 16px !important;
+        margin: 0 !important;
+    }
+
+    #edit-btn-text {
+        display: none !important;
+    }
+
+    #rect-transparency-wrap {
+        display: none !important;
+    }
+
+    #banner-edit-btn {
+        display: none !important;
+    }
+
+    #banner-camera-edit-btn {
+        display: none !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        height: 180px !important;
+        border-radius: 0 !important;
+        background: rgba(0, 0, 0, 0.45) !important;
+        border: none !important;
+        box-shadow: none !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 25 !important;
+    }
+
+    #banner-camera-edit-btn.flex {
+        display: flex !important;
+    }
+
+    #banner-camera-edit-btn span.material-symbols-outlined {
+        font-size: 32px !important;
+        color: #fff !important;
+    }
+
+    .profile-edit-controls {
+        flex-direction: row !important;
+        width: auto !important;
+        gap: 10px !important;
+    }
+
+    /* Resize 3D Carousel and cards for mobile */
+    #carousel-wrapper {
+        height: 320px !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .carousel-card.active {
+        width: 140px !important;
+        height: 210px !important;
+        box-shadow: 0 0 25px rgba(var(--glow-color, 13, 242, 242), 0.3) !important;
+    }
+
+    .carousel-card.left {
+        width: 105px !important;
+        height: 157px !important;
+        left: calc(50% - 135px) !important;
+    }
+
+    .carousel-card.right {
+        width: 105px !important;
+        height: 157px !important;
+        left: calc(50% + 30px) !important;
+    }
+
+    /* Scale down card content text inside carousel */
+    .carousel-card .card-content {
+        padding: 0.65rem !important;
+        transform: none !important;
+    }
+
+    .carousel-card.active .card-content {
+        transform: none !important;
+    }
+
+    .carousel-card .card-content h3 {
+        font-size: 0.9rem !important;
+        margin-bottom: 6px !important;
+        line-height: 1.2 !important;
+    }
+
+    .carousel-card .card-content p {
+        font-size: 8px !important;
+        letter-spacing: 0.1em !important;
+    }
+
+    .carousel-card .card-content .material-symbols-outlined {
+        font-size: 12px !important;
+    }
+
+    .carousel-card .card-content .flex.items-center.justify-between.mt-auto>div {
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+        gap: 4px !important;
+    }
+
+    .carousel-card .card-content .flex.items-center.justify-between.mt-auto span {
+        font-size: 8px !important;
+    }
+
+    #carousel-title {
+        display: none !important;
+    }
+
+    /* Center Total Games Counter on Mobile */
+    .mb-12>.flex.justify-between.items-end {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        gap: 12px !important;
+    }
+
+    .mb-12>.flex.justify-between.items-end>.flex.gap-4 {
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
+    /* Stack Genre Donut and Progress List Vertically on Mobile */
+    #genre-content {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 1.5rem !important;
+    }
+
+    #genre-content>div:first-child {
+        margin: 0 auto !important;
+        position: relative !important;
+        top: auto !important;
+    }
+
+    #genre-bar-list {
+        width: 100% !important;
+    }
+
+    /* Hide Report Text to only show the action arrow on mobile */
+    #genre-report-text {
+        display: none !important;
+    }
+
+    /* Center Section Headers on Mobile */
+    .mb-12 .flex.items-center.gap-3.mb-5,
+    .mb-12 .flex.justify-between.items-center.mb-5,
+    .mb-8 .flex.items-center.gap-3.mb-2 {
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    /* Center wrapped empty state paragraphs on mobile */
+    .col-span-full p,
+    #carousel-wrapper p {
+        text-align: center !important;
+    }
+}
+
+/* Visitor Mode Overrides */
+.visitor-mode #edit-profile-btn {
+    display: none !important;
 }
