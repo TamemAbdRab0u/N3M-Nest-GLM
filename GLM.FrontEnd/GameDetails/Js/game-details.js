@@ -7,14 +7,13 @@ let currentGame = null;          // Loaded game data
 let screenshotUrls = [];         // For lightbox navigation
 let currentLbIndex = 0;          // Current lightbox index
 let descriptionExpanded = false; // Description expand/collapse
-let currentMediaIndex = 0;       // For automatic sliding
-let slideInterval = null;        // Interval timer for sliding
-let isVideoMain = false;         // Is the video currently in the main container
 let currentRating = 0;           // Selected star rating for review form
 let editingReviewId = null;      // null = create mode, number = edit mode
 let editModalRating = 0;         // Rating selected inside the edit modal
 let currentCompanyPage = 1;      // Current page for company games
 let currentCompany = null;       // Current company name being displayed
+let currentSliderIndex = 0;      // Current media grid slider slide
+let totalSlidesCount = 0;        // Total media grid slider slides
 
 /* ──────────────────────────────────────────────
    Initialisation
@@ -37,18 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadGameDetails(Number(gameId));
 
-    // Pause slider on hover
-    const container = document.getElementById('main-media-container');
-    if (container) {
-        container.addEventListener('mouseenter', stopAutoSlide);
-        container.addEventListener('mouseleave', () => {
-            if (!isVideoMain) startAutoSlide();
-        });
-    }
-
-    // Drag-to-scroll for thumbnail strip
-    initDragScroll();
-
     // Load more company games listener
     const loadMoreBtn = document.getElementById('load-more-company-btn');
     if (loadMoreBtn) {
@@ -60,77 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentGame) updateStatusSelection(currentGame);
     });
 });
-
-function initDragScroll() {
-    const slider = document.getElementById('screenshots-strip');
-    if (!slider) return;
-
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    slider.addEventListener('mousedown', (e) => {
-        isDown = true;
-        slider.classList.add('active');
-        startX = e.pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-    });
-
-    slider.addEventListener('mouseleave', () => {
-        isDown = false;
-        slider.classList.remove('active');
-    });
-
-    slider.addEventListener('mouseup', () => {
-        isDown = false;
-        slider.classList.remove('active');
-    });
-
-    slider.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 2; // Scroll-fastness
-        slider.scrollLeft = scrollLeft - walk;
-    });
-}
-
-function startAutoSlide() {
-    stopAutoSlide(); // Ensure no duplicates
-    if (screenshotUrls.length <= 1) return;
-
-    slideInterval = setInterval(() => {
-        if (isVideoMain) return; // Don't slide while video is active
-        nextMedia();
-    }, 5000);
-}
-
-function stopAutoSlide() {
-    if (slideInterval) {
-        clearInterval(slideInterval);
-        slideInterval = null;
-    }
-}
-
-function nextMedia() {
-    if (isVideoMain && currentGame.trailerUrl) {
-        // If coming from video, go to first image
-        setMainMedia(screenshotUrls[0], 0);
-    } else {
-        currentMediaIndex = (currentMediaIndex + 1) % screenshotUrls.length;
-        setMainMedia(screenshotUrls[currentMediaIndex], currentMediaIndex);
-    }
-}
-
-function prevMedia() {
-    if (isVideoMain && currentGame.trailerUrl) {
-        // If coming from video, go to last image
-        setMainMedia(screenshotUrls[screenshotUrls.length - 1], screenshotUrls.length - 1);
-    } else {
-        currentMediaIndex = (currentMediaIndex - 1 + screenshotUrls.length) % screenshotUrls.length;
-        setMainMedia(screenshotUrls[currentMediaIndex], currentMediaIndex);
-    }
-}
 
 async function populateSidebarUser() {
     try {
@@ -198,12 +114,14 @@ async function loadCompanyGames(game) {
     const container = document.getElementById('similar-games-list');
     const heading = document.getElementById('company-games-heading');
     const moreContainer = document.getElementById('more-company-games-container');
+    const section = document.getElementById('company-games-section');
 
     if (!container) return;
 
     // Pick developer first, fall back to publisher
-    const company = game?.developers?.[0] || game?.publishers?.[0] || null;
-    currentCompany = company;
+    const companyRaw = game?.developers?.[0] || game?.publishers?.[0] || '';
+    const company = typeof companyRaw === 'string' ? companyRaw.trim() : '';
+    currentCompany = company || null;
     currentCompanyPage = 1;
 
     if (!company) {
@@ -212,42 +130,49 @@ async function loadCompanyGames(game) {
         return;
     }
 
+    if (section) section.classList.remove('hidden');
+    if (moreContainer) moreContainer.classList.add('hidden');
+
     // Update heading
     if (heading) heading.textContent = company;
 
     try {
-        const res = await apiRequest(`/api/Steam/catalog/company?companyName=${encodeURIComponent(company)}&page=${currentCompanyPage}`);
-        if (!res.ok) {
-            container.innerHTML = '<p class="text-[11px] text-slate-600 italic">Could not load games.</p>';
-            if (moreContainer) moreContainer.classList.add('hidden');
-            return;
-        }
-
-        const data = (await res.json()) || [];
-        // Filter out the current game
-        const filtered = data.filter(g => g.externalId !== game.externalId);
+        const allGames = await fetchAllCompanyGames(company);
+        const filtered = allGames.filter(g => g.externalId !== game.externalId);
 
         if (filtered.length === 0) {
             container.innerHTML = '<p class="text-[11px] text-slate-600 italic">No other games in the catalog yet.</p>';
-            if (moreContainer) moreContainer.classList.add('hidden');
+            hideSimilarGames();
             return;
         }
 
-        // Initially clear and show
         container.innerHTML = renderCompanyGameCards(filtered);
-
-        // If we got 6, there might be more
-        if (data.length === 6) {
-            if (moreContainer) moreContainer.classList.remove('hidden');
-        } else {
-            if (moreContainer) moreContainer.classList.add('hidden');
-        }
+        hydrateRecCardImages(container);
 
     } catch (err) {
         console.error('Company games error:', err);
         container.innerHTML = '<p class="text-[11px] text-slate-600 italic">Could not load games.</p>';
-        if (moreContainer) moreContainer.classList.add('hidden');
+        hideSimilarGames();
     }
+}
+
+async function fetchAllCompanyGames(company) {
+    const all = [];
+    let page = 1;
+    const maxPages = 20;
+
+    while (page <= maxPages) {
+        const res = await apiRequest(`/api/Steam/catalog/company?companyName=${encodeURIComponent(company)}&page=${page}`);
+        if (!res.ok) break;
+
+        const data = (await res.json()) || [];
+        all.push(...data);
+
+        if (data.length < 6) break;
+        page += 1;
+    }
+
+    return all;
 }
 
 async function loadMoreCompanyGames() {
@@ -281,6 +206,7 @@ async function loadMoreCompanyGames() {
             while (tempDiv.firstChild) {
                 container.appendChild(tempDiv.firstChild);
             }
+            hydrateRecCardImages(container);
         }
 
         // If we got less than 6 (page size), we've reached the end
@@ -306,29 +232,48 @@ async function loadMoreCompanyGames() {
 
 function renderCompanyGameCards(games) {
     return games.map(g => {
-        const rating = g.rating > 0 ? `<span class="text-yellow-400">★</span> ${g.rating.toFixed(1)}` : '';
-        const genre = g.genres?.[0] ?? '';
-        const meta = [genre, rating].filter(Boolean).join(' · ');
+        const rating = g.rating > 0 ? g.rating.toFixed(1) : null;
+        const candidates = getPosterCandidates(g);
+        const poster = candidates[0] || '../../Assets/Images/default-game.jpg';
+        const encodedCandidates = candidates.map(item => encodeURIComponent(item)).join('|');
         return `
-        <a href="game-details.html?id=${g.externalId}"
-           class="flex gap-3 items-center group/sim hover:bg-white/5 rounded-xl p-1.5 -mx-1.5 transition-colors no-underline">
-            <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white/10">
-                <img src="${g.imageUrl || ''}" alt="${escapeHtml(g.title)}"
-                     class="w-full h-full object-cover group-hover/sim:scale-105 transition-transform duration-300"
-                     onerror="this.parentElement.classList.add('flex','items-center','justify-center');this.style.display='none'">
+        <a href="game-details.html?id=${g.externalId}" class="gd-rec-card" title="${escapeHtml(g.title)}">
+            <div class="gd-rec-card__media">
+                <img src="${poster}" alt="${escapeHtml(g.title)}" class="gd-rec-card__img"
+                     data-candidates="${encodedCandidates}">
+                <div class="gd-rec-card__overlay"></div>
+                ${rating ? `<div class="gd-rec-card__rating-pill"><span class="star">★</span> ${rating}</div>` : ''}
+                <div class="gd-rec-card__meta">
+                    <p class="gd-rec-card__name">${escapeHtml(g.title)}</p>
+                </div>
             </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-200 group-hover/sim:text-primary transition-colors truncate leading-snug">${escapeHtml(g.title)}</p>
-                ${meta ? `<p class="text-[10px] text-slate-500 mt-0.5">${meta}</p>` : ''}
-            </div>
-            <span class="material-symbols-outlined text-[16px] text-slate-700 group-hover/sim:text-primary transition-colors flex-shrink-0">chevron_right</span>
         </a>`;
     }).join('');
 }
 
 function hideSimilarGames() {
-    const card = document.getElementById('similar-games-card');
-    if (card) card.classList.add('hidden');
+    const section = document.getElementById('company-games-section');
+    if (section) section.classList.add('hidden');
+}
+
+function hydrateRecCardImages(container) {
+    const images = container.querySelectorAll('.gd-rec-card__img[data-candidates]');
+    images.forEach(img => {
+        const raw = img.dataset.candidates || '';
+        const candidates = raw
+            .split('|')
+            .map(item => decodeURIComponent(item))
+            .filter(Boolean);
+
+        img.onload = () => {
+            const media = img.closest('.gd-rec-card__media');
+            if (media) {
+                media.style.setProperty('--rec-bg', `url("${img.currentSrc || img.src}")`);
+            }
+        };
+
+        setBestPosterImage(img, candidates.length ? candidates : [img.src]);
+    });
 }
 
 function getPosterCandidates(g) {
@@ -360,20 +305,26 @@ function renderGame(g) {
     document.title = `${g.title} – N3M|Nest`;
 
     // Reset slide state
-    stopAutoSlide();
     screenshotUrls = g.screenshots || [];
 
     // ── Hero background ──────────────────────
     if (g.backgroundImage) {
         const bgImg = document.getElementById('hero-bg-img');
-        if (bgImg) bgImg.src = g.backgroundImage;
+        if (bgImg) {
+            let bgUrl = g.backgroundImage;
+            if (bgUrl.includes('page_bg_generated')) {
+                bgUrl = bgUrl.replace(/page_bg_generated[^.]*\.jpg/i, 'page_bg_raw.jpg');
+            }
+            bgImg.src = bgUrl;
+        }
     }
 
-    // ── Sidebar Poster ───────────────────────
-    const sidePoster = document.getElementById('game-side-poster');
-    if (sidePoster) {
-        setBestPosterImage(sidePoster, getPosterCandidates(g));
-        sidePoster.alt = g.title;
+    // ── Hero genre tags ──────────────────────
+    const heroTags = document.getElementById('gd-genre-tags');
+    if (heroTags && g.genres?.length) {
+        heroTags.innerHTML = g.genres.slice(0, 5).map(genre =>
+            `<span class="gd-genre-tag">${genre}</span>`
+        ).join('');
     }
 
     // ── Main Titles ──────────────────────────
@@ -383,6 +334,7 @@ function renderGame(g) {
 
     if (g.releaseDate) {
         setText('game-release', formatDate(g.releaseDate));
+        setText('val-release', formatDate(g.releaseDate));
     }
 
     // ── Sidebar details ─────────────────────
@@ -390,17 +342,7 @@ function renderGame(g) {
     setText('val-publisher', g.publishers?.[0] || 'Unknown');
     setText('val-metascore', g.metacritic || 'N/A');
 
-    // ── Achievements ──────────────────────────
-    const achContainer = document.getElementById('achievements-container');
-    const achVal = document.getElementById('val-achievements');
-    if (achContainer && achVal) {
-        if (g.achievementsCount != null && g.achievementsCount > 0) {
-            achVal.textContent = g.achievementsCount;
-            achContainer.classList.remove('hidden');
-        } else {
-            achContainer.classList.add('hidden');
-        }
-    }
+
 
     // ── Price ────────────────────────────────
     const priceEl = document.getElementById('val-price');
@@ -413,7 +355,7 @@ function renderGame(g) {
             priceEl.textContent = `$${g.price.toFixed(2)}`;
         } else {
             // No price data: hide the whole row
-            const priceRow = priceEl.closest('.flex.justify-between');
+            const priceRow = priceEl.closest('.gd-detail-row');
             if (priceRow) priceRow.classList.add('hidden');
         }
     }
@@ -427,18 +369,149 @@ function renderGame(g) {
     // ── About / Description ─────────────────
     const descEl = document.getElementById('game-description');
     if (descEl) {
-        descEl.innerHTML = g.description ? g.description.split('\n\n').map(p => `<p class="mb-4">${p}</p>`).join('') : 'No description available.';
+        descEl.innerHTML = g.description
+            ? g.description.split('\n\n').filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('')
+            : '<p class="text-slate-500 italic">No description available.</p>';
+
+        // Set blurry background image
+        const aboutBg = document.getElementById('about-bg-img');
+        if (aboutBg && g.backgroundImage) {
+            aboutBg.style.backgroundImage = `url('${g.backgroundImage}')`;
+        }
+
+        // Show/hide the expand button based on content length
+        requestAnimationFrame(() => {
+            const showMoreBtn = document.getElementById('show-more-btn');
+            if (showMoreBtn) {
+                if (descEl.scrollHeight > 200) {
+                    descEl.classList.add('collapsed');
+                    showMoreBtn.classList.remove('hidden');
+                } else {
+                    descEl.classList.remove('collapsed');
+                    showMoreBtn.classList.add('hidden');
+                }
+            }
+        });
     }
 
-    // ── Screenshots & Video Strip ───────────
-    renderMediaStrip(g);
+    // ── Overview Media Grid Slider ───────────
+    const track = document.getElementById('overview-media-slider-track');
+    if (track) {
+        const mediaItems = [];
 
-    // Initial Main Media ──────────────────
-    if (g.trailerUrl) {
-        setMainVideo(g);
-    } else if (screenshotUrls.length > 0) {
-        setMainMedia(screenshotUrls[0], 0);
-        startAutoSlide();
+        // 1. Trailer
+        if (g.trailerUrl) {
+            const bestPoster = g.backgroundImage
+                || (g.screenshots && g.screenshots[0])
+                || (g.screenshots && g.screenshots[1])
+                || g.backgroundImageAdditional
+                || g.trailerPreview || '';
+            mediaItems.push({ type: 'video', url: g.trailerUrl, poster: bestPoster });
+        }
+
+        // 2. Screenshots
+        if (g.screenshots?.length) {
+            g.screenshots.forEach((url, i) => {
+                mediaItems.push({ type: 'image', url, index: i });
+            });
+        }
+
+        // Chunk into groups of 5
+        const chunkSize = 5;
+        const slides = [];
+        for (let i = 0; i < mediaItems.length; i += chunkSize) {
+            slides.push(mediaItems.slice(i, i + chunkSize));
+        }
+
+        totalSlidesCount = slides.length;
+        currentSliderIndex = 0;
+
+        let slidesHtml = '';
+        slides.forEach((slideItems, slideIdx) => {
+            let slideHtml = `<div class="gd-media-slide"><div class="gd-media-grid-custom">`;
+
+            // Large item (always slideItems[0])
+            const largeItem = slideItems[0];
+            if (largeItem) {
+                slideHtml += `<div class="large-item">`;
+                if (largeItem.type === 'video') {
+                    slideHtml += `
+                        <div class="gd-video-wrapper">
+                            <video src="${largeItem.url}" poster="${largeItem.poster}" controls></video>
+                        </div>
+                    `;
+                } else {
+                    slideHtml += `
+                        <img src="${largeItem.url}" alt="Screenshot" loading="lazy" onclick="openLightbox(${largeItem.index})">
+                    `;
+                }
+                slideHtml += `</div>`;
+            }
+
+            // Small items (slideItems[1] to slideItems[4])
+            for (let j = 1; j < 5; j++) {
+                const item = slideItems[j];
+                if (item) {
+                    slideHtml += `<div class="small-item">`;
+                    if (item.type === 'video') {
+                        slideHtml += `
+                            <div class="gd-video-wrapper">
+                                <video src="${item.url}" poster="${item.poster}" controls></video>
+                            </div>
+                        `;
+                    } else {
+                        slideHtml += `
+                            <img src="${item.url}" alt="Screenshot" loading="lazy" onclick="openLightbox(${item.index})">
+                        `;
+                    }
+                    slideHtml += `</div>`;
+                }
+            }
+
+            slideHtml += `</div></div>`;
+            slidesHtml += slideHtml;
+        });
+
+        track.innerHTML = slidesHtml || '<p class="text-slate-500 italic p-6">No media available.</p>';
+
+        // Nav elements configuration
+        const prevBtn = document.getElementById('slider-prev');
+        const nextBtn = document.getElementById('slider-next');
+        const dotsContainer = document.getElementById('slider-dots');
+
+        if (totalSlidesCount <= 1) {
+            if (prevBtn) prevBtn.classList.add('hidden');
+            if (nextBtn) nextBtn.classList.add('hidden');
+            if (dotsContainer) dotsContainer.classList.add('hidden');
+        } else {
+            if (prevBtn) prevBtn.classList.remove('hidden');
+            if (nextBtn) nextBtn.classList.remove('hidden');
+            if (dotsContainer) {
+                dotsContainer.classList.remove('hidden');
+                dotsContainer.innerHTML = slides.map((_, idx) =>
+                    `<div class="slider-dot ${idx === 0 ? 'active' : ''}" onclick="setSliderSlide(${idx})"></div>`
+                ).join('');
+            }
+        }
+
+        updateSliderPosition();
+
+        // Listen for scroll events to sync the slider dots with manual scrolling/swiping
+        track.addEventListener('scroll', () => {
+            clearTimeout(track.scrollTimeout);
+            track.scrollTimeout = setTimeout(() => {
+                const slideWidth = track.clientWidth;
+                if (slideWidth > 0) {
+                    const newIndex = Math.round(track.scrollLeft / slideWidth);
+                    if (newIndex !== currentSliderIndex) {
+                        currentSliderIndex = newIndex;
+                        document.querySelectorAll('.slider-dot').forEach((dot, idx) => {
+                            dot.classList.toggle('active', idx === currentSliderIndex);
+                        });
+                    }
+                }
+            }, 100);
+        });
     }
 
     // ── Requirements ────────────────────────
@@ -448,20 +521,23 @@ function renderGame(g) {
     updateActionButtons(g);
 
     // ── Website link ─────────────────────────
+    const webContainer = document.getElementById('links-container');
     const webBtn = document.getElementById('btn-website');
-    if (webBtn) {
+    if (webContainer && webBtn) {
         if (g.website) {
             webBtn.href = g.website;
-            webBtn.classList.remove('hidden');
+            webContainer.classList.remove('hidden');
         } else {
-            webBtn.classList.add('hidden');
+            webContainer.classList.add('hidden');
         }
     }
 
-    // ── Tags/Genres ─────────────────────────
+    // ── Tags/Genres (sidebar card) ──────────
     const tagsRow = document.getElementById('genres-row');
     if (tagsRow && g.genres) {
-        tagsRow.innerHTML = g.genres.map(genre => `<span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-primary transition-all cursor-pointer">${genre}</span>`).join('');
+        tagsRow.innerHTML = g.genres.map(genre =>
+            `<span class="genre-chip">${genre}</span>`
+        ).join('');
     }
 
     // ── Reviews ──────────────────────────────
@@ -474,184 +550,7 @@ function renderGame(g) {
     if (content) content.classList.remove('hidden');
 }
 
-function renderMediaStrip(g) {
-    const strip = document.getElementById('screenshots-strip');
-    if (!strip) return;
 
-    let html = '';
-
-    // 1. Add Video Square first
-    if (g.trailerUrl) {
-        // Use backgroundImageAdditional (full-detail alt art) or a screenshot as the thumbnail
-        const thumbSrc = g.backgroundImageAdditional
-            || (g.screenshots && g.screenshots[1])
-            || (g.screenshots && g.screenshots[0])
-            || g.backgroundImage
-            || g.trailerPreview || '';
-        html += `
-            <div id="thumb-video" class="video-thumb group active" onclick="setMainVideo(null)">
-                <img src="${thumbSrc}" alt="Trailer" style="image-rendering: high-quality;">
-                <div class="absolute inset-0 bg-primary/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span class="material-symbols-outlined text-white text-3xl">play_circle</span>
-                </div>
-            </div>
-        `;
-    }
-
-    // 2. Add Screenshot Squares
-    if (g.screenshots?.length) {
-        html += g.screenshots.map((url, i) => `
-            <div id="thumb-img-${i}" class="screenshot-thumb group" onclick="setMainMedia('${url}', ${i})">
-                <img src="${url}" alt="Screenshot ${i + 1}">
-                <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span class="material-symbols-outlined text-white">zoom_in</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    strip.innerHTML = html;
-}
-
-function setMainVideo(g = null) {
-    isVideoMain = true;
-    stopAutoSlide();
-
-    const game = g || currentGame; // Use current if g not provided
-    const placeholder = document.getElementById('main-media-placeholder');
-    const trailer = document.getElementById('main-trailer');
-    const playBtn = document.getElementById('play-btn');
-
-    // Trigger animation
-    trailer.classList.remove('fade-in-media');
-    void trailer.offsetWidth; 
-    trailer.classList.add('fade-in-media');
-
-    // Update UI highlights
-    document.querySelectorAll('.screenshot-thumb, .video-thumb').forEach(t => t.classList.remove('active'));
-    document.getElementById('thumb-video')?.classList.add('active');
-
-    placeholder.classList.add('hidden');
-    trailer.classList.remove('hidden');
-    playBtn.classList.remove('hidden');
-
-    // Use backgroundImageAdditional (full-detail alt art) or screenshot as video poster
-    const bestPoster = game.backgroundImageAdditional
-        || (game.screenshots && game.screenshots[1])
-        || (game.screenshots && game.screenshots[0])
-        || game.backgroundImage
-        || game.trailerPreview || '';
-
-    if (trailer.src !== game.trailerUrl) {
-        trailer.poster = bestPoster;
-        trailer.preload = 'auto';
-        trailer.src = game.trailerUrl;
-        trailer.load(); // Force the browser to start buffering immediately at full quality
-    } else {
-        // Already loaded — just update poster to best quality
-        trailer.poster = bestPoster;
-    }
-
-    // Seek bar starts hidden — click video to toggle
-    const videoControls = document.getElementById('video-controls');
-    if (videoControls) videoControls.classList.add('hidden');
-
-    // Toggle seek bar on video click
-    trailer.onclick = () => {
-        if (videoControls) videoControls.classList.toggle('hidden');
-    };
-
-    // Wire up time events (remove old listeners first to avoid stacking)
-    trailer.removeEventListener('timeupdate', updateVideoProgress);
-    trailer.removeEventListener('loadedmetadata', updateVideoMeta);
-    trailer.addEventListener('timeupdate', updateVideoProgress);
-    trailer.addEventListener('loadedmetadata', updateVideoMeta);
-    if (trailer.readyState >= 1) updateVideoMeta(); // already loaded
-
-    // Seek bar click + drag (stop propagation so it doesn't toggle visibility)
-    const seekBar = document.getElementById('video-seek-bar');
-    if (seekBar) {
-        seekBar.onmousedown = (e) => {
-            e.stopPropagation();
-            const seek = (ev) => {
-                const rect = seekBar.getBoundingClientRect();
-                const pct = Math.min(1, Math.max(0, (ev.clientX - rect.left) / rect.width));
-                if (trailer.duration) trailer.currentTime = pct * trailer.duration;
-            };
-            seek(e);
-            const onMove = (ev) => seek(ev);
-            const onUp = () => {
-                document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('mouseup', onUp);
-            };
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp);
-        };
-    }
-
-    const muteBtn = document.getElementById('mute-btn');
-    const muteIcon = document.getElementById('mute-icon');
-
-    // Show mute button and sync its icon state
-    if (muteBtn) muteBtn.classList.remove('hidden');
-    if (muteIcon) muteIcon.textContent = trailer.muted ? 'volume_off' : 'volume_up';
-
-    playBtn.onclick = () => {
-        if (trailer.paused) {
-            trailer.play();
-            playBtn.innerHTML = '<span class="material-symbols-outlined text-4xl fill-icon">pause</span>';
-        } else {
-            trailer.pause();
-            playBtn.innerHTML = '<span class="material-symbols-outlined text-4xl fill-icon">play_arrow</span>';
-        }
-    };
-}
-
-/* Toggle mute / unmute for the trailer */
-function toggleVideoMute() {
-    const trailer = document.getElementById('main-trailer');
-    const muteIcon = document.getElementById('mute-icon');
-    if (!trailer) return;
-    trailer.muted = !trailer.muted;
-    if (muteIcon) muteIcon.textContent = trailer.muted ? 'volume_off' : 'volume_up';
-}
-
-function setMainMedia(url, index) {
-    isVideoMain = false;
-    currentMediaIndex = index;
-
-    const placeholder = document.getElementById('main-media-placeholder');
-    const trailer = document.getElementById('main-trailer');
-    const playBtn = document.getElementById('play-btn');
-    const label = document.getElementById('media-label');
-    const title = document.getElementById('media-title');
-
-    // Trigger animation
-    placeholder.classList.remove('fade-in-media');
-    void placeholder.offsetWidth; // Reflow
-    placeholder.classList.add('fade-in-media');
-
-    // Update UI highlights
-    document.querySelectorAll('.screenshot-thumb, .video-thumb').forEach(t => t.classList.remove('active'));
-    document.getElementById(`thumb-img-${index}`)?.classList.add('active');
-
-    trailer.classList.add('hidden');
-    trailer.pause();
-    placeholder.src = url;
-    placeholder.classList.remove('hidden');
-
-    // Hide mute button when not on video
-    const muteBtn = document.getElementById('mute-btn');
-    if (muteBtn) muteBtn.classList.add('hidden');
-    playBtn.classList.add('hidden');
-
-    // Hide seek bar
-    const videoControls = document.getElementById('video-controls');
-    if (videoControls) videoControls.classList.add('hidden');
-
-    // Resume auto-slide after selecting manually
-    startAutoSlide();
-}
 
 function renderRequirements(g) {
     const minEl = document.getElementById('req-min');
@@ -729,15 +628,17 @@ function renderPlatformRow(platforms) {
 
 function getPlatformIcon(name) {
     const n = name.toLowerCase();
-    if (n.includes('pc') || n.includes('windows')) return `<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"/></svg>`;
-    if (n.includes('playstation')) return `<i class="fab fa-playstation text-xs"></i>`;
-    if (n.includes('xbox')) return `<i class="fab fa-xbox text-xs"></i>`;
-    if (n.includes('nintendo') || n.includes('switch')) return `<i class="bi bi-nintendo-switch text-xs"></i>`;
-    if (n.includes('mac') || n.includes('apple') || n.includes('ios')) return `<i class="fab fa-apple text-xs"></i>`;
-    if (n.includes('linux')) return `<i class="fab fa-linux text-xs"></i>`;
-    if (n.includes('android')) return `<i class="fab fa-android text-xs"></i>`;
+    if (n.includes('pc') || n.includes('windows')) return `<svg class="w-3.5 h-3.5 text-slate-300 hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 17.1L9.75 21.9V12.3H0v8.249zM10.5 1.95L24 0v11.7H10.5V1.95zm0 20.1L24 24V12.3H10.5v9.75z"/></svg>`;
+    if (n.includes('playstation')) return `<i class="fab fa-playstation text-xs text-[#587bf2] hover:text-[#7d9bf5] transition-colors"></i>`;
+    if (n.includes('xbox')) return `<i class="fab fa-xbox text-xs text-[#22c55e] hover:text-[#4ade80] transition-colors"></i>`;
+    if (n.includes('nintendo') || n.includes('switch')) return `<i class="bi bi-nintendo-switch text-xs text-[#e60012] hover:text-[#ff3344] transition-colors"></i>`;
+    if (n.includes('mac') || n.includes('apple') || n.includes('ios')) return `<i class="fab fa-apple text-xs text-slate-300 hover:text-white transition-colors"></i>`;
+    if (n.includes('linux')) return `<i class="fab fa-linux text-xs text-[#f57c00] hover:text-[#ff9800] transition-colors"></i>`;
+    if (n.includes('android')) return `<i class="fab fa-android text-xs text-[#3ddc84] hover:text-[#63e59e] transition-colors"></i>`;
     return `<span class="material-symbols-outlined text-[13px]">devices</span>`;
 }
+
+
 
 /* ──────────────────────────────────────────────
    Genres row (hero)
@@ -794,8 +695,14 @@ function renderMedia(g) {
         const source = document.getElementById('trailer-source');
         const poster = document.getElementById('trailer-poster-img');
         if (source) source.src = g.trailerUrl;
-        if (poster && g.trailerPreview) poster.src = g.trailerPreview;
-        if (poster && !g.trailerPreview && g.backgroundImageAdditional) poster.src = g.backgroundImageAdditional;
+        if (poster) {
+            poster.src = g.backgroundImage
+                || (g.screenshots && g.screenshots[0])
+                || (g.screenshots && g.screenshots[1])
+                || g.backgroundImageAdditional
+                || g.trailerPreview
+                || '';
+        }
     }
 
     // Screenshots
@@ -1071,57 +978,15 @@ function animateBtnIcon(btnId) {
 }
 
 /* ──────────────────────────────────────────────
-   Tab switching
+   Tab switching — handled inline in HTML
 ────────────────────────────────────────────── */
-function switchTab(tab) {
-    const tabs = ['about', 'media', 'details'];
-    tabs.forEach(t => {
-        document.getElementById(`tab-${t}`)?.classList.remove('active-tab');
-        const panel = document.getElementById(`panel-${t}`);
-        if (panel) panel.classList.add('hidden');
-    });
-    document.getElementById(`tab-${tab}`)?.classList.add('active-tab');
-    document.getElementById(`panel-${tab}`)?.classList.remove('hidden');
+// switchTab is defined inline in game-details.html for the new layout
+// This stub prevents errors if called from elsewhere
+if (typeof switchTab === 'undefined') {
+    window.switchTab = function () { };
 }
 
-/* ──────────────────────────────────────────────
-   Video seek bar helpers
-────────────────────────────────────────────── */
-function formatVideoTime(seconds) {
-    if (!seconds || isNaN(seconds)) return '0:00';
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-}
 
-function updateVideoProgress() {
-    const trailer = document.getElementById('main-trailer');
-    const fill = document.getElementById('video-seek-fill');
-    const currentEl = document.getElementById('video-current-time');
-    if (!trailer || !fill) return;
-    const pct = trailer.duration ? (trailer.currentTime / trailer.duration) * 100 : 0;
-    fill.style.width = pct + '%';
-    if (currentEl) currentEl.textContent = formatVideoTime(trailer.currentTime);
-}
-
-function updateVideoMeta() {
-    const trailer = document.getElementById('main-trailer');
-    const totalEl = document.getElementById('video-total-time');
-    if (!trailer || !totalEl) return;
-    totalEl.textContent = formatVideoTime(trailer.duration);
-}
-
-/* ──────────────────────────────────────────────
-   Trailer
-────────────────────────────────────────────── */
-function playTrailer() {
-    const overlay = document.getElementById('trailer-poster-overlay');
-    const video = document.getElementById('trailer-video');
-    if (overlay) overlay.classList.add('hidden-overlay');
-    if (video) {
-        video.play();
-    }
-}
 
 /* ──────────────────────────────────────────────
    Lightbox
@@ -1260,13 +1125,24 @@ async function loadReviews(externalId) {
     }
 }
 
+function updateReviewsCount(count) {
+    const badge = document.getElementById('tab-reviews-count');
+    if (!badge) return;
+    const safeCount = Number.isFinite(count) ? count : 0;
+    badge.textContent = safeCount.toString();
+    badge.classList.remove('hidden');
+}
+
 function renderReviews(reviews, friendUsernames = new Set()) {
     const list = document.getElementById('reviews-list');
     const empty = document.getElementById('reviews-empty');
     if (!list) return;
 
+    updateReviewsCount(Array.isArray(reviews) ? reviews.length : 0);
+
     if (!reviews || reviews.length === 0) {
         if (empty) empty.classList.remove('hidden');
+        list.innerHTML = '';
         return;
     }
     if (empty) empty.classList.add('hidden');
@@ -1586,6 +1462,7 @@ async function deleteReview(reviewId) {
         const list = document.getElementById('reviews-list');
         const empty = document.getElementById('reviews-empty');
         if (list && empty && list.children.length === 0) empty.classList.remove('hidden');
+        if (list) updateReviewsCount(list.children.length);
         if (editingReviewId === reviewId) cancelEdit();
         // Reset the inline form
         setRating(0);
@@ -1780,3 +1657,35 @@ async function handleCreateCollection() {
         showToast('Something went wrong', 'error');
     }
 }
+
+/* ──────────────────────────────────────────────
+   Overview Grid Slider Controls
+   ────────────────────────────────────────────── */
+function moveSlider(direction) {
+    if (totalSlidesCount <= 1) return;
+    currentSliderIndex = (currentSliderIndex + direction + totalSlidesCount) % totalSlidesCount;
+    updateSliderPosition();
+}
+
+function setSliderSlide(index) {
+    currentSliderIndex = index;
+    updateSliderPosition();
+}
+
+function updateSliderPosition() {
+    const track = document.getElementById('overview-media-slider-track');
+    if (track) {
+        const slideWidth = track.clientWidth;
+        track.scrollTo({
+            left: currentSliderIndex * slideWidth,
+            behavior: 'smooth'
+        });
+    }
+    // Update dots
+    document.querySelectorAll('.slider-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === currentSliderIndex);
+    });
+}
+
+window.moveSlider = moveSlider;
+window.setSliderSlide = setSliderSlide;

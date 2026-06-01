@@ -5,9 +5,10 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Game Details - N3M|Nest</title>
+    <meta name="description" content="Explore game details, screenshots, reviews and more on N3M|Nest game library.">
     <link rel="icon" type="image/png" href="../../Assets/Images/logo.png">
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700;900&family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
@@ -49,77 +50,24 @@
         }
 
         @keyframes flicker-bulb {
-
-            0%,
-            8%,
-            10%,
-            12%,
-            40%,
-            42%,
-            65%,
-            66%,
-            68%,
-            100% {
+            0%, 8%, 10%, 12%, 40%, 42%, 65%, 66%, 68%, 100% {
                 opacity: 1;
                 text-shadow: 0 0 4px #fff, 0 0 12px #4a7dff, 0 0 28px #4a7dff;
             }
-
-            9%,
-            11%,
-            41%,
-            67% {
-                opacity: 0.08;
-                text-shadow: none;
-            }
-
-            13%,
-            39% {
-                opacity: 0.5;
-                text-shadow: 0 0 4px #fff;
-            }
-
-            64%,
-            69% {
-                opacity: 0.15;
-                text-shadow: none;
-            }
+            9%, 11%, 41%, 67% { opacity: 0.08; text-shadow: none; }
+            13%, 39% { opacity: 0.5; text-shadow: 0 0 4px #fff; }
+            64%, 69% { opacity: 0.15; text-shadow: none; }
         }
 
         .neon-username {
             font-family: 'Xirod', sans-serif;
             color: #fff;
-            text-shadow:
-                0 0 5px #fff,
-                0 0 10px #fff,
-                0 0 20px #4a7dff,
-                0 0 40px #4a7dff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #4a7dff, 0 0 40px #4a7dff;
             font-weight: 800;
         }
 
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-
-        /* Pure CSS Independent Mobile Layout Ordering */
-        @media (max-width: 1023px) {
-            #main-grid-layout {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 2rem !important;
-            }
-            #left-column, #right-column {
-                display: contents !important;
-            }
-            #game-info-card { order: 1 !important; }
-            #media-title { display: none !important; }
-            #main-media-container { order: 3 !important; }
-            #screenshots-strip { order: 4 !important; }
-            #tags-section { order: 5 !important; }
-            #links-container { order: 6 !important; }
-            #similar-games-card { order: 7 !important; }
-            #about-section { order: 8 !important; }
-            #system-requirements-section { order: 9 !important; }
-            #reviews-section { order: 10 !important; }
         }
     </style>
     <link rel="stylesheet" href="../Css/game-details.css" />
@@ -160,727 +108,491 @@
                     class="nav-item flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 text-[10px] xirod-font transition-all">
                     <span class="material-symbols-outlined text-sm">folder_special</span> COLLECTIONS
                 </a>
-
             </nav>
         </div>
 
         <!-- Right: Account & Notifications -->
         <div class="flex items-center gap-4">
             <div class="hidden md:flex flex-col items-end">
-                    <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">USER</span>
-                    <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
-                </div>
+                <span id="welcome-username" class="neon-username text-[13px] leading-none mb-1">USER</span>
+                <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Online</span>
+            </div>
 
-                <div class="flex items-center gap-2">
-                    <!-- Profile Link -->
-                    <a href="../../Profile/Html/profile.html" class="group relative">
-                        <div
-                            class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
-                            <div id="display-avatar-header"
-                                class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
-                                <span class="text-sm font-bold text-white uppercase">U</span>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Notification Bell -->
-                    <div class="relative" id="notif-wrapper">
-                        <button id="notification-btn" onclick="toggleNotifDropdown()"
-                            class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
-                            <span
-                                class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
-                            <span id="notif-badge"
-                                class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
-                        </button>
-
-                        <!-- Notif Dropdown -->
-                        <div id="notif-dropdown"
-                            class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
-                            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                                <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend
-                                    Requests</h3>
-                                <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
-                            </div>
-                            <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
-                            <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
-                                <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
-                                <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No
-                                    pending requests</p>
-                            </div>
+            <div class="flex items-center gap-2">
+                <!-- Profile Link -->
+                <a href="../../Profile/Html/profile.html" class="group relative">
+                    <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-primary to-purple-600 p-[1px] group-hover:scale-105 transition-all">
+                        <div id="display-avatar-header"
+                            class="h-full w-full rounded-xl bg-[#0a1618] flex items-center justify-center overflow-hidden">
+                            <span class="text-sm font-bold text-white uppercase">U</span>
                         </div>
                     </div>
+                </a>
+
+                <!-- Notification Bell -->
+                <div class="relative" id="notif-wrapper">
+                    <button id="notification-btn" onclick="toggleNotifDropdown()"
+                        class="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:border-primary/50 hover:bg-white/10 transition-all group overflow-visible relative">
+                        <span class="material-symbols-outlined text-[20px] relative z-10 transition-transform group-hover:scale-110">notifications</span>
+                        <span id="notif-badge"
+                            class="hidden absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[#080f0f] text-[10px] font-black flex items-center justify-center z-20 shadow-[0_0_8px_rgba(74,125,255,0.8)] animate-pulse">0</span>
+                    </button>
+
+                    <!-- Notif Dropdown -->
+                    <div id="notif-dropdown"
+                        class="hidden absolute top-[calc(100%+12px)] right-0 w-80 bg-[#0a1618]/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden backdrop-blur-2xl">
+                        <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+                            <h3 class="text-[10px] xirod-font text-slate-300 uppercase tracking-widest">Friend Requests</h3>
+                            <span id="notif-count-label" class="text-[10px] text-slate-500"></span>
+                        </div>
+                        <div id="notif-list" class="overflow-y-auto max-height-[360px] custom-scrollbar"></div>
+                        <div id="notif-empty" class="hidden px-5 py-8 flex flex-col items-center gap-2">
+                            <span class="material-symbols-outlined text-3xl text-slate-700">notifications_off</span>
+                            <p class="text-[9px] xirod-font text-slate-600 uppercase tracking-widest text-center">No pending requests</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 relative min-h-screen bg-background-dark">
+    <main class="flex-1 relative min-h-screen bg-background-dark" id="main-content">
 
-        <!-- Hero Background -->
-        <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-            <div
-                class="absolute inset-0 bg-gradient-to-b from-transparent via-background-dark/80 to-background-dark z-10">
+        <!-- ============================================================
+             HERO SECTION — Full-Width Banner
+             ============================================================ -->
+        <div id="gd-hero" class="gd-hero relative w-full overflow-hidden">
+            <!-- Background blurred banner image -->
+            <div class="gd-hero__bg-wrap">
+                <img id="hero-bg-img" src="" alt="" class="gd-hero__bg-img">
+                <div class="gd-hero__bg-overlay"></div>
             </div>
-            <div id="hero-bg-accent"
-                class="absolute top-0 right-0 w-[60%] h-[80%] bg-primary/10 blur-[150px] -z-10 rounded-full"></div>
-            <img id="hero-bg-img" src="" alt="" class="w-full h-full object-cover opacity-30 scale-110 blur-md">
+
+            <!-- Back button -->
+            <div class="gd-hero__back">
+                <button onclick="history.back()" class="gd-back-btn">
+                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                    <span>Back to Library</span>
+                </button>
+            </div>
+
+            <!-- Hero Content -->
+            <div class="gd-hero__content max-w-[1400px] mx-auto px-8">
+                <!-- Game Title & Tags -->
+                <div class="gd-hero__title-block">
+                    <h1 id="game-title" class="gd-hero__title">—</h1>
+
+                    <!-- Release Date -->
+                    <div class="gd-hero__meta mb-3.5">
+                        <span class="material-symbols-outlined text-[18px] text-slate-400">calendar_today</span>
+                        <span id="game-release" class="text-slate-400 text-sm font-medium">—</span>
+                    </div>
+
+                    <!-- Genre Tags -->
+                    <div id="gd-genre-tags" class="gd-hero__tags">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons Row -->
+                <div class="gd-hero__actions">
+                    <button id="btn-library" onclick="toggleLibrary()" class="gd-btn gd-btn--primary">
+                        <span id="library-icon" class="material-symbols-outlined text-[18px]">add_to_photos</span>
+                        <span id="btn-library-label">Add to Library</span>
+                    </button>
+                    <button id="btn-favorite" onclick="toggleFavorite()" class="gd-btn gd-btn--ghost">
+                        <span id="fav-icon" class="material-symbols-outlined text-[18px]">favorite</span>
+                        <span id="btn-favorite-label">Favorite</span>
+                    </button>
+                    <button id="btn-wishlist" onclick="toggleWishlist()" class="gd-btn gd-btn--ghost">
+                        <span class="material-symbols-outlined text-[18px]">bookmark</span>
+                        <span id="btn-wishlist-label">Wishlist</span>
+                    </button>
+                    <button id="btn-add-collection" onclick="openCollectionModal()" class="gd-btn gd-btn--icon" title="Add to Collection">
+                        <span class="material-symbols-outlined text-[18px]">collections</span>
+                    </button>
+                </div>
+
+                <!-- Status Selection (shown after adding to library) -->
+                <div id="status-selection-container" class="hidden gd-status-selector">
+                    <div class="flex items-center gap-2 bg-black/40 rounded-2xl p-1.5 border border-white/5 backdrop-blur-md shadow-inner relative w-fit">
+                        <div id="status-selection-highlight"
+                            class="absolute bg-white/10 ring-1 ring-white/10 rounded-xl transition-all duration-500 ease-out pointer-events-none shadow-lg hidden">
+                        </div>
+                        <button onclick="changeStatus(1)" id="status-btn-1" class="relative z-10 flex items-center justify-center px-3 py-2 rounded-xl transition-all group/s" title="Playing">
+                            <span class="material-symbols-outlined text-[18px] text-primary group-hover/s:scale-110 transition-transform">play_circle</span>
+                        </button>
+                        <button onclick="changeStatus(3)" id="status-btn-3" class="relative z-10 flex items-center justify-center px-3 py-2 rounded-xl transition-all group/s" title="Completed">
+                            <span class="material-symbols-outlined text-[18px] text-green-500 group-hover/s:scale-110 transition-transform">check_circle</span>
+                        </button>
+                        <button onclick="changeStatus(5)" id="status-btn-5" class="relative z-10 flex items-center justify-center px-3 py-2 rounded-xl transition-all group/s" title="On Hold">
+                            <span class="material-symbols-outlined text-[18px] text-yellow-500 group-hover/s:scale-110 transition-transform">pause_circle</span>
+                        </button>
+                        <button onclick="changeStatus(4)" id="status-btn-4" class="relative z-10 flex items-center justify-center px-3 py-2 rounded-xl transition-all group/s" title="Dropped">
+                            <span class="material-symbols-outlined text-[18px] text-red-400 group-hover/s:scale-110 transition-transform">do_not_disturb_on</span>
+                        </button>
+                        <button onclick="changeStatus(6)" id="status-btn-6" class="relative z-10 flex items-center justify-center px-3 py-2 rounded-xl transition-all group/s" title="To Play / Pending">
+                            <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover/s:scale-110 transition-transform">schedule</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Sub Navigation / Back Button -->
-        <header
-            class="h-20 flex items-center justify-between px-8 relative z-40 bg-gradient-to-b from-black/20 to-transparent">
-            <button onclick="history.back()"
-                class="flex items-center gap-2 text-slate-400 hover:text-white transition-all group px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
-                <span
-                    class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                <span class="text-[10px] xirod-font uppercase tracking-widest">Back</span>
-            </button>
-
-            <div class="flex items-center gap-4">
-                <!-- Removed duplicate bell -->
+        <!-- ============================================================
+             TAB NAVIGATION
+             ============================================================ -->
+        <div class="gd-tabs-wrap sticky top-16 z-40 bg-[#080e0f]/80 backdrop-blur-xl border-b border-white/5">
+            <div class="max-w-[1400px] mx-auto px-8">
+                <nav class="gd-tabs" id="gd-tab-nav">
+                    <button class="gd-tab gd-tab--active" data-tab="overview" onclick="switchTab('overview', this)">Overview</button>
+                    <button class="gd-tab" data-tab="reviews" onclick="switchTab('reviews', this)">
+                        Reviews
+                        <span id="tab-reviews-count" class="gd-tab__badge"></span>
+                    </button>
+                </nav>
             </div>
-        </header>
+        </div>
 
-        <!-- Scrollable content -->
-        <div class="relative z-10 px-8 py-4 max-w-[1600px] mx-auto">
+        <!-- ============================================================
+             PAGE BODY
+             ============================================================ -->
+        <div class="max-w-[1400px] mx-auto px-8 py-10 space-y-14" id="gd-page-body">
 
-            <!-- Main Grid Layout -->
-            <div id="main-grid-layout" class="grid grid-cols-12 gap-8">
+            <!-- Error State -->
+        <div id="error-state" class="hidden flex flex-col items-center justify-center min-h-[60vh] text-slate-500 space-y-4">
+            <span class="material-symbols-outlined text-7xl text-red-500/60">error</span>
+            <p class="text-lg font-medium text-red-400">Failed to load game details</p>
+            <p class="text-sm opacity-70">The game could not be found or the server is unavailable.</p>
+            <button onclick="history.back()"
+                class="mt-2 px-6 py-2 bg-primary/10 border border-primary/30 text-primary rounded-full hover:bg-primary hover:text-white transition-all">
+                Go Back
+            </button>
+        </div>
 
-                <!-- Left Column: Title & Main Media (Col 1-8) -->
-                <div id="left-column" class="col-span-12 lg:col-span-8 space-y-8">
 
-                    <!-- Game Header Title -->
-                    <div id="media-title" class="space-y-4">
-                        <h1 id="game-title"
-                            class="text-5xl lg:text-7xl font-black text-white italic tracking-tighter uppercase leading-none">
-                        </h1>
-                        <div class="flex items-center gap-6 text-sm font-bold text-slate-400">
-                            <div class="flex items-center gap-1.5 border-l border-white/10 pl-6">
-                                <span class="material-symbols-outlined text-primary text-[18px]">calendar_month</span>
-                                <span id="game-release" class="text-slate-300">--</span>
+            <div id="tab-overview" class="gd-tab-panel">
+
+                <!-- Media Section: Custom Grid Slider -->
+                <section class="relative group/slider mb-10 overflow-hidden">
+                    <h2 class="gd-section-heading mb-6">Screenshots &amp; Media</h2>
+                    
+                    <div class="relative w-full overflow-hidden rounded-2xl">
+                        <!-- Slider Track -->
+                        <div id="overview-media-slider-track">
+                            <!-- JS populated slides -->
+                        </div>
+                        
+                        <!-- Nav Arrows -->
+                        <button id="slider-prev" onclick="moveSlider(-1)" 
+                            class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover/slider:opacity-100 transition-all hover:bg-primary/30 z-10 cursor-pointer">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button id="slider-next" onclick="moveSlider(1)" 
+                            class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover/slider:opacity-100 transition-all hover:bg-primary/30 z-10 cursor-pointer">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Slider Dots/Pagination -->
+                    <div id="slider-dots" class="flex justify-center gap-2 mt-4">
+                        <!-- JS populated dots -->
+                    </div>
+                </section>
+
+                <!-- About + Game Details Two-Column -->
+                <section class="gd-content-grid">
+
+                    <!-- LEFT: About -->
+                    <div id="about-section" class="gd-about-card">
+                        <div id="about-bg-img" class="gd-about-card__bg"></div>
+                        <h2 class="gd-section-heading">About</h2>
+                        <div id="game-description" class="gd-description description-text collapsed">
+                            <!-- JS populated -->
+                        </div>
+                        <button id="show-more-btn" onclick="toggleDescription()" class="gd-show-more hidden">
+                            Show More <span class="material-symbols-outlined text-[14px]">expand_more</span>
+                        </button>
+                    </div>
+
+                    <!-- RIGHT: Game Details Sidebar -->
+                    <aside class="gd-details-sidebar space-y-6">
+
+                        <!-- Meta Info Card -->
+                        <div class="gd-card">
+                            <h3 class="gd-card__heading">Game Details</h3>
+                            <div class="space-y-3">
+                                <div class="gd-detail-row">
+                                    <span class="gd-detail-label">Developer</span>
+                                    <span id="val-developer" class="gd-detail-value">—</span>
+                                </div>
+                                <div class="gd-detail-row">
+                                    <span class="gd-detail-label">Publisher</span>
+                                    <span id="val-publisher" class="gd-detail-value">—</span>
+                                </div>
+                                <div class="gd-detail-row">
+                                    <span class="gd-detail-label">Release Date</span>
+                                    <span id="val-release" class="gd-detail-value">—</span>
+                                </div>
+                                <div class="gd-detail-row">
+                                    <span class="gd-detail-label">Price</span>
+                                    <span id="val-price" class="gd-detail-value gd-detail-value--price">—</span>
+                                </div>
+                                <div class="gd-detail-row">
+                                    <span class="gd-detail-label">Metascore</span>
+                                    <span id="val-metascore" class="gd-metascore-badge">—</span>
+                                </div>
+                                <div class="gd-detail-row">
+                                    <span class="gd-detail-label">Platforms</span>
+                                    <div id="platforms-icons" class="flex gap-2 text-slate-400 flex-wrap"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags Card -->
+                        <div id="tags-section" class="gd-card">
+                            <h3 class="gd-card__heading">Popular Tags</h3>
+                            <div id="genres-row" class="flex flex-wrap gap-2">
+                                <!-- JS populated -->
+                            </div>
+                        </div>
+
+                        <!-- Links Card -->
+                        <div id="links-container" class="gd-card flex flex-col gap-3">
+                            <a id="btn-website" href="#" target="_blank"
+                                class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-primary transition-all group">
+                                OFFICIAL WEBSITE
+                                <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">open_in_new</span>
+                            </a>
+                        </div>
+
+                    </aside>
+                </section>
+
+                <!-- System Requirements (moved into Overview) -->
+                <section class="gd-requirements-section">
+                    <h2 class="gd-section-heading mb-8">System Requirements</h2>
+                    <div id="system-requirements-section" class="grid md:grid-cols-2 gap-6">
+                        <div class="gd-card space-y-4">
+                            <h3 class="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">memory</span>
+                                Minimum
+                            </h3>
+                            <div id="req-min" class="text-xs text-slate-400 space-y-2 leading-relaxed">
+                                Not specified for this platform.
+                            </div>
+                        </div>
+                        <div class="gd-card space-y-4">
+                            <h3 class="text-sm font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                                Recommended
+                            </h3>
+                            <div id="req-rec" class="text-xs text-slate-400 space-y-2 leading-relaxed">
+                                Not specified for this platform.
                             </div>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Video / Main Screenshot Container -->
-                    <div id="main-media-container"
-                        class="relative aspect-video rounded-3xl overflow-hidden border border-white/10 bg-black group shadow-2xl shadow-primary/5">
-                        <video id="main-trailer" class="w-full h-full object-contain hidden" loop playsinline preload="auto"
-                            poster=""></video>
-                        <img id="main-media-placeholder" src=""
-                            class="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105">
+                <!-- More from Developer / Similar Games -->
+                <section class="gd-recommendations mt-10">
 
-                        <!-- Navigation Arrows -->
-                        <button id="nav-prev" onclick="prevMedia()"
-                            class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
-                            <span class="material-symbols-outlined">chevron_left</span>
-                        </button>
-                        <button id="nav-next" onclick="nextMedia()"
-                            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/40 z-20">
-                            <span class="material-symbols-outlined">chevron_right</span>
-                        </button>
-
-                        <div
-                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 pointer-events-none">
-                            <!-- Video seek bar — only visible while trailer is active -->
-                            <div id="video-controls" class="hidden w-full mb-4 pointer-events-auto">
-                                <div class="flex items-center gap-3">
-                                    <span id="video-current-time"
-                                        class="text-xs text-white/70 font-mono w-9 text-right select-none">0:00</span>
-                                    <div id="video-seek-bar"
-                                        class="group/seek flex-1 relative h-5 flex items-center cursor-pointer">
-                                        <div class="w-full h-1 bg-white/20 rounded-full overflow-visible">
-                                            <div id="video-seek-fill" class="h-full bg-primary rounded-full relative"
-                                                style="width:0%">
-                                                <div
-                                                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <span id="video-total-time"
-                                        class="text-xs text-white/70 font-mono w-9 select-none">0:00</span>
-                                </div>
+                    <!-- More from Developer -->
+                    <div id="company-games-section" class="gd-rec-block">
+                        <div class="gd-rec-block__header">
+                            <div>
+                                <p class="gd-rec-block__sub">More from</p>
+                                <h3 id="company-games-heading" class="gd-rec-block__title">...</h3>
                             </div>
-                            <div class="flex justify-between items-end w-full">
-                                <div class="space-y-1">
-                                    <!-- Mute toggle -->
-                                    <button id="mute-btn"
-                                        class="hidden w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all pointer-events-auto"
-                                        onclick="toggleVideoMute()" title="Mute / Unmute">
-                                        <span id="mute-icon" class="material-symbols-outlined text-xl">volume_up</span>
-                                    </button>
-                                </div>
-                                <button id="play-btn"
-                                    class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/40 hover:scale-110 transition-all pointer-events-auto">
-                                    <span class="material-symbols-outlined text-4xl fill-icon">play_arrow</span>
+                            <div id="more-company-games-container" class="hidden">
+                                <button id="load-more-company-btn" class="gd-see-more-btn">
+                                    <span class="text-[10px] xirod-font tracking-widest font-black">MORE</span>
+                                    <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
                                 </button>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Screenshots Thumbnails Strip -->
-                    <div id="screenshots-strip"
-                        class="flex gap-4 overflow-x-auto pb-2 no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing">
-                        <!-- Video square will go here first, then screenshots -->
-                    </div>
-
-                    <!-- About Section -->
-                    <div id="about-section" class="space-y-4">
-                        <h2
-                            class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
-                            <span class="w-8 h-1 bg-primary rounded-full"></span>
-                            The Story
-                        </h2>
-                        <div id="game-description" class="text-slate-400 leading-relaxed text-lg max-w-4xl">
-                            <!-- Description -->
+                        <div id="similar-games-list" class="gd-rec-scroll">
+                            <!-- Skeleton -->
+                            <div class="gd-rec-skeleton"></div>
+                            <div class="gd-rec-skeleton"></div>
+                            <div class="gd-rec-skeleton"></div>
+                            <div class="gd-rec-skeleton"></div>
                         </div>
                     </div>
 
-                    <!-- System Requirements -->
-                    <div id="system-requirements-section" class="space-y-6 pt-8">
-                        <h2
-                            class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
-                            <span class="w-8 h-1 bg-primary rounded-full"></span>
-                            System Requirements
-                        </h2>
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
-                                <h3
-                                    class="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[18px]">memory</span>
-                                    Minimum Requirements
-                                </h3>
-                                <div id="req-min" class="text-xs text-slate-400 space-y-2 leading-relaxed">
-                                    Not specified for this platform.
-                                </div>
-                            </div>
-                            <div class="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
-                                <h3
-                                    class="text-sm font-black uppercase text-accent tracking-widest flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
-                                    Recommended
-                                </h3>
-                                <div id="req-rec" class="text-xs text-slate-400 space-y-2 leading-relaxed">
-                                    Not specified for this platform.
-                                </div>
-                            </div>
+                </section>
+
+            </div>
+
+
+
+            <!-- ── TAB: REVIEWS ── -->
+            <div id="tab-reviews" class="gd-tab-panel hidden">
+                <div class="gd-reviews-layout">
+
+                    <!-- Write a Review -->
+                    <div id="review-form-card" class="gd-card gd-review-form">
+                        <h3 class="gd-card__heading">Write a Review</h3>
+                        <!-- Star Rating Picker -->
+                        <div class="rating-stars-picker" id="star-picker" onmouseleave="previewRating(0)">
+                            <input type="radio" name="rating" id="rs1" onchange="setRating(1)"><label for="rs1" onmouseenter="previewRating(1)"></label>
+                            <input type="radio" name="rating" id="rs2" onchange="setRating(2)"><label for="rs2" onmouseenter="previewRating(2)"></label>
+                            <input type="radio" name="rating" id="rs3" onchange="setRating(3)"><label for="rs3" onmouseenter="previewRating(3)"></label>
+                            <input type="radio" name="rating" id="rs4" onchange="setRating(4)"><label for="rs4" onmouseenter="previewRating(4)"></label>
+                            <input type="radio" name="rating" id="rs5" onchange="setRating(5)"><label for="rs5" onmouseenter="previewRating(5)"></label>
                         </div>
+                        <textarea id="review-comment" rows="4" placeholder="Share your thoughts…"
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none transition-all neon-focus">
+                        </textarea>
+                        <button id="review-submit-btn" onclick="submitReview()"
+                            class="btn-shimmer relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all">
+                            <span class="material-symbols-outlined text-[16px]">rate_review</span>
+                            Post Review
+                        </button>
                     </div>
 
-                    <!-- Reviews Section -->
-                    <div class="space-y-6 pt-8" id="reviews-section">
-                        <h2
-                            class="text-xl font-black italic uppercase tracking-wider text-white flex items-center gap-2">
-                            <span class="w-8 h-1 bg-primary rounded-full"></span>
-                            Community Reviews
-                        </h2>
-
-                        <!-- Write a Review Form -->
-                        <div id="review-form-card" class="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-4">
-                            <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest">Write a Review</h3>
-
-                            <!-- Star Rating Picker -->
-                            <div class="rating-stars-picker" id="star-picker" onmouseleave="previewRating(0)">
-                                <input type="radio" name="rating" id="rs1" onchange="setRating(1)"><label for="rs1"
-                                    onmouseenter="previewRating(1)"></label>
-                                <input type="radio" name="rating" id="rs2" onchange="setRating(2)"><label for="rs2"
-                                    onmouseenter="previewRating(2)"></label>
-                                <input type="radio" name="rating" id="rs3" onchange="setRating(3)"><label for="rs3"
-                                    onmouseenter="previewRating(3)"></label>
-                                <input type="radio" name="rating" id="rs4" onchange="setRating(4)"><label for="rs4"
-                                    onmouseenter="previewRating(4)"></label>
-                                <input type="radio" name="rating" id="rs5" onchange="setRating(5)"><label for="rs5"
-                                    onmouseenter="previewRating(5)"></label>
-                            </div>
-
-                            <!-- Comment -->
-                            <textarea id="review-comment" rows="3" placeholder="Share your thoughts…"
-                                onmousedown="if(!this.value.trim()){event.preventDefault();this.focus();this.setSelectionRange(0,0);}"
-                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none transition-all neon-focus">
-                            </textarea>
-
-                            <button id="review-submit-btn" onclick="submitReview()"
-                                class="btn-shimmer relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/20 border border-primary/40 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary/40 transition-all">
-                                <span class="material-symbols-outlined text-[16px]">rate_review</span>
-                                Post Review
-                            </button>
-                        </div>
-
-                        <!-- Reviews List -->
-                        <div id="reviews-list" class="space-y-4">
-                            <p id="reviews-empty" class="text-sm text-slate-600 italic">No reviews yet — be the first!
-                            </p>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Right Column: Sidebar (Col 9-12) -->
-                <div id="right-column" class="col-span-12 lg:col-span-4 space-y-6">
-
-                    <!-- Main CTA Card -->
-                    <div id="game-info-card"
-                        class="p-8 rounded-[40px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
-                        <!-- Background Glow -->
-                        <div
-                            class="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-[60px] rounded-full group-hover:bg-primary/30 transition-all">
-                        </div>
-
-                        <div class="relative space-y-6">
-                            <!-- Game Logo/Poster -->
-                            <div class="aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-                                <img id="game-side-poster" src="" alt="" class="w-full h-full object-cover">
-                            </div>
-
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <button id="btn-library" onclick="toggleLibrary()"
-                                        class="col-span-2 flex items-center justify-center gap-2 h-14 rounded-2xl glass-btn text-white font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-                                        <span id="library-icon" class="material-symbols-outlined">add_to_photos</span>
-                                        <span id="btn-library-label">Add to Library</span>
-                                    </button>
-                                    <button id="btn-wishlist" onclick="toggleWishlist()"
-                                        class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
-                                        <span class="material-symbols-outlined text-[20px]">bookmark</span>
-                                        <span id="btn-wishlist-label" class="text-xs uppercase">Wishlist</span>
-                                    </button>
-                                    <button id="btn-favorite" onclick="toggleFavorite()"
-                                        class="flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all">
-                                        <span id="fav-icon"
-                                            class="material-symbols-outlined text-[20px]">favorite</span>
-                                        <span id="btn-favorite-label" class="text-xs uppercase">Like</span>
-                                    </button>
-                                    <button id="btn-add-collection" onclick="openCollectionModal()"
-                                        class="col-span-2 flex items-center justify-center gap-2 h-12 rounded-2xl glass-btn text-white font-bold hover:bg-white/10 transition-all mt-2">
-                                        <span class="material-symbols-outlined text-[20px]">collections</span>
-                                        <span class="text-xs uppercase">Add to Collection</span>
-                                    </button>
-                                </div>
-
-                                <!-- Status Selection -->
-                                <div id="status-selection-container" class="hidden !mt-6">
-                                    <div class="flex flex-col gap-3">
-
-                                        <div
-                                            class="flex items-center justify-between bg-black/40 rounded-2xl p-1.5 border border-white/5 backdrop-blur-md shadow-inner relative">
-                                            <!-- Sliding Highlight -->
-                                            <div id="status-selection-highlight"
-                                                class="absolute bg-white/10 ring-1 ring-white/10 rounded-xl transition-all duration-500 ease-out pointer-events-none shadow-lg hidden">
-                                            </div>
-
-                                            <button onclick="changeStatus(1)" id="status-btn-1"
-                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
-                                                title="Playing">
-                                                <span
-                                                    class="material-symbols-outlined text-[20px] text-primary group-hover/s:scale-110 transition-transform">play_circle</span>
-                                            </button>
-                                            <button onclick="changeStatus(3)" id="status-btn-3"
-                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
-                                                title="Completed">
-                                                <span
-                                                    class="material-symbols-outlined text-[20px] text-green-500 group-hover/s:scale-110 transition-transform">check_circle</span>
-                                            </button>
-                                            <button onclick="changeStatus(5)" id="status-btn-5"
-                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
-                                                title="On Hold">
-                                                <span
-                                                    class="material-symbols-outlined text-[20px] text-yellow-500 group-hover/s:scale-110 transition-transform">pause_circle</span>
-                                            </button>
-                                            <button onclick="changeStatus(4)" id="status-btn-4"
-                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
-                                                title="Dropped">
-                                                <span
-                                                    class="material-symbols-outlined text-[20px] text-red-400 group-hover/s:scale-110 transition-transform">do_not_disturb_on</span>
-                                            </button>
-                                            <button onclick="changeStatus(6)" id="status-btn-6"
-                                                class="relative z-10 flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all group/s"
-                                                title="To Play / Pending">
-                                                <span
-                                                    class="material-symbols-outlined text-[20px] text-slate-400 group-hover/s:scale-110 transition-transform">schedule</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Meta Info List -->
-                            <div class="pt-6 border-t border-white/10 space-y-4">
-                                <!-- Price -->
-                                <div class="flex justify-between items-center text-sm">
-                                    <span
-                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Price</span>
-                                    <span id="val-price" class="font-black text-sm text-emerald-400"
-                                        style="text-shadow: 0 0 10px rgba(52,211,153,0.5)">--</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span
-                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Developer</span>
-                                    <span id="val-developer" class="text-slate-200 font-bold">--</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span
-                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Publisher</span>
-                                    <span id="val-publisher" class="text-slate-200 font-bold">--</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span
-                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Metascore</span>
-                                    <div class="flex items-center gap-2">
-                                        <span id="val-metascore"
-                                            class="px-2 py-0.5 rounded bg-green-500 text-black font-black">--</span>
-                                    </div>
-                                </div>
-                                <div id="achievements-container"
-                                    class="flex justify-between items-center text-sm pt-1 hidden">
-                                    <span
-                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Achievements</span>
-                                    <span id="val-achievements" class="text-slate-200 font-bold">--</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm pt-2">
-                                    <span
-                                        class="text-slate-500 font-bold uppercase tracking-tighter text-[11px]">Available
-                                        On</span>
-                                    <div id="platforms-icons" class="flex gap-2 text-slate-400"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tags Card -->
-                    <div id="tags-section" class="p-6 rounded-3xl bg-white/5 border border-white/10">
-                        <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest mb-4">Popular Tags</h3>
-                        <div id="genres-row" class="flex flex-wrap gap-2">
-                            <!-- Tags here -->
-                        </div>
-                    </div>
-
-                    <!-- Links Card -->
-                    <div id="links-container"
-                        class="p-6 rounded-3xl bg-white/5 border border-white/10 flex flex-col gap-3">
-                        <a id="btn-website" href="#" target="_blank"
-                            class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-primary transition-all group">
-                            WEBSITE
-                            <span
-                                class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">open_in_new</span>
-                        </a>
-                    </div>
-
-                    <!-- More Games from Company Card -->
-                    <div id="similar-games-card" class="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-4">
-                        <div class="flex items-center justify-between gap-2">
-                            <div>
-                                <p class="text-[9px] font-black uppercase text-slate-600 tracking-widest mb-0.5">More
-                                    Games From</p>
-                                <h3 id="company-games-heading"
-                                    class="text-xs font-black uppercase text-slate-400 tracking-widest">...</h3>
-                            </div>
-
-                        </div>
-                        <div id="similar-games-list" class="flex flex-col gap-3">
-                            <!-- Skeleton placeholders -->
-                            <div class="animate-pulse flex gap-3 items-center">
-                                <div class="w-14 h-14 rounded-xl bg-white/10 flex-shrink-0"></div>
-                                <div class="flex-1 space-y-2">
-                                    <div class="h-3 bg-white/10 rounded w-3/4"></div>
-                                    <div class="h-2 bg-white/10 rounded w-1/2"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- More Button Container -->
-                        <div id="more-company-games-container" class="mt-4 flex justify-center hidden">
-                            <button id="load-more-company-btn"
-                                class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-primary/50 transition-all group w-full justify-center">
-                                <span class="text-[10px] xirod-font tracking-widest font-black italic">MORE</span>
-                                <span
-                                    class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
-                            </button>
-                        </div>
+                    <!-- Reviews List -->
+                    <div id="reviews-list" class="space-y-4">
+                        <p id="reviews-empty" class="text-sm text-slate-600 italic">No reviews yet — be the first!</p>
                     </div>
                 </div>
             </div>
-        </div>
+
+        </div><!-- /gd-page-body -->
+
+        <!-- ============================================================
+             MODALS
+             ============================================================ -->
 
         <!-- Edit Review Modal -->
         <div id="edit-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
             <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="cancelEdit()"></div>
             <div class="relative z-10 w-full max-w-md mx-4 rounded-3xl bg-[#13151f] border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden"
                 style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
-                <!-- Accent bar -->
                 <div class="h-1 w-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500/60"></div>
-
-                <!-- X button absolutely positioned -->
-                <button onclick="cancelEdit()"
-                    class="absolute top-4 right-5 text-slate-600 hover:text-white transition-colors z-10">
+                <button onclick="cancelEdit()" class="absolute top-4 right-5 text-slate-600 hover:text-white transition-colors z-10">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
-
-                <!-- Form body -->
                 <div class="px-7 pt-6 pb-4 space-y-5">
-                    <!-- Stars -->
                     <div>
                         <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3">Your Rating</p>
                         <div class="rating-stars-picker" id="edit-modal-stars" onmouseleave="previewEditModalRating(0)">
-                            <input type="radio" name="edit-rating" id="ers1" onchange="setEditModalRating(1)"><label
-                                for="ers1" onmouseenter="previewEditModalRating(1)"></label>
-                            <input type="radio" name="edit-rating" id="ers2" onchange="setEditModalRating(2)"><label
-                                for="ers2" onmouseenter="previewEditModalRating(2)"></label>
-                            <input type="radio" name="edit-rating" id="ers3" onchange="setEditModalRating(3)"><label
-                                for="ers3" onmouseenter="previewEditModalRating(3)"></label>
-                            <input type="radio" name="edit-rating" id="ers4" onchange="setEditModalRating(4)"><label
-                                for="ers4" onmouseenter="previewEditModalRating(4)"></label>
-                            <input type="radio" name="edit-rating" id="ers5" onchange="setEditModalRating(5)"><label
-                                for="ers5" onmouseenter="previewEditModalRating(5)"></label>
+                            <input type="radio" name="edit-rating" id="ers1" onchange="setEditModalRating(1)"><label for="ers1" onmouseenter="previewEditModalRating(1)"></label>
+                            <input type="radio" name="edit-rating" id="ers2" onchange="setEditModalRating(2)"><label for="ers2" onmouseenter="previewEditModalRating(2)"></label>
+                            <input type="radio" name="edit-rating" id="ers3" onchange="setEditModalRating(3)"><label for="ers3" onmouseenter="previewEditModalRating(3)"></label>
+                            <input type="radio" name="edit-rating" id="ers4" onchange="setEditModalRating(4)"><label for="ers4" onmouseenter="previewEditModalRating(4)"></label>
+                            <input type="radio" name="edit-rating" id="ers5" onchange="setEditModalRating(5)"><label for="ers5" onmouseenter="previewEditModalRating(5)"></label>
                         </div>
                     </div>
-
-                    <!-- Comment -->
                     <div>
                         <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3">Your Review</p>
                         <textarea id="edit-modal-comment" rows="4" placeholder="Share your thoughts…"
                             class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none transition-all neon-focus"></textarea>
                     </div>
                 </div>
-
                 <div class="h-px bg-white/[0.06] mx-7"></div>
-
-                <!-- Actions -->
                 <div class="flex items-center justify-center gap-4 px-7 py-6">
-                    <button onclick="cancelEdit()"
-                        class="flex-1 py-3 rounded-2xl text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-150">
-                        Cancel
-                    </button>
-                    <button onclick="saveEditModal()"
-                        class="btn-shimmer relative overflow-hidden flex-1 py-3 rounded-2xl text-sm font-bold text-black bg-gradient-to-r from-amber-400 to-yellow-300 hover:opacity-90 shadow-lg shadow-amber-500/20 transition-all duration-150">
-                        Save Changes
-                    </button>
+                    <button onclick="cancelEdit()" class="flex-1 py-3 rounded-2xl text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-150">Cancel</button>
+                    <button onclick="saveEditModal()" class="btn-shimmer relative overflow-hidden flex-1 py-3 rounded-2xl text-sm font-bold text-black bg-gradient-to-r from-amber-400 to-yellow-300 hover:opacity-90 shadow-lg shadow-amber-500/20 transition-all duration-150">Save Changes</button>
                 </div>
             </div>
         </div>
 
         <!-- Custom Confirm Modal -->
         <div id="confirm-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
-            <!-- Backdrop -->
             <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="confirmModalReject()"></div>
-            <!-- Dialog -->
             <div class="relative z-10 w-full max-w-md mx-4 rounded-3xl bg-[#13151f] border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden"
                 style="animation: modalPop .18s cubic-bezier(.34,1.56,.64,1) both">
-                <!-- Red accent bar -->
                 <div class="h-1 w-full bg-gradient-to-r from-red-600 via-red-400 to-rose-500"></div>
-
-                <!-- Icon + text -->
                 <div class="px-8 pt-8 pb-6 flex flex-col items-center text-center gap-5">
-                    <div
-                        class="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                    <div class="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                         <span class="material-symbols-outlined text-red-400 text-[34px]">delete_forever</span>
                     </div>
                     <div>
                         <p class="text-lg font-black text-white mb-2 tracking-tight">Delete Review?</p>
                         <p class="text-sm text-slate-400 leading-relaxed max-w-xs">
-                            Your review will be permanently removed. This action <span
-                                class="text-red-400 font-semibold">cannot be undone</span>.
+                            Your review will be permanently removed. This action <span class="text-red-400 font-semibold">cannot be undone</span>.
                         </p>
                     </div>
                 </div>
-
-                <!-- Divider -->
                 <div class="h-px bg-white/[0.06] mx-8"></div>
-
-                <!-- Actions -->
                 <div class="flex items-center justify-center gap-4 px-8 py-6">
-                    <button onclick="confirmModalReject()"
-                        class="flex-1 py-3 rounded-2xl text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-150">
-                        Cancel
-                    </button>
-                    <button onclick="confirmModalResolve()"
-                        class="btn-shimmer relative overflow-hidden flex-1 py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-900/30 transition-all duration-150">
-                        Yes, Delete
-                    </button>
+                    <button onclick="confirmModalReject()" class="flex-1 py-3 rounded-2xl text-sm font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-150">Cancel</button>
+                    <button onclick="confirmModalResolve()" class="btn-shimmer relative overflow-hidden flex-1 py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-900/30 transition-all duration-150">Yes, Delete</button>
                 </div>
             </div>
         </div>
+
         <style>
             @keyframes modalPop {
-                from {
-                    opacity: 0;
-                    transform: scale(.92) translateY(12px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
-                }
+                from { opacity: 0; transform: scale(.92) translateY(12px); }
+                to { opacity: 1; transform: scale(1) translateY(0); }
             }
-
             @keyframes checkmarkPop {
-                0% {
-                    transform: scale(0.5);
-                    opacity: 0;
-                }
-
-                50% {
-                    transform: scale(1.2);
-                }
-
-                100% {
-                    transform: scale(1);
-                    opacity: 1;
-                }
+                0% { transform: scale(0.5); opacity: 0; }
+                60% { transform: scale(1.15); opacity: 1; }
+                100% { transform: scale(1); opacity: 1; }
             }
 
-            .checkmark-animate {
-                animation: checkmarkPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            }
-
-            #collection-modal-actions {
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                overflow: hidden;
-            }
-
-            #collection-modal-actions.hidden-action {
-                opacity: 0;
-                max-height: 0;
-                transform: translateY(10px) scale(0.95);
-                pointer-events: none;
-                margin-top: 0 !important;
-            }
-
-            #collection-modal-actions.show-action {
-                opacity: 1;
-                max-height: 80px;
-                transform: translateY(0) scale(1);
-                pointer-events: auto;
-                margin-top: 0.5rem !important;
-            }
-
-            @keyframes shimmerSweep {
-                0% {
-                    left: -80%;
-                }
-
-                100% {
-                    left: 130%;
-                }
-            }
-
-            .btn-shimmer::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -80%;
-                width: 55%;
-                height: 100%;
-                background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
-                transform: skewX(-20deg);
-                pointer-events: none;
-                opacity: 0;
-                transition: opacity 0.15s;
-            }
-
-            .btn-shimmer:hover::before {
-                opacity: 1;
-                animation: shimmerSweep 0.55s ease forwards;
-            }
-
-            .neon-focus:focus {
-                outline: none;
-                border-color: rgba(251, 191, 36, 0.6);
-                box-shadow: 0 0 10px rgba(251, 191, 36, 0.12), inset 0 0 8px rgba(251, 191, 36, 0.03);
-            }
-
-            /* === 3D Star Rating Picker === */
+            /* Rating Stars */
             .rating-stars-picker {
-                display: inline-flex;
-                align-items: center;
-                padding: 4px 2px;
-                position: relative;
-            }
-
-            .rating-stars-picker input {
-                display: none;
-            }
-
-            .rating-stars-picker label {
-                width: 32px;
-                height: 36px;
-                cursor: pointer;
-                margin: 0 1px;
-                position: relative;
                 display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.4s ease;
+                flex-direction: row-reverse;
+                justify-content: flex-end;
+                gap: 2px;
             }
-
-            /* Default: empty/dim stars */
+            .rating-stars-picker input { display: none; }
+            .rating-stars-picker label {
+                width: 32px; height: 36px; cursor: pointer; margin: 0 1px;
+                position: relative; display: flex; align-items: center; justify-content: center; transition: all 0.4s ease;
+            }
             .rating-stars-picker label:before {
-                content: "\2605";
-                font-size: 27px;
-                line-height: 1;
-                color: rgba(255, 255, 255, 0.12);
-                text-align: center;
-                transform: translateY(3px);
+                content: "\2605"; font-size: 27px; line-height: 1; color: rgba(255,255,255,0.12);
+                text-align: center; transform: translateY(3px);
                 transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease, text-shadow 0.3s ease;
-                text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.5);
-                filter: none;
+                text-shadow: 0px 1px 1px rgba(0,0,0,0.5); filter: none;
             }
-
-            /* Selected state */
             .rating-stars-picker label.star-filled:before {
-                color: #fbbf24;
-                transform: translateY(0px);
-                text-shadow:
-                    0px 1px 0px #d97706,
-                    0px 2px 0px #b45309,
-                    0px 3px 0px #92400e,
-                    0px 4px 0px #78350f,
-                    0px 5px 1px rgba(69, 26, 3, 0.55),
-                    0px 6px 3px rgba(0, 0, 0, 0.45);
-                filter: drop-shadow(0px 0px 5px rgba(251, 191, 36, 0.55)) drop-shadow(0px 3px 10px rgba(251, 191, 36, 0.35));
+                color: #fbbf24; transform: translateY(0px);
+                text-shadow: 0px 1px 0px #d97706, 0px 2px 0px #b45309, 0px 3px 0px #92400e, 0px 4px 0px #78350f, 0px 5px 1px rgba(69,26,3,0.55), 0px 6px 3px rgba(0,0,0,0.45);
+                filter: drop-shadow(0px 0px 5px rgba(251,191,36,0.55)) drop-shadow(0px 3px 10px rgba(251,191,36,0.35));
             }
-
-            /* Hover preview */
             .rating-stars-picker label.star-hover:before {
-                color: #fef08a;
-                transform: translateY(0px);
-                text-shadow:
-                    0px 1px 0px #f59e0b,
-                    0px 2px 0px #d97706,
-                    0px 3px 0px #b45309,
-                    0px 4px 0px #92400e,
-                    0px 5px 1px rgba(69, 26, 3, 0.45),
-                    0px 6px 3px rgba(0, 0, 0, 0.35);
-                filter: drop-shadow(0px 0px 9px rgba(254, 240, 138, 0.75)) drop-shadow(0px 3px 14px rgba(251, 191, 36, 0.55));
+                color: #fef08a; transform: translateY(0px);
+                text-shadow: 0px 1px 0px #f59e0b, 0px 2px 0px #d97706, 0px 3px 0px #b45309, 0px 4px 0px #92400e, 0px 5px 1px rgba(69,26,3,0.45), 0px 6px 3px rgba(0,0,0,0.35);
+                filter: drop-shadow(0px 0px 9px rgba(254,240,138,0.75)) drop-shadow(0px 3px 14px rgba(251,191,36,0.55));
             }
-
-            /* Staggered transition delays for wave effect */
-            .rating-stars-picker label:nth-child(2):before {
-                transition-delay: 0.04s;
-            }
-
-            .rating-stars-picker label:nth-child(4):before {
-                transition-delay: 0.08s;
-            }
-
-            .rating-stars-picker label:nth-child(6):before {
-                transition-delay: 0.12s;
-            }
-
-            .rating-stars-picker label:nth-child(8):before {
-                transition-delay: 0.16s;
-            }
-
-            .rating-stars-picker label:nth-child(10):before {
-                transition-delay: 0.20s;
-            }
+            .rating-stars-picker label:nth-child(2):before { transition-delay: 0.04s; }
+            .rating-stars-picker label:nth-child(4):before { transition-delay: 0.08s; }
+            .rating-stars-picker label:nth-child(6):before { transition-delay: 0.12s; }
+            .rating-stars-picker label:nth-child(8):before { transition-delay: 0.16s; }
+            .rating-stars-picker label:nth-child(10):before { transition-delay: 0.20s; }
         </style>
 
         <!-- Toast Container -->
         <div id="toast-container" class="fixed bottom-8 right-8 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     </main>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center"
+        onclick="closeLightbox()">
+        <button class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 rounded-full p-2 transition-colors z-10">
+            <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+        <button id="lb-prev" onclick="event.stopPropagation(); lbNavigate(-1)"
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <button id="lb-next" onclick="event.stopPropagation(); lbNavigate(1)"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+        <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+            onclick="event.stopPropagation()" />
+        <p id="lightbox-counter" class="absolute bottom-4 text-white/50 text-sm"></p>
+    </div>
 
     <script src="../../Shared/Js/collections.js"></script>
     <!-- Collections Modal -->
@@ -893,27 +605,20 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-xs xirod-font text-white uppercase tracking-widest">Collections</h3>
-                        <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">Organize your
-                            games</p>
+                        <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">Organize your games</p>
                     </div>
                     <button onclick="closeCollectionModal()"
                         class="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-slate-500 hover:text-white hover:bg-white/10 transition-all">
                         <span class="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
-
-                <!-- Existing Collections List -->
-                <div id="collections-list-container"
-                    class="space-y-2.5 max-h-[280px] overflow-y-auto custom-scrollbar pr-1">
-                    <!-- Loaded dynamically -->
+                <div id="collections-list-container" class="space-y-2.5 max-h-[280px] overflow-y-auto custom-scrollbar pr-1">
                     <div class="animate-pulse space-y-3">
                         <div class="h-14 bg-white/5 rounded-2xl"></div>
                         <div class="h-14 bg-white/5 rounded-2xl"></div>
                         <div class="h-14 bg-white/5 rounded-2xl"></div>
                     </div>
                 </div>
-
-                <!-- Confirm Action -->
                 <div id="collection-modal-actions" class="hidden-action pt-2">
                     <button onclick="saveCollectionSelection()"
                         class="btn-shimmer relative w-full h-12 rounded-2xl bg-accent/20 border border-accent/40 text-accent text-[10px] xirod-font tracking-widest font-black italic hover:bg-accent/30 transition-all flex items-center justify-center gap-3 overflow-hidden">
@@ -921,11 +626,8 @@
                         ADD TO COLLECTIONS
                     </button>
                 </div>
-
-                <!-- Create New Inline -->
                 <div class="pt-6 border-t border-white/5">
-                    <p class="text-[9px] font-black uppercase text-slate-600 tracking-widest mb-3">Create New Collection
-                    </p>
+                    <p class="text-[9px] font-black uppercase text-slate-600 tracking-widest mb-3">Create New Collection</p>
                     <div class="flex items-center gap-2">
                         <input type="text" id="new-collection-name" placeholder="Collection name..."
                             class="flex-1 h-11 bg-white/5 border border-white/10 rounded-2xl px-4 text-xs text-white outline-none focus:outline-none focus:border-accent placeholder-slate-600 transition-all">
@@ -938,82 +640,37 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabName, btn) {
+            // Hide all panels
+            document.querySelectorAll('.gd-tab-panel').forEach(p => p.classList.add('hidden'));
+            // Deactivate all tabs
+            document.querySelectorAll('.gd-tab').forEach(t => t.classList.remove('gd-tab--active'));
+            // Show target panel
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            // Activate button
+            btn.classList.add('gd-tab--active');
+        }
+
+        // Description toggle
+        function toggleDescription() {
+            const desc = document.getElementById('game-description');
+            const btn = document.getElementById('show-more-btn');
+            const isCollapsed = desc.classList.contains('collapsed');
+            desc.classList.toggle('collapsed', !isCollapsed);
+            btn.innerHTML = isCollapsed
+                ? 'Show Less <span class="material-symbols-outlined text-[14px]">expand_less</span>'
+                : 'Show More <span class="material-symbols-outlined text-[14px]">expand_more</span>';
+        }
+    </script>
+
+    <script src="../../Assets/vendor/signalr/signalr.min.js"></script>
+    <script src="../../Auth/Js/auth.js"></script>
+    <script src="../../Shared/Js/notifications.js"></script>
+    <script src="../Js/game-details.js"></script>
     <script src="../../Shared/Js/auth-header.js"></script>
-</body>
-
-</html>
-<div id="publishers-list" class="flex flex-wrap gap-2"></div>
-</div>
-
-<!-- Genres -->
-<div id="detail-genres" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
-    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px] text-primary">category</span>Genres
-    </h3>
-    <div id="genres-detail-list" class="flex flex-wrap gap-2"></div>
-</div>
-
-<!-- Platforms -->
-<div id="detail-platforms" class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30">
-    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px] text-primary">devices</span>Platforms
-    </h3>
-    <div id="platforms-detail-list" class="flex flex-wrap gap-2"></div>
-</div>
-
-<!-- Tags -->
-<div id="detail-tags"
-    class="hidden detail-card p-5 rounded-2xl border border-[#2e616b]/20 bg-[#1e292b]/30 sm:col-span-2">
-    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px] text-primary">sell</span>Tags
-    </h3>
-    <div id="tags-list" class="flex flex-wrap gap-2"></div>
-</div>
-</div>
-</div>
-
-</div>
-
-</div>
-
-<!-- Error State -->
-<div id="error-state"
-    class="hidden relative z-10 flex flex-col items-center justify-center flex-1 min-h-[60vh] text-slate-500">
-    <span class="material-symbols-outlined text-7xl mb-4 text-red-500/60">error</span>
-    <p class="text-lg font-medium text-red-400">Failed to load game details</p>
-    <p class="text-sm mt-1 opacity-70">The game could not be found or the server is unavailable.</p>
-    <button onclick="history.back()"
-        class="mt-6 px-6 py-2 bg-primary/10 border border-primary/30 text-primary rounded-full hover:bg-primary hover:text-white transition-all">
-        Go Back
-    </button>
-</div>
-
-</main>
-
-<!-- Lightbox -->
-<div id="lightbox" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center"
-    onclick="closeLightbox()">
-    <button
-        class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 rounded-full p-2 transition-colors z-10">
-        <span class="material-symbols-outlined text-2xl">close</span>
-    </button>
-    <button id="lb-prev" onclick="event.stopPropagation(); lbNavigate(-1)"
-        class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
-        <span class="material-symbols-outlined">arrow_back</span>
-    </button>
-    <button id="lb-next" onclick="event.stopPropagation(); lbNavigate(1)"
-        class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 rounded-full p-3 transition-colors z-10">
-        <span class="material-symbols-outlined">arrow_forward</span>
-    </button>
-    <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
-        onclick="event.stopPropagation()" />
-    <p id="lightbox-counter" class="absolute bottom-4 text-white/50 text-sm"></p>
-</div>
-
-<script src="../../Assets/vendor/signalr/signalr.min.js"></script>
-<script src="../../Auth/Js/auth.js"></script>
-<script src="../../Shared/Js/notifications.js"></script>
-<script src="../Js/game-details.js"></script>
 </body>
 
 </html>

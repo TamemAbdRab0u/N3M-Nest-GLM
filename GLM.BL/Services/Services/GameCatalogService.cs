@@ -548,9 +548,9 @@ namespace Game_Library_Management_BL.Services.Services
                     {
                         if (firstMovie.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Object)
                         {
-                            // Prefer 480 quality, fall back to max
-                            if (dataProp.TryGetProperty("480", out var p480)) dto.TrailerUrl = p480.GetString();
-                            else if (dataProp.TryGetProperty("max", out var pMax)) dto.TrailerUrl = pMax.GetString();
+                            // Prefer max quality, fall back to 480
+                            if (dataProp.TryGetProperty("max", out var pMax)) dto.TrailerUrl = pMax.GetString();
+                            else if (dataProp.TryGetProperty("480", out var p480)) dto.TrailerUrl = p480.GetString();
                         }
                         if (string.IsNullOrEmpty(dto.TrailerPreview) && firstMovie.TryGetProperty("preview", out var mvPreview))
                             dto.TrailerPreview = mvPreview.GetString();
