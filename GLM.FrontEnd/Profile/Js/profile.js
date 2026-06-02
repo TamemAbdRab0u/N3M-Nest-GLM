@@ -451,6 +451,7 @@ function toggleEditMode() {
     const levelEditIcon = document.getElementById("level-edit-icon");
     const profileEditControls = document.getElementById("profile-edit-controls");
     const levelDisplay = document.getElementById("profile-level");
+    const bannerCameraBtn = document.getElementById("banner-camera-edit-btn");
 
     if (isEditMode) {
         // Enter Edit Mode
@@ -473,6 +474,10 @@ function toggleEditMode() {
         if (avatarOverlay) {
             avatarOverlay.classList.remove("hidden");
             avatarOverlay.classList.add("flex");
+        }
+        if (bannerCameraBtn) {
+            bannerCameraBtn.classList.remove("hidden");
+            bannerCameraBtn.classList.add("flex");
         }
         if (nameEditIcon) nameEditIcon.classList.remove("hidden");
         if (bioEditIcon) bioEditIcon.classList.remove("hidden");
@@ -509,6 +514,10 @@ function toggleEditMode() {
         if (avatarOverlay) {
             avatarOverlay.classList.add("hidden");
             avatarOverlay.classList.remove("flex");
+        }
+        if (bannerCameraBtn) {
+            bannerCameraBtn.classList.add("hidden");
+            bannerCameraBtn.classList.remove("flex");
         }
         if (nameEditIcon) nameEditIcon.classList.add("hidden");
         if (bioEditIcon) bioEditIcon.classList.add("hidden");

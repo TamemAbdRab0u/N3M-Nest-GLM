@@ -350,11 +350,11 @@ function renderGameCard(g) {
             <div class="content-container" onclick="window.navigateToGame('${navId}')">
                 <div class="flex items-center gap-3">
                     <h4 class="text-lg font-thin text-white truncate group-hover:text-primary transition-colors tracking-tight" title="${title}">${title}</h4>
-                    ${releaseYear ? `<span class="bg-white/5 px-2 py-0.5 rounded text-[10px] font-thin text-slate-500 tracking-wider">${releaseYear}</span>` : ''}
+                    ${releaseYear ? `<span class="hidden sm:inline-block bg-white/5 px-2 py-0.5 rounded text-[10px] font-thin text-slate-500 tracking-wider">${releaseYear}</span>` : ''}
                 </div>
                 
                 <div class="flex items-center gap-4 mt-1">
-                    <span class="text-[9px] text-slate-500 uppercase font-thin tracking-widest">${escapeHtml(genreLabel)}</span>
+                    <span class="hidden sm:inline-block text-[9px] text-slate-500 uppercase font-thin tracking-widest">${escapeHtml(genreLabel)}</span>
                     ${statusBadge}
                 </div>
             </div>

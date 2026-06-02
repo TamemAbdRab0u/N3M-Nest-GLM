@@ -287,10 +287,10 @@ function setFavoriteView(view) {
     });
 
     // Handle container classes
-    container.classList.remove('list-view', 'single-view', 'grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+    container.classList.remove('list-view', 'single-view', 'grid', 'grid-cols-1', 'sm:grid-cols-2', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
 
     if (view === 'grid') {
-        container.classList.add('grid', 'grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+        container.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
         if (gridBtn) {
             gridBtn.classList.add(...activeClasses);
             gridBtn.classList.remove(...inactiveClasses);
